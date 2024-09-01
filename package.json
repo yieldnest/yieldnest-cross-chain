@@ -2,13 +2,14 @@
   "name": "yieldnest-cross-chain",
   "description": "Contracts and scripts for deploying cross chain yieldnest tokens using LayerZero.",
   "version": "0.1.0",
-  "dependencies": {
+  "devDependencies": {
     "@layerzerolabs/lz-evm-messagelib-v2": "^2.1.27",
     "@layerzerolabs/lz-evm-oapp-v2": "^2.1.18",
     "@layerzerolabs/lz-evm-protocol-v2": "^2.1.27",
     "@openzeppelin/contracts": "^5.0.1",
     "@openzeppelin/contracts-upgradeable": "^5.0.2",
     "forge-std": "github:foundry-rs/forge-std#v1.8.1",
+    "husky": "^9.1.5",
     "layerzero-v2": "github:JorgeAtPaladin/LayerZero-v2#lz-upgrade",
     "solidity-bytes-utils": "^0.8.2"
   },
@@ -18,6 +19,8 @@
   "scripts": {
     "build": "yarn install && forge build",
     "compile": "forge compile",
-    "test": "forge test"
+    "format": "forge fmt --root .",
+    "test": "forge test",
+    "prepare": "husky"
   }
 }

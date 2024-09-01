@@ -40,6 +40,11 @@ forge-std@^1.1.2:
   version "1.7.6"
   resolved "https://codeload.github.com/foundry-rs/forge-std/tar.gz/bb4ceea94d6f10eeb5b41dc2391c6c8bf8e734ef"
 
+husky@^9.1.5:
+  version "9.1.5"
+  resolved "https://registry.yarnpkg.com/husky/-/husky-9.1.5.tgz#2b6edede53ee1adbbd3a3da490628a23f5243b83"
+  integrity sha512-rowAVRUBfI0b4+niA4SJMhfQwc107VLkBUgEYYAOQAbqDCnra1nYh83hF/MDmhYs9t9n1E3DuKOrs2LYNC+0Ag==
+
 "layerzero-v2@github:JorgeAtPaladin/LayerZero-v2#lz-upgrade":
   version "2.0.2"
   resolved "https://codeload.github.com/JorgeAtPaladin/LayerZero-v2/tar.gz/21ad027cf323c323619566d2c9d1f2fa404f021f"
