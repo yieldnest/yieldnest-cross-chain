@@ -2,5 +2,14 @@
 src = "src"
 out = "out"
 libs = ["lib"]
-
-# See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
+test = 'test'
+cache_path = 'cache'
+fs_permissions = [
+    { access = "read-write", path = "./deployments" },
+    { access = "read", path = "./" },
+]
+optimizer = true
+optimizer-runs = 200
+evm_version = "cancun"
+solc_version = "0.8.24"
+prompt_timeout = 120
