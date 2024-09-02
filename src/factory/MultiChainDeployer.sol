@@ -10,8 +10,8 @@ import {L2YnERC20Upgradeable} from "src/L2YnERC20Upgradeable.sol";
 
 contract MultiChainDeployer is IMultiChainDeployer {
     event ContractCreated(address deployedAddress);
-    /// @inheritdoc	IMultiChainDeployer
 
+    /// @inheritdoc	IMultiChainDeployer
     function deploy(bytes32 salt, bytes memory creationCode)
         public
         payable
@@ -24,6 +24,7 @@ contract MultiChainDeployer is IMultiChainDeployer {
         emit ContractCreated(_deployedContract);
     }
 
+    /// @inheritdoc	IMultiChainDeployer
     function deployOFTAdapter(
         bytes32 salt,
         bytes memory creationCode,
@@ -35,6 +36,7 @@ contract MultiChainDeployer is IMultiChainDeployer {
         initializeOFTAdapter(_deployedContract, _rateLimitConfigs);
     }
 
+    /// @inheritdoc	IMultiChainDeployer
     function deployYnERC20(bytes32 salt, bytes memory creationCode, string memory _name, string memory _symbol)
         public
         returns (address _deployedContract)
@@ -52,12 +54,14 @@ contract MultiChainDeployer is IMultiChainDeployer {
         return CREATE3.getDeployed(salt);
     }
 
+    /// @inheritdoc	IMultiChainDeployer
     function initializeOFTAdapter(address _deployedContract, RateLimiter.RateLimitConfig[] calldata _rateLimitConfigs)
         public
     {
         L2YnOFTAdapterUpgradeable(_deployedContract).initialize(msg.sender, _rateLimitConfigs);
     }
 
+    /// @inheritdoc	IMultiChainDeployer
     function initializeYnERC20Upgradeable(address _deployedContract, string memory _name, string memory _symbol)
         public
     {
