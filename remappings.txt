@@ -6,3 +6,4 @@ forge-std/=node_modules/forge-std/src/
 @layerzerolabs/lz-evm-oapp-v2/contracts-upgradeable/=node_modules/layerzero-v2/oapp/contracts/
 @openzeppelin/contracts/=node_modules/@openzeppelin/contracts/
 @openzeppelin/contracts-upgradeable/=node_modules/@openzeppelin/contracts-upgradeable/
+@solmate/=lib/solmate/src/
