@@ -41,7 +41,7 @@ contract MultiChainDeployer is IMultiChainDeployer {
         returns (address _deployedContract)
     {
         // move the initialization code from calldata to memory.
-        bytes memory initCode = initializationCode;
+        bytes memory initCode = creationCode;
 
         // get target deployment
         address targetDeploymentAddress = getDeployed(msg.sender, salt);
