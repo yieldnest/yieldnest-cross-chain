@@ -7,15 +7,13 @@ import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/Ra
 import {IMultiChainDeployer} from "@interfaces/IMultiChainDeployer.sol";
 import {L2YnOFTAdapterUpgradeable} from "@adapters/L2YnOFTAdapterUpgradeable.sol";
 import {L2YnERC20Upgradeable} from "@adapters/L2YnERC20Upgradeable.sol";
+import "forge-std/console.sol";
 
 contract MultiChainDeployer is IMultiChainDeployer {
     event ContractCreated(address deployedAddress);
 
     // mapping to track the already deployed addresses
     mapping(address => bool) private _deployed;
-
-    // empty constructor
-    constructor() public {}
 
     /// @dev Modifier to ensure that the first 20 bytes of a submitted salt match
     /// those of the calling account. This provides protection against the salt
@@ -25,6 +23,8 @@ contract MultiChainDeployer is IMultiChainDeployer {
     modifier containsCaller(bytes32 salt) {
         // prevent contract submissions from being stolen from tx.pool by requiring
         // that the first 20 bytes of the submitted salt match msg.sender.
+        console.log(address(bytes20(salt)));
+        console.log(msg.sender);
         require(
             (address(bytes20(salt)) == msg.sender) || (bytes20(salt) == bytes20(0)),
             "Invalid salt - first 20 bytes of the salt must match calling address."
@@ -52,7 +52,7 @@ contract MultiChainDeployer is IMultiChainDeployer {
         );
 
         // use create 3 to deploy contract
-        _deployedContract = CREATE3.deploy(salt, creationCode, msg.value);
+        _deployedContract = CREATE3.deploy(salt, initCode, msg.value);
 
         // check address against target to make sure deployment was successful
         require(targetDeploymentAddress == _deployedContract, "failed to deploy to correct address");
