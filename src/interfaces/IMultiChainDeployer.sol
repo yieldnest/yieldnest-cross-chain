@@ -13,7 +13,7 @@ interface IMultiChainDeployer {
     /// @param salt The deployer-specific salt for determining the deployed contract's address
     /// @param creationCode The creation code of the contract to deploy
     /// @return deployed The address of the deployed contract
-    function deploy(bytes32 salt, bytes memory creationCode) external payable returns (address deployed);
+    function deploy(bytes32 salt, bytes calldata creationCode) external payable returns (address deployed);
 
     /// @notice Deploys a deployOFTAdapter contract using CREATE3 and initializes in the same call
     /// @dev The provided salt is hashed together with msg.sender to generate the final salt
@@ -23,7 +23,7 @@ interface IMultiChainDeployer {
     /// @return deployed The address of the deployed contract
     function deployOFTAdapter(
         bytes32 salt,
-        bytes memory creationCode,
+        bytes calldata creationCode,
         RateLimiter.RateLimitConfig[] calldata _rateLimitConfigs
     ) external returns (address deployed);
 
@@ -34,7 +34,7 @@ interface IMultiChainDeployer {
     /// @param _name the name of the erc20 to be passed to the initializer
     /// @param _symbol the symbol of the erc20 to be passed to the initializer
     /// @return deployed The address of the deployed contract
-    function deployYnERC20(bytes32 salt, bytes memory creationCode, string memory _name, string memory _symbol)
+    function deployYnERC20(bytes32 salt, bytes calldata creationCode, string memory _name, string memory _symbol)
         external
         returns (address deployed);
 
@@ -44,6 +44,12 @@ interface IMultiChainDeployer {
     /// @param salt The deployer-specific salt for determining the deployed contract's address
     /// @return deployed The address of the contract that will be deployed
     function getDeployed(address deployer, bytes32 salt) external view returns (address deployed);
+
+    /// @dev Determine if a contract has already been deployed by the factory to a
+    /// given address.
+    /// @param deploymentAddress address The contract address to check.
+    /// @return True if the contract has been deployed, false otherwise.
+    function hasBeenDeployed(address deploymentAddress) external view returns (bool);
 
     /// @notice Initializes a deployed YnOFTAdapter
     /// @dev This is intended to be called atomically in the deployOFTAdapter, but can be called seperatly as well

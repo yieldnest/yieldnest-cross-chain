@@ -7,3 +7,6 @@ forge-std/=node_modules/forge-std/src/
 @openzeppelin/contracts/=node_modules/@openzeppelin/contracts/
 @openzeppelin/contracts-upgradeable/=node_modules/@openzeppelin/contracts-upgradeable/
 @solmate/=lib/solmate/src/
+@adapters/=src/
+@factory/=src/factory/
+@interfaces/=src/interfaces/
