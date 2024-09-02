@@ -14,7 +14,7 @@ contract CrossChainBaseTest is Test {
     L2YnERC20Upgradeable public l2YnERC20;
     L2YnOFTAdapterUpgradeable public l2OFTAdapter;
 
-    function setUp() {
-        multichainDeployer = new multiChainDeployer();
+    function setUp() public {
+        multiChainDeployer = new MultiChainDeployer();
     }
 }
