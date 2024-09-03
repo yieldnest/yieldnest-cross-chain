@@ -3,11 +3,11 @@ pragma solidity ^0.8.24;
 
 import {CREATE3} from "solmate/utils/CREATE3.sol";
 import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
 import {IMultiChainDeployer} from "@interfaces/IMultiChainDeployer.sol";
 import {L2YnOFTAdapterUpgradeable} from "@adapters/L2YnOFTAdapterUpgradeable.sol";
 import {L2YnERC20Upgradeable} from "@adapters/L2YnERC20Upgradeable.sol";
-import "forge-std/console.sol";
 
 contract MultiChainDeployer is IMultiChainDeployer {
     event ContractCreated(address deployedAddress);
@@ -23,8 +23,6 @@ contract MultiChainDeployer is IMultiChainDeployer {
     modifier containsCaller(bytes32 salt) {
         // prevent contract submissions from being stolen from tx.pool by requiring
         // that the first 20 bytes of the submitted salt match msg.sender.
-        console.log(address(bytes20(salt)));
-        console.log(msg.sender);
         require(
             (address(bytes20(salt)) == msg.sender) || (bytes20(salt) == bytes20(0)),
             "Invalid salt - first 20 bytes of the salt must match calling address."
@@ -33,18 +31,15 @@ contract MultiChainDeployer is IMultiChainDeployer {
     }
 
     /// @inheritdoc	IMultiChainDeployer
-    function deploy(bytes32 salt, bytes calldata creationCode)
+    function deploy(bytes32 salt, bytes memory initCode)
         public
         payable
         override
         containsCaller(salt)
         returns (address _deployedContract)
     {
-        // move the initialization code from calldata to memory.
-        bytes memory initCode = creationCode;
-
         // get target deployment
-        address targetDeploymentAddress = getDeployed(msg.sender, salt);
+        address targetDeploymentAddress = CREATE3.getDeployed(salt);
 
         require(
             !_deployed[targetDeploymentAddress],
@@ -65,32 +60,39 @@ contract MultiChainDeployer is IMultiChainDeployer {
     }
 
     /// @inheritdoc	IMultiChainDeployer
-    function deployOFTAdapter(
-        bytes32 salt,
-        bytes calldata creationCode,
+    function deployL2YnOFTAdapter(
+        bytes32 _implSalt,
+        bytes32 _proxySalt,
+        address _token,
+        address _lzEndpoint,
+        address _owner,
         RateLimiter.RateLimitConfig[] calldata _rateLimitConfigs
     ) public returns (address _deployedContract) {
-        //deploy the contract with create3
-        _deployedContract = this.deploy(salt, creationCode);
-        // initialize the YnOFTAdapter
-        initializeOFTAdapter(_deployedContract, _rateLimitConfigs);
+        bytes memory bytecode = type(L2YnOFTAdapterUpgradeable).creationCode;
+        bytes memory constructorParams = abi.encode(_token, _lzEndpoint);
+        bytes memory contractCode = abi.encodePacked(bytecode, constructorParams);
+
+        address adapterImpl = deploy(_implSalt, contractCode);
+        _deployedContract = deployProxy(_proxySalt, adapterImpl, _owner);
+        L2YnOFTAdapterUpgradeable(_deployedContract).initialize(_owner, _rateLimitConfigs);
     }
 
     /// @inheritdoc	IMultiChainDeployer
-    function deployYnERC20(bytes32 salt, bytes calldata creationCode, string memory _name, string memory _symbol)
-        public
-        returns (address _deployedContract)
-    {
-        //deploy the contract with create3
-        _deployedContract = _deployedContract = this.deploy(salt, creationCode);
-        // initialize the deployed ERC20
-        initializeYnERC20Upgradeable(_deployedContract, _name, _symbol);
+    function deployL2YnERC20(
+        bytes32 _implSalt,
+        bytes32 _proxySalt,
+        string memory _name,
+        string memory _symbol,
+        address _owner
+    ) public returns (address _deployedContract) {
+        address adapterImpl = deploy(_implSalt, type(L2YnERC20Upgradeable).creationCode);
+        _deployedContract = deployProxy(_proxySalt, adapterImpl, _owner);
+        L2YnERC20Upgradeable(_deployedContract).initialize(_name, _symbol, _owner);
     }
 
     /// @inheritdoc	IMultiChainDeployer
-    function getDeployed(address deployer, bytes32 salt) public view override returns (address deployed) {
+    function getDeployed(bytes32 salt) public view override returns (address deployed) {
         // hash salt with the deployer address to give each deployer its own namespace
-        salt = keccak256(abi.encodePacked(deployer, salt));
         return CREATE3.getDeployed(salt);
     }
 
@@ -99,17 +101,10 @@ contract MultiChainDeployer is IMultiChainDeployer {
         return _deployed[deploymentAddress];
     }
 
-    /// @inheritdoc	IMultiChainDeployer
-    function initializeOFTAdapter(address _deployedContract, RateLimiter.RateLimitConfig[] calldata _rateLimitConfigs)
-        public
-    {
-        L2YnOFTAdapterUpgradeable(_deployedContract).initialize(msg.sender, _rateLimitConfigs);
-    }
-
-    /// @inheritdoc	IMultiChainDeployer
-    function initializeYnERC20Upgradeable(address _deployedContract, string memory _name, string memory _symbol)
-        public
-    {
-        L2YnERC20Upgradeable(_deployedContract).initialize(_name, _symbol, msg.sender);
+    function deployProxy(bytes32 salt, address implementation, address controller) internal returns (address proxy) {
+        bytes memory bytecode = type(TransparentUpgradeableProxy).creationCode;
+        bytes memory constructorParams = abi.encode(implementation, controller, "");
+        bytes memory contractCode = abi.encodePacked(bytecode, constructorParams);
+        proxy = deploy(salt, contractCode);
     }
 }
