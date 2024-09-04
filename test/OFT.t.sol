@@ -63,9 +63,9 @@ contract OFTTest is TestHelper {
         super.setUp();
         setUpEndpoints(3, LibraryType.UltraLightNode);
         RateLimiter.RateLimitConfig[] memory _rateLimitConfigs = new RateLimiter.RateLimitConfig[](3);
-        _rateLimitConfigs[0] = RateLimiter.RateLimitConfig({dstEid: 1, limit: 1000000 ether, window: 1 days});
-        _rateLimitConfigs[1] = RateLimiter.RateLimitConfig({dstEid: 2, limit: 1000000 ether, window: 1 days});
-        _rateLimitConfigs[2] = RateLimiter.RateLimitConfig({dstEid: 3, limit: 1000000 ether, window: 1 days});
+        _rateLimitConfigs[0] = RateLimiter.RateLimitConfig({dstEid: 1, limit: 10 ether, window: 1 days});
+        _rateLimitConfigs[1] = RateLimiter.RateLimitConfig({dstEid: 2, limit: 10 ether, window: 1 days});
+        _rateLimitConfigs[2] = RateLimiter.RateLimitConfig({dstEid: 3, limit: 10 ether, window: 1 days});
 
         {
             aERC20 = new ERC20Mock("aToken", "aToken");
@@ -169,6 +169,67 @@ contract OFTTest is TestHelper {
         assertEq(aERC20.balanceOf(userA), initialBalance - tokensToSend);
         assertEq(aERC20.balanceOf(address(aOFTAdapter)), tokensToSend);
         assertEq(bERC20.balanceOf(userB), 0 + tokensToSend);
+    }
+
+    function test_send_oft_rate_limited() public {
+        uint256 tokensToSend = 20 ether;
+        bytes memory options = OptionsBuilder.newOptions().addExecutorLzReceiveOption(200000, 0);
+        SendParam memory sendParam =
+            SendParam(bEid, addressToBytes32(userB), tokensToSend, tokensToSend, options, "", "");
+        MessagingFee memory fee = aOFTAdapter.quoteSend(sendParam, false);
+
+        assertEq(aERC20.balanceOf(userA), initialBalance);
+        assertEq(bERC20.balanceOf(userB), 0);
+
+        vm.startPrank(userA);
+        aERC20.approve(address(aOFTAdapter), tokensToSend);
+        vm.expectRevert(RateLimiter.RateLimitExceeded.selector);
+        aOFTAdapter.send{value: fee.nativeFee}(sendParam, fee, payable(address(this)));
+        vm.stopPrank();
+    }
+
+    function test_send_oft_rate_limits_lifted() public {
+        uint256 firstTokensToSend = 9 ether;
+        bytes memory options = OptionsBuilder.newOptions().addExecutorLzReceiveOption(200000, 0);
+        SendParam memory sendParam =
+            SendParam(bEid, addressToBytes32(userB), firstTokensToSend, firstTokensToSend, options, "", "");
+        MessagingFee memory fee = aOFTAdapter.quoteSend(sendParam, false);
+
+        assertEq(aERC20.balanceOf(userA), initialBalance);
+        assertEq(bERC20.balanceOf(userB), 0);
+
+        vm.startPrank(userA);
+        aERC20.approve(address(aOFTAdapter), firstTokensToSend);
+        aOFTAdapter.send{value: fee.nativeFee}(sendParam, fee, payable(address(this)));
+        vm.stopPrank();
+
+        verifyPackets(bEid, addressToBytes32(address(bOFTAdapter)));
+
+        assertEq(aERC20.balanceOf(userA), initialBalance - firstTokensToSend);
+        assertEq(aERC20.balanceOf(address(aOFTAdapter)), firstTokensToSend);
+        assertEq(bERC20.balanceOf(userB), 0 + firstTokensToSend);
+
+        uint256 secondTokensToSend = 5 ether;
+        sendParam = SendParam(bEid, addressToBytes32(userB), secondTokensToSend, secondTokensToSend, options, "", "");
+        fee = aOFTAdapter.quoteSend(sendParam, false);
+
+        vm.startPrank(userA);
+        aERC20.approve(address(aOFTAdapter), secondTokensToSend);
+        vm.expectRevert(RateLimiter.RateLimitExceeded.selector);
+        aOFTAdapter.send{value: fee.nativeFee}(sendParam, fee, payable(address(this)));
+        vm.stopPrank();
+
+        //pass the time
+        vm.warp(block.timestamp + 1 days);
+
+        vm.prank(userA);
+        aOFTAdapter.send{value: fee.nativeFee}(sendParam, fee, payable(address(this)));
+
+        verifyPackets(bEid, addressToBytes32(address(bOFTAdapter)));
+
+        assertEq(aERC20.balanceOf(userA), initialBalance - firstTokensToSend - secondTokensToSend);
+        assertEq(aERC20.balanceOf(address(aOFTAdapter)), firstTokensToSend + secondTokensToSend);
+        assertEq(bERC20.balanceOf(userB), 0 + firstTokensToSend + secondTokensToSend);
     }
 
     function test_send_oft_and_receive() public {
