@@ -6,7 +6,7 @@ import {OFTAdapterUpgradeable} from "@layerzerolabs/lz-evm-oapp-v2/contracts-upg
 import {OFTUpgradeable} from "@layerzerolabs/lz-evm-oapp-v2/contracts-upgradeable/oft/OFTUpgradeable.sol";
 
 abstract contract OFTAdapterHarness is L2YnOFTAdapterUpgradeable {
-    constructor(address _token, address _lzEndpoint, address _delegate) {
+    constructor(address _token, address _lzEndpoint) L2YnOFTAdapterUpgradeable(_token, _lzEndpoint) {
         _disableInitializers();
     }
 
@@ -17,10 +17,11 @@ abstract contract OFTAdapterHarness is L2YnOFTAdapterUpgradeable {
         initializer
     {
         super.__OFTAdapter_init(_owner);
-        super.__Ownable_init(_owner);
+        super.__Ownable_init();
         super.__AccessControl_init();
         super._grantRole(DEFAULT_ADMIN_ROLE, _owner);
         super._setRateLimits(_rateLimitConfigs);
+        super._transferOwnership(_owner);
     }
     // @dev expose internal functions for testing purposes
 

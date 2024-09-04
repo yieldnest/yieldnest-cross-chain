@@ -12,9 +12,10 @@ import {L2YnERC20Upgradeable} from "@adapters/L2YnERC20Upgradeable.sol";
 import {L2YnOFTAdapterUpgradeable} from "@adapters/L2YnOFTAdapterUpgradeable.sol";
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
 import {ERC20Mock} from "@layerzerolabs/lz-evm-oapp-v2/test/mocks/ERC20Mock.sol";
+import {TestHelper} from "@layerzerolabs/lz-evm-oapp-v2/test/TestHelper.sol";
 import "forge-std/console.sol";
 
-contract CrossChainBaseTest is Test {
+contract CrossChainBaseTest is TestHelper {
     ImmutableMultiChainDeployer public mainnetDeployer;
     ImmutableMultiChainDeployer public optimismDeployer;
     ImmutableMultiChainDeployer public arbitrumDeployer;
@@ -48,7 +49,7 @@ contract CrossChainBaseTest is Test {
     // uint256 fraxFork;
     // uint256 baseFork;
 
-    function setUp() public {
+    function setUp() public override {
         // create forks
         optimismFork = vm.createFork(vm.envString("OPTIMISM_RPC_URL"), 124909408);
         arbitrumFork = vm.createFork(vm.envString("ARBITRUM_RPC_URL"), 249855816);
