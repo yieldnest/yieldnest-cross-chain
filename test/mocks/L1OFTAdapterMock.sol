@@ -5,7 +5,7 @@ import {L1YnOFTAdapterUpgradeable} from "../../src/L1YnOFTAdapterUpgradeable.sol
 import {OFTAdapterUpgradeable} from "@layerzerolabs/lz-evm-oapp-v2/contracts-upgradeable/oft/OFTAdapterUpgradeable.sol";
 import {OFTUpgradeable} from "@layerzerolabs/lz-evm-oapp-v2/contracts-upgradeable/oft/OFTUpgradeable.sol";
 
-contract L2OFTAdapterMock is L1YnOFTAdapterUpgradeable {
+contract L1OFTAdapterMock is L1YnOFTAdapterUpgradeable {
     constructor(address _token, address _lzEndpoint) L1YnOFTAdapterUpgradeable(_token, _lzEndpoint) {
         _disableInitializers();
     }
