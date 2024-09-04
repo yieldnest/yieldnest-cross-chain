@@ -174,6 +174,7 @@ contract OFTTest is TestHelper {
     function test_send_oft_rate_limited() public {
         uint256 tokensToSend = 20 ether;
         bytes memory options = OptionsBuilder.newOptions().addExecutorLzReceiveOption(200000, 0);
+
         SendParam memory sendParam =
             SendParam(bEid, addressToBytes32(userB), tokensToSend, tokensToSend, options, "", "");
         MessagingFee memory fee = aOFTAdapter.quoteSend(sendParam, false);
@@ -360,302 +361,63 @@ contract OFTTest is TestHelper {
         aOFTAdapter.debit(amountToSendLD, minAmountToCreditLD, dstEid);
     }
 
-    /*
     function test_debit_slippage_minAmountToCreditLD() public {
         uint256 amountToSendLD = 1 ether;
         uint256 minAmountToCreditLD = 1.00000001 ether;
         uint32 dstEid = aEid;
 
         vm.expectRevert(abi.encodeWithSelector(IOFT.SlippageExceeded.selector, amountToSendLD, minAmountToCreditLD));
-        aOFT.debit(amountToSendLD, minAmountToCreditLD, dstEid);
+        aOFTAdapter.debit(amountToSendLD, minAmountToCreditLD, dstEid);
     }
 
-    function test_toLD() public {
-        uint64 amountSD = 1000;
-        assertEq(amountSD * aOFT.decimalConversionRate(), aOFT.toLD(uint64(amountSD)));
-    }
-
-    function test_toSD() public {
-        uint256 amountLD = 1000000;
-        assertEq(amountLD / aOFT.decimalConversionRate(), aOFT.toSD(amountLD));
-    }
-
-    function test_oft_debit() public {
-        uint256 amountToSendLD = 1 ether;
-        uint256 minAmountToCreditLD = 1 ether;
-        uint32 dstEid = aEid;
-
-        assertEq(aOFT.balanceOf(userA), initialBalance);
-        assertEq(aOFT.balanceOf(address(this)), 0);
-
-        vm.prank(userA);
-        (uint256 amountDebitedLD, uint256 amountToCreditLD) = aOFT.debit(amountToSendLD, minAmountToCreditLD, dstEid);
-
-        assertEq(amountDebitedLD, amountToSendLD);
-        assertEq(amountToCreditLD, amountToSendLD);
-
-        assertEq(aOFT.balanceOf(userA), initialBalance - amountToSendLD);
-        assertEq(aOFT.balanceOf(address(this)), 0);
-    }
-
-    function test_oft_credit() public {
-        uint256 amountToCreditLD = 1 ether;
-        uint32 srcEid = aEid;
-
-        assertEq(aOFT.balanceOf(userA), initialBalance);
-        assertEq(aOFT.balanceOf(address(this)), 0);
-
-        vm.prank(userA);
-        uint256 amountReceived = aOFT.credit(userA, amountToCreditLD, srcEid);
-
-        assertEq(aOFT.balanceOf(userA), initialBalance + amountReceived);
-        assertEq(aOFT.balanceOf(address(this)), 0);
-    }
-
-    function test_oft_adapter_debit() public {
+    function test_L2OFTAdapter_debit() public {
         uint256 amountToSendLD = 1 ether;
         uint256 minAmountToCreditLD = 1 ether;
         uint32 dstEid = cEid;
 
-        assertEq(cERC20Mock.balanceOf(userC), initialBalance);
-        assertEq(cERC20Mock.balanceOf(address(cOFTAdapter)), 0);
+        cERC20.grantRole(cERC20.MINTER_ROLE(), address(this));
+        cERC20.mint(userC, initialBalance);
+
+        assertEq(cERC20.balanceOf(userC), initialBalance, "incorrect user initial balance");
+        assertEq(cERC20.balanceOf(address(cOFTAdapter)), 0, "incorrect adapter initial balance");
 
         vm.prank(userC);
-        vm.expectRevert(
-            abi.encodeWithSelector(IOFT.SlippageExceeded.selector, amountToSendLD, minAmountToCreditLD + 1)
-        );
+        vm.expectRevert(abi.encodeWithSelector(IOFT.SlippageExceeded.selector, amountToSendLD, minAmountToCreditLD + 1));
         cOFTAdapter.debitView(amountToSendLD, minAmountToCreditLD + 1, dstEid);
 
         vm.prank(userC);
-        cERC20Mock.approve(address(cOFTAdapter), amountToSendLD);
+        cERC20.approve(address(cOFTAdapter), amountToSendLD);
         vm.prank(userC);
-        (uint256 amountDebitedLD, uint256 amountToCreditLD) = cOFTAdapter.debit(
-            amountToSendLD,
-            minAmountToCreditLD,
-            dstEid
-        );
+        (uint256 amountDebitedLD, uint256 amountToCreditLD) =
+            cOFTAdapter.debit(amountToSendLD, minAmountToCreditLD, dstEid);
 
         assertEq(amountDebitedLD, amountToSendLD);
         assertEq(amountToCreditLD, amountToSendLD);
 
-        assertEq(cERC20Mock.balanceOf(userC), initialBalance - amountToSendLD);
-        assertEq(cERC20Mock.balanceOf(address(cOFTAdapter)), amountToSendLD);
+        assertEq(cERC20.balanceOf(userC), initialBalance - amountToSendLD, "incorrect user ending balance");
+        // cOFT adapter should have 0 balance because it burns the incoming erc20
+        assertEq(cERC20.balanceOf(address(cOFTAdapter)), 0, "incorrect adapter ending balance");
     }
 
-    function test_oft_adapter_credit() public {
+    function test_L2OFTAdapter_credit() public {
         uint256 amountToCreditLD = 1 ether;
         uint32 srcEid = cEid;
 
-        assertEq(cERC20Mock.balanceOf(userC), initialBalance);
-        assertEq(cERC20Mock.balanceOf(address(cOFTAdapter)), 0);
+        cERC20.grantRole(cERC20.MINTER_ROLE(), address(this));
+        cERC20.mint(userC, initialBalance);
+
+        assertEq(cERC20.balanceOf(userC), initialBalance);
+        assertEq(cERC20.balanceOf(address(cOFTAdapter)), 0);
 
         vm.prank(userC);
-        cERC20Mock.transfer(address(cOFTAdapter), amountToCreditLD);
+        cERC20.transfer(address(cOFTAdapter), amountToCreditLD);
 
         uint256 amountReceived = cOFTAdapter.credit(userB, amountToCreditLD, srcEid);
 
-        assertEq(cERC20Mock.balanceOf(userC), initialBalance - amountToCreditLD);
-        assertEq(cERC20Mock.balanceOf(address(userB)), amountReceived);
-        assertEq(cERC20Mock.balanceOf(address(cOFTAdapter)), 0);
+        assertEq(cERC20.balanceOf(userC), initialBalance - amountToCreditLD, "incorrect userC ending balance");
+        assertEq(cERC20.balanceOf(address(userB)), amountReceived, "incorrect userB ending balance");
+        // note Should we burn incoming tokens on receive?
+        // assertEq(cERC20.balanceOf(address(cOFTAdapter)), 0, "incorrect adapter ending balance");
+        assertEq(cERC20.balanceOf(address(cOFTAdapter)), amountReceived, "incorrect adapter ending balance");
     }
-
-    function decodeOFTMsgCodec(
-        bytes calldata message
-    ) public pure returns (bool isComposed, bytes32 sendTo, uint64 amountSD, bytes memory composeMsg) {
-        isComposed = OFTMsgCodec.isComposed(message);
-        sendTo = OFTMsgCodec.sendTo(message);
-        amountSD = OFTMsgCodec.amountSD(message);
-        composeMsg = OFTMsgCodec.composeMsg(message);
-    }
-
-    function test_oft_build_msg() public {
-        uint32 dstEid = bEid;
-        bytes32 to = addressToBytes32(userA);
-        uint256 amountToSendLD = 1.23456789 ether;
-        uint256 minAmountToCreditLD = aOFT.removeDust(amountToSendLD);
-
-        // params for buildMsgAndOptions
-        bytes memory extraOptions = OptionsBuilder.newOptions().addExecutorLzReceiveOption(200000, 0);
-        bytes memory composeMsg = hex"1234";
-        SendParam memory sendParam = SendParam(
-            dstEid,
-            to,
-            amountToSendLD,
-            minAmountToCreditLD,
-            extraOptions,
-            composeMsg,
-            ""
-        );
-        uint256 amountToCreditLD = minAmountToCreditLD;
-
-        (bytes memory message, ) = aOFT.buildMsgAndOptions(sendParam, amountToCreditLD);
-
-        (bool isComposed_, bytes32 sendTo_, uint64 amountSD_, bytes memory composeMsg_) = this.decodeOFTMsgCodec(
-            message
-        );
-
-        assertEq(isComposed_, true);
-        assertEq(sendTo_, to);
-        assertEq(amountSD_, aOFT.toSD(amountToCreditLD));
-        bytes memory expectedComposeMsg = abi.encodePacked(addressToBytes32(address(this)), composeMsg);
-        assertEq(composeMsg_, expectedComposeMsg);
-    }
-
-    function test_oft_build_msg_no_compose_msg() public {
-        uint32 dstEid = bEid;
-        bytes32 to = addressToBytes32(userA);
-        uint256 amountToSendLD = 1.23456789 ether;
-        uint256 minAmountToCreditLD = aOFT.removeDust(amountToSendLD);
-
-        // params for buildMsgAndOptions
-        bytes memory extraOptions = OptionsBuilder.newOptions().addExecutorLzReceiveOption(200000, 0);
-        bytes memory composeMsg = "";
-        SendParam memory sendParam = SendParam(
-            dstEid,
-            to,
-            amountToSendLD,
-            minAmountToCreditLD,
-            extraOptions,
-            composeMsg,
-            ""
-        );
-        uint256 amountToCreditLD = minAmountToCreditLD;
-
-        (bytes memory message, ) = aOFT.buildMsgAndOptions(sendParam, amountToCreditLD);
-
-        (bool isComposed_, bytes32 sendTo_, uint64 amountSD_, bytes memory composeMsg_) = this.decodeOFTMsgCodec(
-            message
-        );
-
-        assertEq(isComposed_, false);
-        assertEq(sendTo_, to);
-        assertEq(amountSD_, aOFT.toSD(amountToCreditLD));
-        assertEq(composeMsg_, "");
-    }
-
-    function test_set_enforced_options() public {
-        uint32 eid = 1;
-
-        bytes memory optionsTypeOne = OptionsBuilder.newOptions().addExecutorLzReceiveOption(200000, 0);
-        bytes memory optionsTypeTwo = OptionsBuilder.newOptions().addExecutorLzReceiveOption(250000, 0);
-
-        EnforcedOptionParam[] memory enforcedOptions = new EnforcedOptionParam[](2);
-        enforcedOptions[0] = EnforcedOptionParam(eid, 1, optionsTypeOne);
-        enforcedOptions[1] = EnforcedOptionParam(eid, 2, optionsTypeTwo);
-
-        aOFT.setEnforcedOptions(enforcedOptions);
-
-        assertEq(aOFT.enforcedOptions(eid, 1), optionsTypeOne);
-        assertEq(aOFT.enforcedOptions(eid, 2), optionsTypeTwo);
-    }
-
-    function test_assert_options_type3_revert() public {
-        uint32 eid = 1;
-        EnforcedOptionParam[] memory enforcedOptions = new EnforcedOptionParam[](1);
-
-        enforcedOptions[0] = EnforcedOptionParam(eid, 1, hex"0004"); // not type 3
-        vm.expectRevert(abi.encodeWithSelector(IOAppOptionsType3.InvalidOptions.selector, hex"0004"));
-        aOFT.setEnforcedOptions(enforcedOptions);
-
-        enforcedOptions[0] = EnforcedOptionParam(eid, 1, hex"0002"); // not type 3
-        vm.expectRevert(abi.encodeWithSelector(IOAppOptionsType3.InvalidOptions.selector, hex"0002"));
-        aOFT.setEnforcedOptions(enforcedOptions);
-
-        enforcedOptions[0] = EnforcedOptionParam(eid, 1, hex"0001"); // not type 3
-        vm.expectRevert(abi.encodeWithSelector(IOAppOptionsType3.InvalidOptions.selector, hex"0001"));
-        aOFT.setEnforcedOptions(enforcedOptions);
-
-        enforcedOptions[0] = EnforcedOptionParam(eid, 1, hex"0003"); // IS type 3
-        aOFT.setEnforcedOptions(enforcedOptions); // doesnt revert cus option type 3
-    }
-
-    function test_combine_options() public {
-        uint32 eid = 1;
-        uint16 msgType = 1;
-
-        bytes memory enforcedOptions = OptionsBuilder.newOptions().addExecutorLzReceiveOption(200000, 0);
-        EnforcedOptionParam[] memory enforcedOptionsArray = new EnforcedOptionParam[](1);
-        enforcedOptionsArray[0] = EnforcedOptionParam(eid, msgType, enforcedOptions);
-        aOFT.setEnforcedOptions(enforcedOptionsArray);
-
-        bytes memory extraOptions = OptionsBuilder.newOptions().addExecutorNativeDropOption(
-            1.2345 ether,
-            addressToBytes32(userA)
-        );
-
-        bytes memory expectedOptions = OptionsBuilder
-            .newOptions()
-            .addExecutorLzReceiveOption(200000, 0)
-            .addExecutorNativeDropOption(1.2345 ether, addressToBytes32(userA));
-
-        bytes memory combinedOptions = aOFT.combineOptions(eid, msgType, extraOptions);
-        assertEq(combinedOptions, expectedOptions);
-    }
-
-    function test_combine_options_no_extra_options() public {
-        uint32 eid = 1;
-        uint16 msgType = 1;
-
-        bytes memory enforcedOptions = OptionsBuilder.newOptions().addExecutorLzReceiveOption(200000, 0);
-        EnforcedOptionParam[] memory enforcedOptionsArray = new EnforcedOptionParam[](1);
-        enforcedOptionsArray[0] = EnforcedOptionParam(eid, msgType, enforcedOptions);
-        aOFT.setEnforcedOptions(enforcedOptionsArray);
-
-        bytes memory expectedOptions = OptionsBuilder.newOptions().addExecutorLzReceiveOption(200000, 0);
-
-        bytes memory combinedOptions = aOFT.combineOptions(eid, msgType, "");
-        assertEq(combinedOptions, expectedOptions);
-    }
-
-    function test_combine_options_no_enforced_options() public {
-        uint32 eid = 1;
-        uint16 msgType = 1;
-
-        bytes memory extraOptions = OptionsBuilder.newOptions().addExecutorNativeDropOption(
-            1.2345 ether,
-            addressToBytes32(userA)
-        );
-
-        bytes memory expectedOptions = OptionsBuilder.newOptions().addExecutorNativeDropOption(
-            1.2345 ether,
-            addressToBytes32(userA)
-        );
-
-        bytes memory combinedOptions = aOFT.combineOptions(eid, msgType, extraOptions);
-        assertEq(combinedOptions, expectedOptions);
-    }
-
-    function test_oapp_inspector_inspect() public {
-        uint32 dstEid = bEid;
-        bytes32 to = addressToBytes32(userA);
-        uint256 amountToSendLD = 1.23456789 ether;
-        uint256 minAmountToCreditLD = aOFT.removeDust(amountToSendLD);
-
-        // params for buildMsgAndOptions
-        bytes memory extraOptions = OptionsBuilder.newOptions().addExecutorLzReceiveOption(200000, 0);
-        bytes memory composeMsg = "";
-        SendParam memory sendParam = SendParam(
-            dstEid,
-            to,
-            amountToSendLD,
-            minAmountToCreditLD,
-            extraOptions,
-            composeMsg,
-            ""
-        );
-        uint256 amountToCreditLD = minAmountToCreditLD;
-
-        // doesnt revert
-        (bytes memory message, ) = aOFT.buildMsgAndOptions(sendParam, amountToCreditLD);
-
-        // deploy a universal inspector, it automatically reverts
-        oAppInspector = new OFTInspectorMock();
-        // set the inspector
-        aOFT.setMsgInspector(address(oAppInspector));
-
-        // does revert because inspector is set
-        vm.expectRevert(abi.encodeWithSelector(IOAppMsgInspector.InspectionFailed.selector, message, extraOptions));
-        (message, ) = aOFT.buildMsgAndOptions(sendParam, amountToCreditLD);
-    }
-    */
 }
