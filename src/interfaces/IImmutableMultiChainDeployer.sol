@@ -7,7 +7,7 @@ import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/Ra
 /// @author Raid Guild
 /// @notice Enables deploying contracts using CREATE3 and then initializing the upgradeable contracts. Each deployer (msg.sender) has
 /// its own namespace for deployed addresses.
-interface IMultiChainDeployer {
+interface IImmutableMultiChainDeployer {
     /// @notice Deploys a contract using CREATE3
     /// @dev The provided salt is hashed together with msg.sender to generate the final salt
     /// @param salt The deployer-specific salt for determining the deployed contract's address

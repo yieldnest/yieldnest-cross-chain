@@ -40,6 +40,17 @@ contract L2YnOFTAdapterUpgradeable is OFTAdapterUpgradeable, AccessControlUpgrad
     }
 
     /**
+     * @notice Indicates whether the OFT contract requires approval of the 'token()' to send.
+     * @return requiresApproval Needs approval of the underlying token implementation.
+     *
+     * @dev In the case of default OFTAdapter, approval is required.
+     * @dev In non-default OFTAdapter contracts with something like mint and burn privileges, it would NOT need approval.
+     */
+    function approvalRequired() external pure virtual override returns (bool) {
+        return false;
+    }
+
+    /**
      * @dev Burns tokens from the sender's specified balance.
      * @param _amountLD The amount of tokens to send in local decimals.
      * @param _minAmountLD The minimum amount to send in local decimals.

@@ -5,11 +5,11 @@ import {CREATE3} from "solmate/utils/CREATE3.sol";
 import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
-import {IMultiChainDeployer} from "@interfaces/IMultiChainDeployer.sol";
+import {IImmutableMultiChainDeployer} from "@interfaces/IImmutableMultiChainDeployer.sol";
 import {L2YnOFTAdapterUpgradeable} from "@adapters/L2YnOFTAdapterUpgradeable.sol";
 import {L2YnERC20Upgradeable} from "@adapters/L2YnERC20Upgradeable.sol";
 
-contract MultiChainDeployer is IMultiChainDeployer {
+contract ImmutableMultiChainDeployer is IImmutableMultiChainDeployer {
     event ContractCreated(address deployedAddress);
 
     // mapping to track the already deployed addresses
@@ -30,7 +30,7 @@ contract MultiChainDeployer is IMultiChainDeployer {
         _;
     }
 
-    /// @inheritdoc	IMultiChainDeployer
+    /// @inheritdoc	IImmutableMultiChainDeployer
     function deploy(bytes32 salt, bytes memory initCode)
         public
         payable
@@ -59,7 +59,7 @@ contract MultiChainDeployer is IMultiChainDeployer {
         emit ContractCreated(_deployedContract);
     }
 
-    /// @inheritdoc	IMultiChainDeployer
+    /// @inheritdoc	IImmutableMultiChainDeployer
     function deployL2YnOFTAdapter(
         bytes32 _implSalt,
         bytes32 _proxySalt,
@@ -77,7 +77,7 @@ contract MultiChainDeployer is IMultiChainDeployer {
         L2YnOFTAdapterUpgradeable(_deployedContract).initialize(_owner, _rateLimitConfigs);
     }
 
-    /// @inheritdoc	IMultiChainDeployer
+    /// @inheritdoc	IImmutableMultiChainDeployer
     function deployL2YnERC20(
         bytes32 _implSalt,
         bytes32 _proxySalt,
@@ -90,7 +90,7 @@ contract MultiChainDeployer is IMultiChainDeployer {
         L2YnERC20Upgradeable(_deployedContract).initialize(_name, _symbol, _owner);
     }
 
-    /// @inheritdoc	IMultiChainDeployer
+    /// @inheritdoc	IImmutableMultiChainDeployer
     function getDeployed(bytes32 salt) public view override returns (address deployed) {
         // hash salt with the deployer address to give each deployer its own namespace
         return CREATE3.getDeployed(salt);

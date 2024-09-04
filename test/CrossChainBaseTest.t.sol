@@ -2,7 +2,10 @@
 pragma solidity ^0.8.24;
 
 import {Test} from "forge-std/Test.sol";
-import {MultiChainDeployer} from "@factory/MultiChainDeployer.sol";
+import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+import {LZEndpointMock} from "./mocks/LZEndpointMock.sol";
+// import {TestHelper} from "@layerzerolabs/lz-evm-oapp-v2/test/TestHelper.sol";
+import {ImmutableMultiChainDeployer} from "@factory/ImmutableMultiChainDeployer.sol";
 import {IMintableBurnableERC20} from "@interfaces/IMintableBurnableERC20.sol";
 import {L1YnOFTAdapterUpgradeable} from "@adapters/L1YnOFTAdapterUpgradeable.sol";
 import {L2YnERC20Upgradeable} from "@adapters/L2YnERC20Upgradeable.sol";
@@ -10,14 +13,13 @@ import {L2YnOFTAdapterUpgradeable} from "@adapters/L2YnOFTAdapterUpgradeable.sol
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
 import {ERC20Mock} from "@layerzerolabs/lz-evm-oapp-v2/test/mocks/ERC20Mock.sol";
 import "forge-std/console.sol";
-import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 contract CrossChainBaseTest is Test {
-    MultiChainDeployer public mainnetDeployer;
-    MultiChainDeployer public optimismDeployer;
-    MultiChainDeployer public arbitrumDeployer;
-    // MultiChainDeployer public baseDeployer;
-    // MultiChainDeployer public fraxDeployer;
+    ImmutableMultiChainDeployer public mainnetDeployer;
+    ImmutableMultiChainDeployer public optimismDeployer;
+    ImmutableMultiChainDeployer public arbitrumDeployer;
+    // ImmutableMultiChainDeployer public baseDeployer;
+    // ImmutableMultiChainDeployer public fraxDeployer;
 
     L1YnOFTAdapterUpgradeable public mainnetOFTAdapter;
     L2YnOFTAdapterUpgradeable public optimismOFTAdapter;
@@ -30,8 +32,13 @@ contract CrossChainBaseTest is Test {
     address public mainnetLzEndpoint = address(0x1a44076050125825900e736c501f859c50fE728c);
 
     ERC20Mock public mainnetERC20;
+    // LZEndpointMock public mainnetLZEndpoint;
+    // LZEndpointMock public optimismLZEndpoint;
+    // LZEndpointMock public arbitrumLzEndpoint;
     L2YnERC20Upgradeable public optimismERC20;
     L2YnERC20Upgradeable public arbitrumERC20;
+
+    address mainnetOFTAdapterImpl;
 
     uint256 optimismFork;
     uint256 arbitrumFork;
@@ -43,12 +50,16 @@ contract CrossChainBaseTest is Test {
 
     function setUp() public {
         // create forks
-        optimismFork = vm.createFork(vm.envString("OPTIMISM_RPC_URL"));
-        arbitrumFork = vm.createFork(vm.envString("ARBITRUM_RPC_URL"));
-        mainnetFork = vm.createFork(vm.envString("MAINNET_RPC_URL"));
-        // holeskyFork = vm.createFork(vm.envString("HOLESKY_RPC_URL"));
-        // fraxFork = vm.createFork(vm.envString("FRAX_RPC_URL"));
-        // baseFork = vm.createFork(vm.envString("BASE_RPC_URL"));
+        optimismFork = vm.createFork(vm.envString("OPTIMISM_RPC_URL"), 124909408);
+        arbitrumFork = vm.createFork(vm.envString("ARBITRUM_RPC_URL"), 249855816);
+        mainnetFork = vm.createFork(vm.envString("MAINNET_RPC_URL"), 20674289);
+        // holeskyFork = vm.createFork(vm.envString("HOLESKY_RPC_URL"), 2266061);
+        // fraxFork = vm.createFork(vm.envString("FRAX_RPC_URL"), 9303466);
+        // baseFork = vm.createFork(vm.envString("BASE_RPC_URL"), 19314154);
+
+        // mainnetLZEndpoint = new LZEndpointMock(1);
+        // optimismLZEndpoint = new LZEndpointMock(10);
+        // arbitrumLzEndpoint = new LZEndpointMock(42161);
 
         RateLimiter.RateLimitConfig[] memory _rateLimitConfigs = new RateLimiter.RateLimitConfig[](1);
         _rateLimitConfigs[0] = RateLimiter.RateLimitConfig({dstEid: uint32(1), limit: 1 ether, window: 1 days});
@@ -57,10 +68,9 @@ contract CrossChainBaseTest is Test {
 
         {
             vm.selectFork(mainnetFork);
-            mainnetDeployer = new MultiChainDeployer{salt: "SALT"}();
+            mainnetDeployer = new ImmutableMultiChainDeployer{salt: "SALT"}();
             mainnetERC20 = new ERC20Mock("Test Token", "TEST");
-            address mainnetOFTAdapterImpl =
-                address(new L1YnOFTAdapterUpgradeable(address(mainnetERC20), mainnetLzEndpoint));
+            mainnetOFTAdapterImpl = address(new L1YnOFTAdapterUpgradeable(address(mainnetERC20), mainnetLzEndpoint));
             mainnetOFTAdapter = L1YnOFTAdapterUpgradeable(
                 address(new TransparentUpgradeableProxy(mainnetOFTAdapterImpl, _deployer, ""))
             );
@@ -69,7 +79,7 @@ contract CrossChainBaseTest is Test {
 
         {
             vm.selectFork(optimismFork);
-            optimismDeployer = new MultiChainDeployer{salt: "SALT"}();
+            optimismDeployer = new ImmutableMultiChainDeployer{salt: "SALT"}();
             bytes32 optimismERC20Salt = createSalt(_deployer, "ERC20");
             bytes32 optimismERC20ProxySalt = createSalt(_deployer, "ERC20Proxy");
             optimismERC20 = L2YnERC20Upgradeable(
@@ -93,7 +103,7 @@ contract CrossChainBaseTest is Test {
 
         {
             vm.selectFork(arbitrumFork);
-            arbitrumDeployer = new MultiChainDeployer{salt: "SALT"}();
+            arbitrumDeployer = new ImmutableMultiChainDeployer{salt: "SALT"}();
             bytes32 arbitrumERC20Salt = createSalt(_deployer, "ERC20");
             bytes32 arbitrumERC20ProxySalt = createSalt(_deployer, "ERC20Proxy");
             arbitrumERC20 = L2YnERC20Upgradeable(
@@ -116,10 +126,10 @@ contract CrossChainBaseTest is Test {
         }
 
         // vm.selectFork(baseFork);
-        // baseDeployer = new MultiChainDeployer();
+        // baseDeployer = new ImmutableMultiChainDeployer();
 
         // vm.selectFork(fraxFork);
-        // fraxDeployer = new MultiChainDeployer();
+        // fraxDeployer = new ImmutableMultiChainDeployer();
 
         vm.stopPrank();
     }
