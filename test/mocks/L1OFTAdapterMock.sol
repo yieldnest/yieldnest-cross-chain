@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import {L2YnOFTAdapterUpgradeable} from "../../src/L2YnOFTAdapterUpgradeable.sol";
+import {L1YnOFTAdapterUpgradeable} from "../../src/L1YnOFTAdapterUpgradeable.sol";
 import {OFTAdapterUpgradeable} from "@layerzerolabs/lz-evm-oapp-v2/contracts-upgradeable/oft/OFTAdapterUpgradeable.sol";
 import {OFTUpgradeable} from "@layerzerolabs/lz-evm-oapp-v2/contracts-upgradeable/oft/OFTUpgradeable.sol";
 
-abstract contract OFTAdapterHarness is L2YnOFTAdapterUpgradeable {
-    constructor(address _token, address _lzEndpoint) L2YnOFTAdapterUpgradeable(_token, _lzEndpoint) {
+contract L2OFTAdapterMock is L1YnOFTAdapterUpgradeable {
+    constructor(address _token, address _lzEndpoint) L1YnOFTAdapterUpgradeable(_token, _lzEndpoint) {
         _disableInitializers();
     }
 
