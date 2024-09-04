@@ -120,9 +120,16 @@ contract Test_L1YnOFTAdapterUpgradeable is CrossChainBaseTest {
         mainnetOFTAdapter.send{value: fee.nativeFee}(sendParam, fee, payable(address(_owner)));
         vm.stopPrank();
 
-        // verifyPackets(bEid, addressToBytes32(address(bOFT)));
+        // The following fails
+        // vm.selectFork(arbitrumFork);
+        // vm.startPrank(_owner);
+        // verifyPackets(arbitrumEid, addressToBytes32(address(arbitrumOFTAdapter)));
+        // vm.stopPrank();
         //
-        // assertEq(aOFT.balanceOf(userA), initialBalance - tokensToSend);
-        // assertEq(bOFT.balanceOf(userB), initialBalance + tokensToSend);
+        // vm.selectFork(mainnetFork);
+        // assertEq(mainnetERC20.balanceOf(userA), initialBalance - tokensToSend);
+        //
+        // vm.selectFork(arbitrumFork);
+        // assertEq(arbitrumERC20.balanceOf(userB), initialBalance + tokensToSend);
     }
 }

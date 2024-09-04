@@ -20,8 +20,6 @@ contract CrossChainBaseTest is TestHelper {
     ImmutableMultiChainDeployer public mainnetDeployer;
     ImmutableMultiChainDeployer public optimismDeployer;
     ImmutableMultiChainDeployer public arbitrumDeployer;
-    // ImmutableMultiChainDeployer public baseDeployer;
-    // ImmutableMultiChainDeployer public fraxDeployer;
 
     L1YnOFTAdapterUpgradeable public mainnetOFTAdapter;
     L2YnOFTAdapterUpgradeable public optimismOFTAdapter;
@@ -36,9 +34,6 @@ contract CrossChainBaseTest is TestHelper {
     EndpointV2 public mainnetLzEndpoint = EndpointV2(0x1a44076050125825900e736c501f859c50fE728c);
 
     ERC20Mock public mainnetERC20;
-    // LZEndpointMock public mainnetLZEndpoint;
-    // LZEndpointMock public optimismLZEndpoint;
-    // LZEndpointMock public arbitrumLzEndpoint;
     L2YnERC20Upgradeable public optimismERC20;
     L2YnERC20Upgradeable public arbitrumERC20;
 
@@ -52,22 +47,12 @@ contract CrossChainBaseTest is TestHelper {
     uint32 optimismEid;
     uint32 arbitrumEid;
 
-    // uint256 holeskyFork;
-    // uint256 fraxFork;
-    // uint256 baseFork;
-
     function setUp() public virtual override {
         // create forks
         optimismFork = vm.createFork(vm.envString("OPTIMISM_RPC_URL"), 124909408);
         arbitrumFork = vm.createFork(vm.envString("ARBITRUM_RPC_URL"), 249855816);
         mainnetFork = vm.createFork(vm.envString("MAINNET_RPC_URL"), 20674289);
-        // holeskyFork = vm.createFork(vm.envString("HOLESKY_RPC_URL"), 2266061);
-        // fraxFork = vm.createFork(vm.envString("FRAX_RPC_URL"), 9303466);
-        // baseFork = vm.createFork(vm.envString("BASE_RPC_URL"), 19314154);
 
-        // mainnetLZEndpoint = new LZEndpointMock(1);
-        // optimismLZEndpoint = new LZEndpointMock(10);
-        // arbitrumLzEndpoint = new LZEndpointMock(42161);
         vm.selectFork(mainnetFork);
         mainnetEid = mainnetLzEndpoint.eid();
 
@@ -152,17 +137,18 @@ contract CrossChainBaseTest is TestHelper {
                 )
             );
         }
+        vm.stopPrank();
 
         endpoints[mainnetEid] = address(mainnetLzEndpoint);
         endpoints[optimismEid] = address(optimismLzEndpoint);
         endpoints[arbitrumEid] = address(arbitrumLzEndpoint);
 
-        // vm.selectFork(baseFork);
-        // baseDeployer = new ImmutableMultiChainDeployer();
+        vm.startPrank(_owner);
+        vm.selectFork(optimismFork);
+        optimismERC20.grantRole(optimismERC20.MINTER_ROLE(), address(optimismOFTAdapter));
 
-        // vm.selectFork(fraxFork);
-        // fraxDeployer = new ImmutableMultiChainDeployer();
-
+        vm.selectFork(arbitrumFork);
+        arbitrumERC20.grantRole(arbitrumERC20.MINTER_ROLE(), address(arbitrumOFTAdapter));
         vm.stopPrank();
     }
 
