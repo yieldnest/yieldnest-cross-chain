@@ -68,9 +68,18 @@ contract CrossChainBaseTest is TestHelper {
         // mainnetLZEndpoint = new LZEndpointMock(1);
         // optimismLZEndpoint = new LZEndpointMock(10);
         // arbitrumLzEndpoint = new LZEndpointMock(42161);
+        vm.selectFork(mainnetFork);
+        mainnetEid = mainnetLzEndpoint.eid();
 
-        RateLimiter.RateLimitConfig[] memory _rateLimitConfigs = new RateLimiter.RateLimitConfig[](1);
-        _rateLimitConfigs[0] = RateLimiter.RateLimitConfig({dstEid: uint32(1), limit: 1 ether, window: 1 days});
+        vm.selectFork(optimismFork);
+        optimismEid = optimismLzEndpoint.eid();
+
+        vm.selectFork(arbitrumFork);
+        arbitrumEid = arbitrumLzEndpoint.eid();
+
+        RateLimiter.RateLimitConfig[] memory _rateLimitConfigs = new RateLimiter.RateLimitConfig[](2);
+        _rateLimitConfigs[0] = RateLimiter.RateLimitConfig({dstEid: optimismEid, limit: 1000000 ether, window: 1 days});
+        _rateLimitConfigs[1] = RateLimiter.RateLimitConfig({dstEid: arbitrumEid, limit: 1000000 ether, window: 1 days});
 
         vm.startPrank(_deployer);
 
@@ -84,7 +93,6 @@ contract CrossChainBaseTest is TestHelper {
                 address(new TransparentUpgradeableProxy(mainnetOFTAdapterImpl, _controller, ""))
             );
             mainnetOFTAdapter.initialize(_owner, _rateLimitConfigs);
-            mainnetEid = mainnetLzEndpoint.eid();
         }
 
         {
@@ -99,6 +107,10 @@ contract CrossChainBaseTest is TestHelper {
             );
             bytes32 optimismOFTAdapterSalt = createSalt(_deployer, "OFTAdapter");
             bytes32 optimismOFTAdapterProxySalt = createSalt(_deployer, "OFTAdapterProxy");
+            _rateLimitConfigs[0] =
+                RateLimiter.RateLimitConfig({dstEid: mainnetEid, limit: 1000000 ether, window: 1 days});
+            _rateLimitConfigs[1] =
+                RateLimiter.RateLimitConfig({dstEid: arbitrumEid, limit: 1000000 ether, window: 1 days});
             optimismOFTAdapter = L2YnOFTAdapterUpgradeable(
                 optimismDeployer.deployL2YnOFTAdapter(
                     optimismOFTAdapterSalt,
@@ -110,7 +122,6 @@ contract CrossChainBaseTest is TestHelper {
                     _controller
                 )
             );
-            optimismEid = optimismLzEndpoint.eid();
         }
 
         {
@@ -125,6 +136,10 @@ contract CrossChainBaseTest is TestHelper {
             );
             bytes32 arbitrumOFTAdapterSalt = createSalt(_deployer, "OFTAdapter");
             bytes32 arbitrumOFTAdapterProxySalt = createSalt(_deployer, "OFTAdapterProxy");
+            _rateLimitConfigs[0] =
+                RateLimiter.RateLimitConfig({dstEid: mainnetEid, limit: 1000000 ether, window: 1 days});
+            _rateLimitConfigs[1] =
+                RateLimiter.RateLimitConfig({dstEid: optimismEid, limit: 1000000 ether, window: 1 days});
             arbitrumOFTAdapter = L2YnOFTAdapterUpgradeable(
                 arbitrumDeployer.deployL2YnOFTAdapter(
                     arbitrumOFTAdapterSalt,
@@ -136,8 +151,11 @@ contract CrossChainBaseTest is TestHelper {
                     _controller
                 )
             );
-            arbitrumEid = arbitrumLzEndpoint.eid();
         }
+
+        endpoints[mainnetEid] = address(mainnetLzEndpoint);
+        endpoints[optimismEid] = address(optimismLzEndpoint);
+        endpoints[arbitrumEid] = address(arbitrumLzEndpoint);
 
         // vm.selectFork(baseFork);
         // baseDeployer = new ImmutableMultiChainDeployer();
