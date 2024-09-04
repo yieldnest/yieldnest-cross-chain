@@ -60,9 +60,10 @@ contract CrossChainBaseTest is TestHelper {
         vm.selectFork(arbitrumFork);
         arbitrumEid = arbitrumLzEndpoint.eid();
 
-        RateLimiter.RateLimitConfig[] memory _rateLimitConfigs = new RateLimiter.RateLimitConfig[](2);
-        _rateLimitConfigs[0] = RateLimiter.RateLimitConfig({dstEid: optimismEid, limit: 1000000 ether, window: 1 days});
-        _rateLimitConfigs[1] = RateLimiter.RateLimitConfig({dstEid: arbitrumEid, limit: 1000000 ether, window: 1 days});
+        RateLimiter.RateLimitConfig[] memory _rateLimitConfigs = new RateLimiter.RateLimitConfig[](3);
+        _rateLimitConfigs[0] = RateLimiter.RateLimitConfig({dstEid: mainnetEid, limit: 1000000 ether, window: 1 days});
+        _rateLimitConfigs[1] = RateLimiter.RateLimitConfig({dstEid: optimismEid, limit: 1000000 ether, window: 1 days});
+        _rateLimitConfigs[2] = RateLimiter.RateLimitConfig({dstEid: arbitrumEid, limit: 1000000 ether, window: 1 days});
 
         vm.startPrank(_deployer);
 
@@ -90,10 +91,6 @@ contract CrossChainBaseTest is TestHelper {
             );
             bytes32 optimismOFTAdapterSalt = createSalt(_deployer, "OFTAdapter");
             bytes32 optimismOFTAdapterProxySalt = createSalt(_deployer, "OFTAdapterProxy");
-            _rateLimitConfigs[0] =
-                RateLimiter.RateLimitConfig({dstEid: mainnetEid, limit: 1000000 ether, window: 1 days});
-            _rateLimitConfigs[1] =
-                RateLimiter.RateLimitConfig({dstEid: arbitrumEid, limit: 1000000 ether, window: 1 days});
             optimismOFTAdapter = L2YnOFTAdapterUpgradeable(
                 optimismDeployer.deployL2YnOFTAdapter(
                     optimismOFTAdapterSalt,
@@ -119,10 +116,6 @@ contract CrossChainBaseTest is TestHelper {
             );
             bytes32 arbitrumOFTAdapterSalt = createSalt(_deployer, "OFTAdapter");
             bytes32 arbitrumOFTAdapterProxySalt = createSalt(_deployer, "OFTAdapterProxy");
-            _rateLimitConfigs[0] =
-                RateLimiter.RateLimitConfig({dstEid: mainnetEid, limit: 1000000 ether, window: 1 days});
-            _rateLimitConfigs[1] =
-                RateLimiter.RateLimitConfig({dstEid: optimismEid, limit: 1000000 ether, window: 1 days});
             arbitrumOFTAdapter = L2YnOFTAdapterUpgradeable(
                 arbitrumDeployer.deployL2YnOFTAdapter(
                     arbitrumOFTAdapterSalt,
