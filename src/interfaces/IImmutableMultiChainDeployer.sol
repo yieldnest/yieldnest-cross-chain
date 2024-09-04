@@ -22,6 +22,7 @@ interface IImmutableMultiChainDeployer {
     /// @param _token the token address for the oft adapter to be passed to the initializer
     /// @param _lzEndpoint the lz endpoint for the oft adapter to be passed to the initializer
     /// @param _rateLimitConfigs the desired rate limit configs for the oft adapter to be passed to the initializer
+    /// @param _proxyController the proxy controller of the erc20 to be passed to the initializer
     /// @return deployed The address of the deployed contract
     function deployL2YnOFTAdapter(
         bytes32 _implSalt,
@@ -29,7 +30,8 @@ interface IImmutableMultiChainDeployer {
         address _token,
         address _lzEndpoint,
         address _owner,
-        RateLimiter.RateLimitConfig[] calldata _rateLimitConfigs
+        RateLimiter.RateLimitConfig[] calldata _rateLimitConfigs,
+        address _proxyController
     ) external returns (address deployed);
 
     /// @notice Deploys a deployYnERC20 contract using CREATE3 and initializes in the same call
@@ -39,13 +41,15 @@ interface IImmutableMultiChainDeployer {
     /// @param _name the name of the erc20 to be passed to the initializer
     /// @param _symbol the symbol of the erc20 to be passed to the initializer
     /// @param _owner the owner of the erc20 to be passed to the initializer
+    /// @param _proxyController the proxy controller of the erc20 to be passed to the initializer
     /// @return deployed The address of the deployed contract
     function deployL2YnERC20(
         bytes32 _implSalt,
         bytes32 _proxySalt,
         string memory _name,
         string memory _symbol,
-        address _owner
+        address _owner,
+        address _proxyController
     ) external returns (address deployed);
 
     /// @notice Predicts the address of a deployed contract

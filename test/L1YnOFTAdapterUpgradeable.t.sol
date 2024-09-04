@@ -8,10 +8,42 @@ import {L1YnOFTAdapterUpgradeable} from "@adapters/L1YnOFTAdapterUpgradeable.sol
 import {L2YnERC20Upgradeable} from "@adapters/L2YnERC20Upgradeable.sol";
 import {L2YnOFTAdapterUpgradeable} from "@adapters/L2YnOFTAdapterUpgradeable.sol";
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
+import {OApp} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/OApp.sol";
 
 import {IOFT, SendParam, OFTReceipt} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oft/interfaces/IOFT.sol";
 
 contract Test_L1YnOFTAdapterUpgradeable is CrossChainBaseTest {
+    address public userA = address(0x1);
+    address public userB = address(0x2);
+    address public userC = address(0x3);
+
+    function setUp() public override {
+        super.setUp();
+
+        vm.deal(userA, 1000 ether);
+        vm.deal(userB, 1000 ether);
+        vm.deal(userC, 1000 ether);
+
+        // config and wire the ofts
+        wireMultichainOApps();
+    }
+
+    function wireMultichainOApps() public {
+        vm.startPrank(_owner);
+        vm.selectFork(mainnetFork);
+        mainnetOFTAdapter.setPeer(arbitrumEid, addressToBytes32(address(arbitrumOFTAdapter)));
+        mainnetOFTAdapter.setPeer(optimismEid, addressToBytes32(address(optimismOFTAdapter)));
+
+        vm.selectFork(arbitrumFork);
+        arbitrumOFTAdapter.setPeer(mainnetEid, addressToBytes32(address(mainnetOFTAdapter)));
+        arbitrumOFTAdapter.setPeer(optimismEid, addressToBytes32(address(optimismOFTAdapter)));
+
+        vm.selectFork(optimismFork);
+        optimismOFTAdapter.setPeer(mainnetEid, addressToBytes32(address(mainnetOFTAdapter)));
+        optimismOFTAdapter.setPeer(arbitrumEid, addressToBytes32(address(arbitrumOFTAdapter)));
+        vm.stopPrank();
+    }
+
     // function test_contructor() public {
     //     vm.selectFork(mainnetFork);
     //     assertEq(aOFT.owner(), address(this));

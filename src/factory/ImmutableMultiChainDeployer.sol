@@ -66,14 +66,15 @@ contract ImmutableMultiChainDeployer is IImmutableMultiChainDeployer {
         address _token,
         address _lzEndpoint,
         address _owner,
-        RateLimiter.RateLimitConfig[] calldata _rateLimitConfigs
+        RateLimiter.RateLimitConfig[] calldata _rateLimitConfigs,
+        address _proxyController
     ) public returns (address _deployedContract) {
         bytes memory bytecode = type(L2YnOFTAdapterUpgradeable).creationCode;
         bytes memory constructorParams = abi.encode(_token, _lzEndpoint);
         bytes memory contractCode = abi.encodePacked(bytecode, constructorParams);
 
         address adapterImpl = deploy(_implSalt, contractCode);
-        _deployedContract = deployProxy(_proxySalt, adapterImpl, _owner);
+        _deployedContract = deployProxy(_proxySalt, adapterImpl, _proxyController);
         L2YnOFTAdapterUpgradeable(_deployedContract).initialize(_owner, _rateLimitConfigs);
     }
 
@@ -83,10 +84,11 @@ contract ImmutableMultiChainDeployer is IImmutableMultiChainDeployer {
         bytes32 _proxySalt,
         string memory _name,
         string memory _symbol,
-        address _owner
+        address _owner,
+        address _proxyController
     ) public returns (address _deployedContract) {
         address adapterImpl = deploy(_implSalt, type(L2YnERC20Upgradeable).creationCode);
-        _deployedContract = deployProxy(_proxySalt, adapterImpl, _owner);
+        _deployedContract = deployProxy(_proxySalt, adapterImpl, _proxyController);
         L2YnERC20Upgradeable(_deployedContract).initialize(_name, _symbol, _owner);
     }
 

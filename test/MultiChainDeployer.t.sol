@@ -32,9 +32,10 @@ contract Test_ImmutableMultiChainDeployer is CrossChainBaseTest {
                 keccak256(abi.encode("test")),
                 keccak256(abi.encode("proxySalt")),
                 address(arbitrumERC20),
-                arbitrumLzEndpoint,
-                _deployer,
-                _rateLimitConfigs
+                address(arbitrumLzEndpoint),
+                _owner,
+                _rateLimitConfigs,
+                _controller
             )
         );
     }

@@ -12,6 +12,7 @@ import {L2YnERC20Upgradeable} from "@adapters/L2YnERC20Upgradeable.sol";
 import {L2YnOFTAdapterUpgradeable} from "@adapters/L2YnOFTAdapterUpgradeable.sol";
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
 import {ERC20Mock} from "@layerzerolabs/lz-evm-oapp-v2/test/mocks/ERC20Mock.sol";
+import {EndpointV2} from "@layerzerolabs/lz-evm-protocol-v2/contracts/EndpointV2.sol";
 import {TestHelper} from "@layerzerolabs/lz-evm-oapp-v2/test/TestHelper.sol";
 import "forge-std/console.sol";
 
@@ -27,10 +28,12 @@ contract CrossChainBaseTest is TestHelper {
     L2YnOFTAdapterUpgradeable public arbitrumOFTAdapter;
 
     address public _deployer = makeAddr("deployer");
+    address public _owner = makeAddr("owner");
+    address public _controller = makeAddr("controller");
 
-    address public arbitrumLzEndpoint = address(0x1a44076050125825900e736c501f859c50fE728c);
-    address public optimismLzEndpoint = address(0x1a44076050125825900e736c501f859c50fE728c);
-    address public mainnetLzEndpoint = address(0x1a44076050125825900e736c501f859c50fE728c);
+    EndpointV2 public arbitrumLzEndpoint = EndpointV2(0x1a44076050125825900e736c501f859c50fE728c);
+    EndpointV2 public optimismLzEndpoint = EndpointV2(0x1a44076050125825900e736c501f859c50fE728c);
+    EndpointV2 public mainnetLzEndpoint = EndpointV2(0x1a44076050125825900e736c501f859c50fE728c);
 
     ERC20Mock public mainnetERC20;
     // LZEndpointMock public mainnetLZEndpoint;
@@ -45,11 +48,15 @@ contract CrossChainBaseTest is TestHelper {
     uint256 arbitrumFork;
     uint256 mainnetFork;
 
+    uint32 mainnetEid;
+    uint32 optimismEid;
+    uint32 arbitrumEid;
+
     // uint256 holeskyFork;
     // uint256 fraxFork;
     // uint256 baseFork;
 
-    function setUp() public override {
+    function setUp() public virtual override {
         // create forks
         optimismFork = vm.createFork(vm.envString("OPTIMISM_RPC_URL"), 124909408);
         arbitrumFork = vm.createFork(vm.envString("ARBITRUM_RPC_URL"), 249855816);
@@ -71,11 +78,13 @@ contract CrossChainBaseTest is TestHelper {
             vm.selectFork(mainnetFork);
             mainnetDeployer = new ImmutableMultiChainDeployer{salt: "SALT"}();
             mainnetERC20 = new ERC20Mock("Test Token", "TEST");
-            mainnetOFTAdapterImpl = address(new L1YnOFTAdapterUpgradeable(address(mainnetERC20), mainnetLzEndpoint));
+            mainnetOFTAdapterImpl =
+                address(new L1YnOFTAdapterUpgradeable(address(mainnetERC20), address(mainnetLzEndpoint)));
             mainnetOFTAdapter = L1YnOFTAdapterUpgradeable(
-                address(new TransparentUpgradeableProxy(mainnetOFTAdapterImpl, _deployer, ""))
+                address(new TransparentUpgradeableProxy(mainnetOFTAdapterImpl, _controller, ""))
             );
-            mainnetOFTAdapter.initialize(_deployer, _rateLimitConfigs);
+            mainnetOFTAdapter.initialize(_owner, _rateLimitConfigs);
+            mainnetEid = mainnetLzEndpoint.eid();
         }
 
         {
@@ -85,7 +94,7 @@ contract CrossChainBaseTest is TestHelper {
             bytes32 optimismERC20ProxySalt = createSalt(_deployer, "ERC20Proxy");
             optimismERC20 = L2YnERC20Upgradeable(
                 optimismDeployer.deployL2YnERC20(
-                    optimismERC20Salt, optimismERC20ProxySalt, "Test Token", "TEST", _deployer
+                    optimismERC20Salt, optimismERC20ProxySalt, "Test Token", "TEST", _owner, _controller
                 )
             );
             bytes32 optimismOFTAdapterSalt = createSalt(_deployer, "OFTAdapter");
@@ -95,11 +104,13 @@ contract CrossChainBaseTest is TestHelper {
                     optimismOFTAdapterSalt,
                     optimismOFTAdapterProxySalt,
                     address(optimismERC20),
-                    optimismLzEndpoint,
-                    _deployer,
-                    _rateLimitConfigs
+                    address(optimismLzEndpoint),
+                    _owner,
+                    _rateLimitConfigs,
+                    _controller
                 )
             );
+            optimismEid = optimismLzEndpoint.eid();
         }
 
         {
@@ -109,7 +120,7 @@ contract CrossChainBaseTest is TestHelper {
             bytes32 arbitrumERC20ProxySalt = createSalt(_deployer, "ERC20Proxy");
             arbitrumERC20 = L2YnERC20Upgradeable(
                 arbitrumDeployer.deployL2YnERC20(
-                    arbitrumERC20Salt, arbitrumERC20ProxySalt, "Test Token", "TEST", _deployer
+                    arbitrumERC20Salt, arbitrumERC20ProxySalt, "Test Token", "TEST", _owner, _controller
                 )
             );
             bytes32 arbitrumOFTAdapterSalt = createSalt(_deployer, "OFTAdapter");
@@ -119,11 +130,13 @@ contract CrossChainBaseTest is TestHelper {
                     arbitrumOFTAdapterSalt,
                     arbitrumOFTAdapterProxySalt,
                     address(arbitrumERC20),
-                    arbitrumLzEndpoint,
-                    _deployer,
-                    _rateLimitConfigs
+                    address(arbitrumLzEndpoint),
+                    _owner,
+                    _rateLimitConfigs,
+                    _controller
                 )
             );
+            arbitrumEid = arbitrumLzEndpoint.eid();
         }
 
         // vm.selectFork(baseFork);
