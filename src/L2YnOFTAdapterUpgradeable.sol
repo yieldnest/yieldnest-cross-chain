@@ -25,10 +25,11 @@ contract L2YnOFTAdapterUpgradeable is OFTAdapterUpgradeable, AccessControlUpgrad
      */
     function initialize(address _owner, RateLimitConfig[] calldata _rateLimitConfigs) external virtual initializer {
         __OFTAdapter_init(_owner);
-        __Ownable_init(_owner);
+        __Ownable_init();
         __AccessControl_init();
         _grantRole(DEFAULT_ADMIN_ROLE, _owner);
         _setRateLimits(_rateLimitConfigs);
+        _transferOwnership(_owner);
     }
 
     /**
@@ -37,6 +38,17 @@ contract L2YnOFTAdapterUpgradeable is OFTAdapterUpgradeable, AccessControlUpgrad
      */
     function setRateLimits(RateLimitConfig[] calldata _rateLimitConfigs) external onlyRole(DEFAULT_ADMIN_ROLE) {
         _setRateLimits(_rateLimitConfigs);
+    }
+
+    /**
+     * @notice Indicates whether the OFT contract requires approval of the 'token()' to send.
+     * @return requiresApproval Needs approval of the underlying token implementation.
+     *
+     * @dev In the case of default OFTAdapter, approval is required.
+     * @dev In non-default OFTAdapter contracts with something like mint and burn privileges, it would NOT need approval.
+     */
+    function approvalRequired() external pure virtual override returns (bool) {
+        return false;
     }
 
     /**

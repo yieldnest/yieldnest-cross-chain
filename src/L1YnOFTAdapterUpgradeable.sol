@@ -23,10 +23,11 @@ contract L1YnOFTAdapterUpgradeable is OFTAdapterUpgradeable, AccessControlUpgrad
      */
     function initialize(address _owner, RateLimitConfig[] calldata _rateLimitConfigs) external virtual initializer {
         __OFTAdapter_init(_owner);
-        __Ownable_init(_owner);
+        __Ownable_init();
         __AccessControl_init();
         _grantRole(DEFAULT_ADMIN_ROLE, _owner);
         _setRateLimits(_rateLimitConfigs);
+        _transferOwnership(_owner);
     }
 
     /**

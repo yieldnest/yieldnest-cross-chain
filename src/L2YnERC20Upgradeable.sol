@@ -13,12 +13,11 @@ contract L2YnERC20Upgradeable is ERC20Upgradeable, AccessControlUpgradeable, IMi
         _disableInitializers();
     }
 
-    function initialize(string memory _name, string memory _symbol, address _minter) public initializer {
+    function initialize(string memory _name, string memory _symbol, address _owner) public initializer {
         __ERC20_init(_name, _symbol);
         __AccessControl_init();
 
-        _grantRole(DEFAULT_ADMIN_ROLE, _msgSender());
-        _grantRole(MINTER_ROLE, _minter);
+        _grantRole(DEFAULT_ADMIN_ROLE, _owner);
     }
 
     function mint(address _to, uint256 _amount) public onlyRole(MINTER_ROLE) {
