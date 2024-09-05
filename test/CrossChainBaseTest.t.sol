@@ -35,6 +35,10 @@ contract CrossChainBaseTest is TestHelper {
     L2YnERC20Upgradeable public optimismERC20;
     L2YnERC20Upgradeable public arbitrumERC20;
 
+    bytes public l2YnOFTAdapterByteCode = type(L2YnOFTAdapterUpgradeable).creationCode;
+    bytes public l1YnOFTAdapterByteCode = type(L1YnOFTAdapterUpgradeable).creationCode;
+    bytes public l2YnERC20ByteCode = type(L2YnERC20Upgradeable).creationCode;
+
     address mainnetOFTAdapterImpl;
 
     uint256 optimismFork;
@@ -86,7 +90,13 @@ contract CrossChainBaseTest is TestHelper {
             bytes32 optimismERC20ProxySalt = createSalt(_deployer, "ERC20Proxy");
             optimismERC20 = L2YnERC20Upgradeable(
                 optimismDeployer.deployL2YnERC20(
-                    optimismERC20Salt, optimismERC20ProxySalt, "Test Token", "TEST", _owner, _controller
+                    optimismERC20Salt,
+                    optimismERC20ProxySalt,
+                    "Test Token",
+                    "TEST",
+                    _owner,
+                    _controller,
+                    l2YnERC20ByteCode
                 )
             );
             bytes32 optimismOFTAdapterSalt = createSalt(_deployer, "OFTAdapter");
@@ -99,7 +109,8 @@ contract CrossChainBaseTest is TestHelper {
                     address(optimismLzEndpoint),
                     _owner,
                     _rateLimitConfigs,
-                    _controller
+                    _controller,
+                    l2YnOFTAdapterByteCode
                 )
             );
         }
@@ -111,7 +122,13 @@ contract CrossChainBaseTest is TestHelper {
             bytes32 arbitrumERC20ProxySalt = createSalt(_deployer, "ERC20Proxy");
             arbitrumERC20 = L2YnERC20Upgradeable(
                 arbitrumDeployer.deployL2YnERC20(
-                    arbitrumERC20Salt, arbitrumERC20ProxySalt, "Test Token", "TEST", _owner, _controller
+                    arbitrumERC20Salt,
+                    arbitrumERC20ProxySalt,
+                    "Test Token",
+                    "TEST",
+                    _owner,
+                    _controller,
+                    l2YnERC20ByteCode
                 )
             );
             bytes32 arbitrumOFTAdapterSalt = createSalt(_deployer, "OFTAdapter");
@@ -124,7 +141,8 @@ contract CrossChainBaseTest is TestHelper {
                     address(arbitrumLzEndpoint),
                     _owner,
                     _rateLimitConfigs,
-                    _controller
+                    _controller,
+                    l2YnOFTAdapterByteCode
                 )
             );
         }

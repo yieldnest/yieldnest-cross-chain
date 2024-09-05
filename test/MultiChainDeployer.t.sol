@@ -35,7 +35,8 @@ contract Test_ImmutableMultiChainDeployer is CrossChainBaseTest {
                 address(arbitrumLzEndpoint),
                 _owner,
                 _rateLimitConfigs,
-                _controller
+                _controller,
+                l2YnOFTAdapterByteCode
             )
         );
     }

@@ -31,7 +31,8 @@ interface IImmutableMultiChainDeployer {
         address _lzEndpoint,
         address _owner,
         RateLimiter.RateLimitConfig[] calldata _rateLimitConfigs,
-        address _proxyController
+        address _proxyController,
+        bytes memory _l2YnOFTAdapterBytecode
     ) external returns (address deployed);
 
     /// @notice Deploys a deployYnERC20 contract using CREATE3 and initializes in the same call
@@ -49,7 +50,8 @@ interface IImmutableMultiChainDeployer {
         string memory _name,
         string memory _symbol,
         address _owner,
-        address _proxyController
+        address _proxyController,
+        bytes memory _l2YnOFTAdapterBytecode
     ) external returns (address deployed);
 
     /// @notice Predicts the address of a deployed contract

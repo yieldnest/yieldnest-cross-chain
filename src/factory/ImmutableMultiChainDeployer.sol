@@ -8,6 +8,7 @@ import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/Ra
 import {IImmutableMultiChainDeployer} from "@interfaces/IImmutableMultiChainDeployer.sol";
 import {L2YnOFTAdapterUpgradeable} from "@adapters/L2YnOFTAdapterUpgradeable.sol";
 import {L2YnERC20Upgradeable} from "@adapters/L2YnERC20Upgradeable.sol";
+import "forge-std/console.sol";
 
 contract ImmutableMultiChainDeployer is IImmutableMultiChainDeployer {
     event ContractCreated(address deployedAddress);
@@ -67,11 +68,11 @@ contract ImmutableMultiChainDeployer is IImmutableMultiChainDeployer {
         address _lzEndpoint,
         address _owner,
         RateLimiter.RateLimitConfig[] calldata _rateLimitConfigs,
-        address _proxyController
+        address _proxyController,
+        bytes memory _l2YnOFTAdapterBytecode
     ) public returns (address _deployedContract) {
-        bytes memory bytecode = type(L2YnOFTAdapterUpgradeable).creationCode;
         bytes memory constructorParams = abi.encode(_token, _lzEndpoint);
-        bytes memory contractCode = abi.encodePacked(bytecode, constructorParams);
+        bytes memory contractCode = abi.encodePacked(_l2YnOFTAdapterBytecode, constructorParams);
 
         address adapterImpl = deploy(_implSalt, contractCode);
         _deployedContract = deployProxy(_proxySalt, adapterImpl, _proxyController);
@@ -85,9 +86,10 @@ contract ImmutableMultiChainDeployer is IImmutableMultiChainDeployer {
         string memory _name,
         string memory _symbol,
         address _owner,
-        address _proxyController
+        address _proxyController,
+        bytes memory _l2YnERC20UpgradeableByteCode
     ) public returns (address _deployedContract) {
-        address adapterImpl = deploy(_implSalt, type(L2YnERC20Upgradeable).creationCode);
+        address adapterImpl = deploy(_implSalt, _l2YnERC20UpgradeableByteCode);
         _deployedContract = deployProxy(_proxySalt, adapterImpl, _proxyController);
         L2YnERC20Upgradeable(_deployedContract).initialize(_name, _symbol, _owner);
     }
