@@ -21,6 +21,9 @@ struct RateLimitConfig {
 //forge script script/DeployMainnetImplementations.s.sol:DeployMainnetImplementations --rpc-url ${rpc} --account ${deployerAccountName} --sender ${deployer} --broadcast --etherscan-api-key ${api} --verify
 
 contract BaseScript is Script {
+    // TODO: parse token address from json or as input from user
+    // TODO: setup forks based on if testnet or mainnet deployment as per json
+    // TODO: setup saving of deployment data in deployments json file
     bytes public data;
     YnOFTAdapterInput public _ynOFTAdapterInputs;
     RateLimiter.RateLimitConfig[] public _rateLimitConfigs;

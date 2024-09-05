@@ -5,16 +5,15 @@ import {Test} from "forge-std/Test.sol";
 import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {ImmutableMultiChainDeployer} from "@factory/ImmutableMultiChainDeployer.sol";
 import {IMintableBurnableERC20} from "@interfaces/IMintableBurnableERC20.sol";
-import {L1YnOFTAdapterUpgradeable} from "@adapters/L1YnOFTAdapterUpgradeable.sol";
-import {L2YnERC20Upgradeable} from "@adapters/L2YnERC20Upgradeable.sol";
-import {L2YnOFTAdapterUpgradeable} from "@adapters/L2YnOFTAdapterUpgradeable.sol";
+import {L1YnOFTAdapterUpgradeable} from "@/L1YnOFTAdapterUpgradeable.sol";
+import {L2YnERC20Upgradeable} from "@/L2YnERC20Upgradeable.sol";
+import {L2YnOFTAdapterUpgradeable} from "@/L2YnOFTAdapterUpgradeable.sol";
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
 import {ERC20Mock} from "@layerzerolabs/lz-evm-oapp-v2/test/mocks/ERC20Mock.sol";
 import {EndpointV2} from "@layerzerolabs/lz-evm-protocol-v2/contracts/EndpointV2.sol";
-import {TestHelper} from "@layerzerolabs/lz-evm-oapp-v2/test/TestHelper.sol";
 import "forge-std/console.sol";
 
-contract CrossChainBaseTest is TestHelper {
+contract CrossChainBaseTest is Test {
     ImmutableMultiChainDeployer public mainnetDeployer;
     ImmutableMultiChainDeployer public optimismDeployer;
     ImmutableMultiChainDeployer public arbitrumDeployer;
@@ -49,7 +48,7 @@ contract CrossChainBaseTest is TestHelper {
     uint32 optimismEid;
     uint32 arbitrumEid;
 
-    function setUp() public virtual override {
+    function setUp() public virtual {
         // create forks
         optimismFork = vm.createFork(vm.envString("OPTIMISM_RPC_URL"), 124909408);
         arbitrumFork = vm.createFork(vm.envString("ARBITRUM_RPC_URL"), 249855816);
@@ -147,10 +146,6 @@ contract CrossChainBaseTest is TestHelper {
             );
         }
         vm.stopPrank();
-
-        endpoints[mainnetEid] = address(mainnetLzEndpoint);
-        endpoints[optimismEid] = address(optimismLzEndpoint);
-        endpoints[arbitrumEid] = address(arbitrumLzEndpoint);
 
         vm.startPrank(_owner);
         vm.selectFork(optimismFork);

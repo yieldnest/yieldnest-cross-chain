@@ -30,7 +30,7 @@ import {TestHelper, Initializable} from "@layerzerolabs/lz-evm-oapp-v2/test/Test
 import {L1OFTAdapterMock} from "./mocks/L1OFTAdapterMock.sol";
 import {L2OFTAdapterMock} from "./mocks/L2OFTAdapterMock.sol";
 
-import {L2YnERC20Upgradeable as L2YnERC20} from "@adapters/L2YnERC20Upgradeable.sol";
+import {L2YnERC20Upgradeable as L2YnERC20} from "@/L2YnERC20Upgradeable.sol";
 
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
 
@@ -47,8 +47,6 @@ contract OFTTest is TestHelper {
     L2YnERC20 bERC20;
     L2OFTAdapterMock cOFTAdapter;
     L2YnERC20 cERC20;
-
-    OFTInspectorMock oAppInspector;
 
     address public userA = address(0x1);
     address public userB = address(0x2);
@@ -123,11 +121,6 @@ contract OFTTest is TestHelper {
 
         // mint tokens
         aERC20.mint(userA, initialBalance);
-        // bOFT.mint(userB, initialBalance);
-        // cERC20Mock.mint(userC, initialBalance);
-
-        // deploy a universal inspector, can be used by each oft
-        oAppInspector = new OFTInspectorMock();
     }
 
     function test_constructor() public view {
@@ -370,6 +363,58 @@ contract OFTTest is TestHelper {
         aOFTAdapter.debit(amountToSendLD, minAmountToCreditLD, dstEid);
     }
 
+    function test_L1OFTAdapter_debit() public {
+        uint256 amountToSendLD = 1 ether;
+        uint256 minAmountToCreditLD = 1 ether;
+        uint32 dstEid = aEid;
+
+        aERC20.mint(userC, initialBalance);
+
+        assertEq(aERC20.balanceOf(userC), initialBalance, "incorrect user initial balance");
+        assertEq(aERC20.balanceOf(address(this)), 0, "incorrect contract initial balance");
+        assertEq(aERC20.balanceOf(address(aOFTAdapter)), 0, "incorrect adapter initial balance");
+
+        vm.expectRevert(abi.encodeWithSelector(IOFT.SlippageExceeded.selector, amountToSendLD, minAmountToCreditLD + 1));
+        aOFTAdapter.debitView(amountToSendLD, minAmountToCreditLD + 1, dstEid);
+
+        vm.startPrank(userC);
+        aERC20.approve(address(aOFTAdapter), amountToSendLD);
+        (uint256 amountDebitedLD, uint256 amountToCreditLD) =
+            aOFTAdapter.debit(amountToSendLD, minAmountToCreditLD, dstEid);
+        vm.stopPrank();
+
+        assertEq(amountDebitedLD, amountToSendLD);
+        assertEq(amountToCreditLD, amountToSendLD);
+
+        assertEq(aERC20.balanceOf(userC), initialBalance - amountToSendLD, "incorrect user final balance");
+        assertEq(aERC20.balanceOf(address(this)), 0, "incorrect contract final balance");
+        // aOFT adapter should have 0 balance because it burns the incoming erc20
+        assertEq(aERC20.balanceOf(address(aOFTAdapter)), amountToSendLD, "incorrect adapter final balance");
+    }
+
+    function test_L1OFTAdapter_credit() public {
+        uint256 amountToCreditLD = 1 ether;
+        uint32 srcEid = cEid;
+
+        aERC20.mint(userB, initialBalance);
+        aERC20.mint(userC, initialBalance);
+
+        assertEq(aERC20.balanceOf(userB), initialBalance, "incorrect userB initial balance");
+        assertEq(aERC20.balanceOf(userC), initialBalance, "incorrect userC initial balance");
+        assertEq(aERC20.balanceOf(address(this)), 0, "incorrect contract initial balance");
+        assertEq(aERC20.balanceOf(address(aOFTAdapter)), 0, "incorrect adapter initial balance");
+
+        vm.prank(userC);
+        aERC20.transfer(address(aOFTAdapter), amountToCreditLD);
+
+        uint256 amountReceived = aOFTAdapter.credit(userB, amountToCreditLD, srcEid);
+
+        assertEq(aERC20.balanceOf(address(userB)), initialBalance + amountReceived, "incorrect userB final balance");
+        assertEq(aERC20.balanceOf(address(userC)), initialBalance - amountReceived, "incorrect userC final balance");
+        assertEq(aERC20.balanceOf(address(this)), 0, "incorrect contract final balance");
+        assertEq(aERC20.balanceOf(address(aOFTAdapter)), 0, "incorrect adapter final balance");
+    }
+
     function test_L2OFTAdapter_debit() public {
         uint256 amountToSendLD = 1 ether;
         uint256 minAmountToCreditLD = 1 ether;
@@ -379,45 +424,39 @@ contract OFTTest is TestHelper {
         cERC20.mint(userC, initialBalance);
 
         assertEq(cERC20.balanceOf(userC), initialBalance, "incorrect user initial balance");
+        assertEq(cERC20.balanceOf(address(this)), 0, "incorrect contract initial balance");
         assertEq(cERC20.balanceOf(address(cOFTAdapter)), 0, "incorrect adapter initial balance");
 
-        vm.prank(userC);
         vm.expectRevert(abi.encodeWithSelector(IOFT.SlippageExceeded.selector, amountToSendLD, minAmountToCreditLD + 1));
         cOFTAdapter.debitView(amountToSendLD, minAmountToCreditLD + 1, dstEid);
 
-        vm.prank(userC);
+        vm.startPrank(userC);
         cERC20.approve(address(cOFTAdapter), amountToSendLD);
-        vm.prank(userC);
         (uint256 amountDebitedLD, uint256 amountToCreditLD) =
             cOFTAdapter.debit(amountToSendLD, minAmountToCreditLD, dstEid);
+        vm.stopPrank();
 
         assertEq(amountDebitedLD, amountToSendLD);
         assertEq(amountToCreditLD, amountToSendLD);
 
-        assertEq(cERC20.balanceOf(userC), initialBalance - amountToSendLD, "incorrect user ending balance");
+        assertEq(cERC20.balanceOf(userC), initialBalance - amountToSendLD, "incorrect user final balance");
+        assertEq(cERC20.balanceOf(address(this)), 0, "incorrect contract final balance");
         // cOFT adapter should have 0 balance because it burns the incoming erc20
-        assertEq(cERC20.balanceOf(address(cOFTAdapter)), 0, "incorrect adapter ending balance");
+        assertEq(cERC20.balanceOf(address(cOFTAdapter)), 0, "incorrect adapter final balance");
     }
 
     function test_L2OFTAdapter_credit() public {
         uint256 amountToCreditLD = 1 ether;
         uint32 srcEid = cEid;
 
-        cERC20.grantRole(cERC20.MINTER_ROLE(), address(this));
-        cERC20.mint(userC, initialBalance);
-
-        assertEq(cERC20.balanceOf(userC), initialBalance);
-        assertEq(cERC20.balanceOf(address(cOFTAdapter)), 0);
-
-        vm.prank(userC);
-        cERC20.transfer(address(cOFTAdapter), amountToCreditLD);
+        assertEq(cERC20.balanceOf(userB), 0, "incorrect userB initial balance");
+        assertEq(cERC20.balanceOf(address(this)), 0, "incorrect contract initial balance");
+        assertEq(cERC20.balanceOf(address(cOFTAdapter)), 0, "incorrect adapter initial balance");
 
         uint256 amountReceived = cOFTAdapter.credit(userB, amountToCreditLD, srcEid);
 
-        assertEq(cERC20.balanceOf(userC), initialBalance - amountToCreditLD, "incorrect userC ending balance");
-        assertEq(cERC20.balanceOf(address(userB)), amountReceived, "incorrect userB ending balance");
-        // note Should we burn incoming tokens on receive?
-        // assertEq(cERC20.balanceOf(address(cOFTAdapter)), 0, "incorrect adapter ending balance");
-        assertEq(cERC20.balanceOf(address(cOFTAdapter)), amountReceived, "incorrect adapter ending balance");
+        assertEq(cERC20.balanceOf(address(userB)), amountReceived, "incorrect userB final balance");
+        assertEq(cERC20.balanceOf(address(this)), 0, "incorrect contract final balance");
+        assertEq(cERC20.balanceOf(address(cOFTAdapter)), 0, "incorrect adapter final balance");
     }
 }
