@@ -30,7 +30,7 @@ import {TestHelper, Initializable} from "@layerzerolabs/lz-evm-oapp-v2/test/Test
 import {L1OFTAdapterMock} from "./mocks/L1OFTAdapterMock.sol";
 import {L2OFTAdapterMock} from "./mocks/L2OFTAdapterMock.sol";
 
-import {L2YnERC20Upgradeable as L2YnERC20} from "@adapters/L2YnERC20Upgradeable.sol";
+import {L2YnERC20Upgradeable as L2YnERC20} from "@/L2YnERC20Upgradeable.sol";
 
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
 

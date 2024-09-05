@@ -6,61 +6,57 @@ import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/acce
 import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
 import {IImmutableMultiChainDeployer} from "@interfaces/IImmutableMultiChainDeployer.sol";
-import {L2YnOFTAdapterUpgradeable} from "@adapters/L2YnOFTAdapterUpgradeable.sol";
-import {L2YnERC20Upgradeable} from "@adapters/L2YnERC20Upgradeable.sol";
-import "forge-std/console.sol";
+import {L2YnOFTAdapterUpgradeable} from "@/L2YnOFTAdapterUpgradeable.sol";
+import {L2YnERC20Upgradeable} from "@/L2YnERC20Upgradeable.sol";
 
 contract ImmutableMultiChainDeployer is IImmutableMultiChainDeployer {
-    event ContractCreated(address deployedAddress);
+    /// @notice Emitted when a new contract is deployed
+    /// @param _deployedAddress The address of the newly deployed contract
+    event ContractCreated(address indexed _deployedAddress);
 
-    // mapping to track the already deployed addresses
-    mapping(address => bool) private _deployed;
+    /// @notice Mapping to track deployed addresses
+    mapping(address => bool) private _deployedContracts;
+
+    /// @dev Custom errors
+    error InvalidSalt();
+    error AlreadyDeployed();
+    error IncorrectDeploymentAddress();
 
     /// @dev Modifier to ensure that the first 20 bytes of a submitted salt match
-    /// those of the calling account. This provides protection against the salt
-    /// being stolen by frontrunners or other attackers. The protection can also be
-    /// bypassed if desired by setting each of the first 20 bytes to zero.
-    /// @param salt bytes32 The salt value to check against the calling address.
-    modifier containsCaller(bytes32 salt) {
-        // prevent contract submissions from being stolen from tx.pool by requiring
-        // that the first 20 bytes of the submitted salt match msg.sender.
-        require(
-            (address(bytes20(salt)) == msg.sender) || (bytes20(salt) == bytes20(0)),
-            "Invalid salt - first 20 bytes of the salt must match calling address."
-        );
+    /// those of the calling account, providing protection against salt misuse.
+    /// @param _salt The salt value to check against the calling address.
+    modifier containsCaller(bytes32 _salt) {
+        if (address(bytes20(_salt)) != msg.sender && bytes20(_salt) != bytes20(0)) {
+            revert InvalidSalt();
+        }
         _;
     }
 
-    /// @inheritdoc	IImmutableMultiChainDeployer
-    function deploy(bytes32 salt, bytes memory initCode)
+    /// @inheritdoc IImmutableMultiChainDeployer
+    function deploy(bytes32 _salt, bytes memory _initCode)
         public
         payable
         override
-        containsCaller(salt)
-        returns (address _deployedContract)
+        containsCaller(_salt)
+        returns (address deployedContract)
     {
-        // get target deployment
-        address targetDeploymentAddress = CREATE3.getDeployed(salt);
+        address _targetDeploymentAddress = CREATE3.getDeployed(_salt);
 
-        require(
-            !_deployed[targetDeploymentAddress],
-            "Invalid deployment. a contract has already been deployed at this address"
-        );
+        if (_deployedContracts[_targetDeploymentAddress]) {
+            revert AlreadyDeployed();
+        }
 
-        // use create 3 to deploy contract
-        _deployedContract = CREATE3.deploy(salt, initCode, msg.value);
+        deployedContract = CREATE3.deploy(_salt, _initCode, msg.value);
 
-        // check address against target to make sure deployment was successful
-        require(targetDeploymentAddress == _deployedContract, "failed to deploy to correct address");
+        if (_targetDeploymentAddress != deployedContract) {
+            revert IncorrectDeploymentAddress();
+        }
 
-        // record the deployment of the contract to prevent redeploys.
-        _deployed[_deployedContract] = true;
-
-        // emit event
-        emit ContractCreated(_deployedContract);
+        _deployedContracts[deployedContract] = true;
+        emit ContractCreated(deployedContract);
     }
 
-    /// @inheritdoc	IImmutableMultiChainDeployer
+    /// @inheritdoc IImmutableMultiChainDeployer
     function deployL2YnOFTAdapter(
         bytes32 _implSalt,
         bytes32 _proxySalt,
@@ -70,45 +66,62 @@ contract ImmutableMultiChainDeployer is IImmutableMultiChainDeployer {
         RateLimiter.RateLimitConfig[] calldata _rateLimitConfigs,
         address _proxyController,
         bytes memory _l2YnOFTAdapterBytecode
-    ) public returns (address _deployedContract) {
-        bytes memory constructorParams = abi.encode(_token, _lzEndpoint);
-        bytes memory contractCode = abi.encodePacked(_l2YnOFTAdapterBytecode, constructorParams);
-
-        address adapterImpl = deploy(_implSalt, contractCode);
-        _deployedContract = deployProxy(_proxySalt, adapterImpl, _proxyController);
-        L2YnOFTAdapterUpgradeable(_deployedContract).initialize(_owner, _rateLimitConfigs);
+    ) public override returns (address deployedContract) {
+        bytes memory _constructorParams = abi.encode(_token, _lzEndpoint);
+        bytes memory _contractCode = abi.encodePacked(_l2YnOFTAdapterBytecode, _constructorParams);
+        bytes memory _initializeArgs =
+            abi.encodeWithSelector(L2YnOFTAdapterUpgradeable.initialize.selector, _owner, _rateLimitConfigs);
+        deployedContract =
+            deployContractAndProxy(_implSalt, _proxySalt, _proxyController, _contractCode, _initializeArgs);
     }
 
-    /// @inheritdoc	IImmutableMultiChainDeployer
+    /// @inheritdoc IImmutableMultiChainDeployer
     function deployL2YnERC20(
         bytes32 _implSalt,
         bytes32 _proxySalt,
-        string memory _name,
-        string memory _symbol,
+        string calldata _name,
+        string calldata _symbol,
         address _owner,
         address _proxyController,
         bytes memory _l2YnERC20UpgradeableByteCode
-    ) public returns (address _deployedContract) {
-        address adapterImpl = deploy(_implSalt, _l2YnERC20UpgradeableByteCode);
-        _deployedContract = deployProxy(_proxySalt, adapterImpl, _proxyController);
-        L2YnERC20Upgradeable(_deployedContract).initialize(_name, _symbol, _owner);
+    ) public override returns (address deployedContract) {
+        bytes memory _initializeArgs =
+            abi.encodeWithSelector(L2YnERC20Upgradeable.initialize.selector, _name, _symbol, _owner);
+        deployedContract = deployContractAndProxy(
+            _implSalt, _proxySalt, _proxyController, _l2YnERC20UpgradeableByteCode, _initializeArgs
+        );
     }
 
-    /// @inheritdoc	IImmutableMultiChainDeployer
-    function getDeployed(bytes32 salt) public view override returns (address deployed) {
-        // hash salt with the deployer address to give each deployer its own namespace
-        return CREATE3.getDeployed(salt);
+    /// @inheritdoc IImmutableMultiChainDeployer
+    function getDeployed(bytes32 _salt) external view override returns (address deployed) {
+        return CREATE3.getDeployed(_salt);
     }
 
-    function hasBeenDeployed(address deploymentAddress) external view returns (bool) {
-        // determine if a contract has been deployed to the provided address.
-        return _deployed[deploymentAddress];
+    /// @inheritdoc IImmutableMultiChainDeployer
+    function hasBeenDeployed(address _deploymentAddress) external view override returns (bool beenDeployed) {
+        beenDeployed = _deployedContracts[_deploymentAddress];
     }
 
-    function deployProxy(bytes32 salt, address implementation, address controller) internal returns (address proxy) {
-        bytes memory bytecode = type(TransparentUpgradeableProxy).creationCode;
-        bytes memory constructorParams = abi.encode(implementation, controller, "");
-        bytes memory contractCode = abi.encodePacked(bytecode, constructorParams);
-        proxy = deploy(salt, contractCode);
+    /// @inheritdoc IImmutableMultiChainDeployer
+    function deployProxy(bytes32 _salt, address _implementation, address _controller, bytes memory _initializeArgs)
+        public
+        returns (address proxy)
+    {
+        bytes memory _constructorParams = abi.encode(_implementation, _controller, _initializeArgs);
+        bytes memory _contractCode =
+            abi.encodePacked(type(TransparentUpgradeableProxy).creationCode, _constructorParams);
+        proxy = deploy(_salt, _contractCode);
+    }
+
+    /// @inheritdoc IImmutableMultiChainDeployer
+    function deployContractAndProxy(
+        bytes32 _implSalt,
+        bytes32 _proxySalt,
+        address _controller,
+        bytes memory _bytecode,
+        bytes memory _initializeArgs
+    ) public returns (address addr) {
+        address _implAddr = deploy(_implSalt, _bytecode);
+        return deployProxy(_proxySalt, _implAddr, _controller, _initializeArgs);
     }
 }
