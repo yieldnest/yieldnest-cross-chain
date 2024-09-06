@@ -69,15 +69,15 @@ contract BaseData is Script {
             Actors({OFT_DELEGATE: address(0), TOKEN_ADMIN: address(0), PROXY_ADMIN: address(0)});
     }
 
-    function getActors(uint256 chainId) external view returns (Actors memory) {
+    function getActors(uint256 chainId) public view returns (Actors memory) {
         return actors[chainId];
     }
 
-    function getChainAddresses(uint256 chainId) external view returns (ChainAddresses memory) {
+    function getChainAddresses(uint256 chainId) public view returns (ChainAddresses memory) {
         return addresses[chainId];
     }
 
-    function isSupportedChainId(uint256 chainId) external view returns (bool) {
+    function isSupportedChainId(uint256 chainId) public view returns (bool) {
         return chainId == chainIds.mainnet || chainId == chainIds.base || chainId == chainIds.fraxtal
             || chainId == chainIds.optimism || chainId == chainIds.arbitrum || chainId == chainIds.holeksy
             || chainId == chainIds.fraxtalTestnet;
