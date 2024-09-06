@@ -94,4 +94,9 @@ contract BaseScript is BaseData {
         string memory root = vm.projectRoot();
         return string.concat(root, "/script/output/", _deploymentType, "-", vm.toString(block.chainid), ".json");
     }
+
+    function _writeOutput(string memory deploymentType, string memory json) internal {
+        string memory path = _getOutputPath("ImmutableMultiChainDeployer");
+        vm.writeFile(path, json);
+    }
 }

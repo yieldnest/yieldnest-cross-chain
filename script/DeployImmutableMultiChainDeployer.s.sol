@@ -4,7 +4,8 @@ pragma solidity ^0.8.13;
 import {BaseScript} from "./BaseScript.s.sol";
 import {ImmutableMultiChainDeployer} from "@factory/ImmutableMultiChainDeployer.sol";
 import "forge-std/console.sol";
-//forge script script/DeployImmutableMultiChainDeployer.s.sol:DeployImmutableMultiChainDeployer --rpc-url ${rpc} --sig "run(string memory)" ${path} --account ${deployerAccountName} --sender ${deployer} --broadcast --etherscan-api-key ${api} --verify
+
+//forge script script/DeployImmutableMultiChainDeployer.s.sol:DeployImmutableMultiChainDeployer --rpc-url ${rpc} --sig "run(bytes32)" ${salt} --account ${deployerAccountName} --sender ${deployer} --broadcast --etherscan-api-key ${api} --verify
 
 contract DeployImmutableMultiChainDeployer is BaseScript {
     address public multiChainDeployerAddress;
@@ -19,6 +20,8 @@ contract DeployImmutableMultiChainDeployer is BaseScript {
 
     function _serializeOutputs(string memory objectKey) internal override {
         vm.serializeString(objectKey, "chainid", vm.toString(block.chainid));
-        vm.serializeAddress(objectKey, "ImmutableMultiChainDeployerAddress", address(multiChainDeployerAddress));
+        string memory finalJson =
+            vm.serializeAddress(objectKey, "ImmutableMultiChainDeployerAddress", address(multiChainDeployerAddress));
+        _writeOutput("ImmutableMultiChainDeployer", finalJson);
     }
 }
