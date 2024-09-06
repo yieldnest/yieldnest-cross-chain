@@ -4,9 +4,9 @@ pragma solidity ^0.8.24;
 import {CrossChainBaseTest} from "./CrossChainBaseTest.t.sol";
 import {ImmutableMultiChainDeployer} from "@factory/ImmutableMultiChainDeployer.sol";
 import {IMintableBurnableERC20} from "@interfaces/IMintableBurnableERC20.sol";
-import {L1YnOFTAdapterUpgradeable} from "@adapters/L1YnOFTAdapterUpgradeable.sol";
-import {L2YnERC20Upgradeable} from "@adapters/L2YnERC20Upgradeable.sol";
-import {L2YnOFTAdapterUpgradeable} from "@adapters/L2YnOFTAdapterUpgradeable.sol";
+import {L1YnOFTAdapterUpgradeable} from "@/L1YnOFTAdapterUpgradeable.sol";
+import {L2YnERC20Upgradeable} from "@/L2YnERC20Upgradeable.sol";
+import {L2YnOFTAdapterUpgradeable} from "@/L2YnOFTAdapterUpgradeable.sol";
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
 import {OptionsBuilder} from "@layerzerolabs/lz-evm-oapp-v2/contracts-upgradeable/oapp/libs/OptionsBuilder.sol";
 import {
@@ -18,7 +18,7 @@ import {
     IOFT, SendParam, OFTReceipt
 } from "@layerzerolabs/lz-evm-oapp-v2/contracts-upgradeable/oft/interfaces/IOFT.sol";
 
-contract Test_L1YnOFTAdapterUpgradeable is CrossChainBaseTest {
+contract OFTCrossChainTest is CrossChainBaseTest {
     using OptionsBuilder for bytes;
 
     address public userA = address(0x1);
@@ -131,5 +131,9 @@ contract Test_L1YnOFTAdapterUpgradeable is CrossChainBaseTest {
         //
         // vm.selectFork(arbitrumFork);
         // assertEq(arbitrumERC20.balanceOf(userB), initialBalance + tokensToSend);
+    }
+
+    function addressToBytes32(address _addr) internal pure returns (bytes32) {
+        return bytes32(uint256(uint160(_addr)));
     }
 }

@@ -31,6 +31,7 @@
   "dependencies": {
     "@layerzerolabs/lz-evm-v1-0.7": "^2.3.40",
     "hardhat-deploy": "^0.12.4",
-    "lint-staged": "^15.2.10"
+    "lint-staged": "^15.2.10",
+    "solmate": "^6.2.0"
   }
 }
