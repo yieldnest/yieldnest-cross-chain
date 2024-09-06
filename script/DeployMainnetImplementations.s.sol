@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
 
 import {BaseScript} from "./BaseScript.s.sol";
 import {ImmutableMultiChainDeployer} from "@factory/ImmutableMultiChainDeployer.sol";
@@ -13,7 +13,7 @@ contract DeployMainnetImplementations is BaseScript {
     L1YnOFTAdapterUpgradeable public mainnetOFTAdapter;
 
     function run(string memory __path) public {
-        _loadYnOFTImplementationInputs(__path);
+        _loadOFTImplementationData(__path);
 
         vm.broadcast();
 
@@ -28,7 +28,7 @@ contract DeployMainnetImplementations is BaseScript {
     }
 
     function _serializeOutputs(string memory objectKey) internal override {
-        vm.serializeAddress(objectKey, "erc20", _ynOftAdapterInputs.erc20Address);
+        vm.serializeAddress(objectKey, "erc20", _ynOFTAdapterInputs.erc20Address);
         vm.serializeString(objectKey, "chainid", vm.toString(block.chainid));
         vm.serializeAddress(objectKey, "OFTAdapterImplementation", address(mainnetOFTAdapterImpl));
         string memory finalJson = vm.serializeAddress(objectKey, "OFTAdapter", address(mainnetOFTAdapter));
