@@ -36,17 +36,17 @@ contract BaseScript is BaseData {
     YnERC20Input public _ynERC20Inputs;
     RateLimiter.RateLimitConfig[] public _rateLimitConfigs;
 
-    function _loadERC20(string memory _inputPath) internal {
+    function _loadERC20Data(string memory _inputPath) internal {
         _loadJson(_inputPath);
         _loadYnERC20Inputs();
-        isSupportedChainId(_chainId);
+        _verifyChain();
     }
 
-    function _loadOFTAdapter(string memory _inputPath) internal {
+    function _loadOFTAdapterData(string memory _inputPath) internal {
         _loadJson(_inputPath);
         _loadYnOFTAdapterInputs();
         _getRateLimiterConfigs();
-        isSupportedChainId(_chainId);
+        _verifyChain();
     }
 
     function _loadJson(string memory _path) internal {
@@ -83,5 +83,15 @@ contract BaseScript is BaseData {
 
     function _serializeOutputs(string memory objectKey) internal virtual {
         // left blank on purpose
+    }
+
+    function _verifyChain() internal view returns (bool) {
+        require(isSupportedChainId(_chainId) && block.chainid == _chainId, "Invalid chain");
+        return isSupportedChainId(_chainId) && block.chainid == _chainId;
+    }
+
+    function _getOutputPath(string memory _deploymentType) internal view returns (string memory) {
+        string memory root = vm.projectRoot();
+        return string.concat(root, "/script/output/", _deploymentType, "-", vm.toString(block.chainid), ".json");
     }
 }
