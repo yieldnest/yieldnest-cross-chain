@@ -5,9 +5,16 @@ import {BaseData} from "./BaseData.sol";
 import {ImmutableMultiChainDeployer} from "@factory/ImmutableMultiChainDeployer.sol";
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
 import {EndpointV2} from "@layerzerolabs/lz-evm-protocol-v2/contracts/EndpointV2.sol";
+import "forge-std/console.sol";
 
-struct YnOFTAdapterInput {
+struct L2YnOFTAdapterInput {
     address adapterImplementation;
+    uint256 chainId;
+    address erc20Address;
+    RateLimitConfig[] rateLimitConfigs;
+}
+
+struct L1YnOFTAdapterInput {
     uint256 chainId;
     address erc20Address;
     RateLimitConfig[] rateLimitConfigs;
@@ -32,7 +39,8 @@ contract BaseScript is BaseData {
     // TODO: setup saving of deployment data in deployments json file
     uint256 _chainId;
     bytes public data;
-    YnOFTAdapterInput public _ynOFTAdapterInputs;
+    L2YnOFTAdapterInput public _ynOFTAdapterInputs;
+    L1YnOFTAdapterInput public _ynOFTImplementationInputs;
     YnERC20Input public _ynERC20Inputs;
     RateLimiter.RateLimitConfig[] public _rateLimitConfigs;
 
@@ -45,8 +53,21 @@ contract BaseScript is BaseData {
     function _loadOFTAdapterData(string memory _inputPath) internal {
         _loadJson(_inputPath);
         _loadYnOFTAdapterInputs();
-        _getRateLimiterConfigs();
         _verifyChain();
+        _getRateLimiterConfigs();
+    }
+
+    function _loadOFTImplementationData(string memory _inputPath) internal {
+        _loadJson(_inputPath);
+        _loadYnOFTImplementationInputs();
+        _verifyChain();
+        _getRateLimiterConfigs();
+    }
+
+    function _loadYnOFTImplementationInputs() internal {
+        L1YnOFTAdapterInput memory implementationInputs = abi.decode(data, (L1YnOFTAdapterInput));
+        this.loadImplementationInputs(implementationInputs);
+        _chainId = _ynOFTImplementationInputs.chainId;
     }
 
     function _loadJson(string memory _path) internal {
@@ -56,13 +77,17 @@ contract BaseScript is BaseData {
     }
 
     function _loadYnOFTAdapterInputs() internal {
-        YnOFTAdapterInput memory ynOFTAdapterInputs = abi.decode(data, (YnOFTAdapterInput));
-        _chainId = _ynOFTAdapterInputs.chainId;
+        L2YnOFTAdapterInput memory ynOFTAdapterInputs = abi.decode(data, (L2YnOFTAdapterInput));
         this.loadAdapterInputs(ynOFTAdapterInputs);
+        _chainId = _ynOFTAdapterInputs.chainId;
     }
 
-    function loadAdapterInputs(YnOFTAdapterInput calldata _ynInput) external {
+    function loadAdapterInputs(L2YnOFTAdapterInput calldata _ynInput) external {
         _ynOFTAdapterInputs = _ynInput;
+    }
+
+    function loadImplementationInputs(L1YnOFTAdapterInput calldata _ynImpInput) external {
+        _ynOFTImplementationInputs = _ynImpInput;
     }
 
     function _loadYnERC20Inputs() internal {
@@ -92,11 +117,11 @@ contract BaseScript is BaseData {
 
     function _getOutputPath(string memory _deploymentType) internal view returns (string memory) {
         string memory root = vm.projectRoot();
-        return string.concat(root, "/script/output/", _deploymentType, "-", vm.toString(block.chainid), ".json");
+        return string.concat(root, "/deployments/", _deploymentType, "-", vm.toString(block.chainid), ".json");
     }
 
     function _writeOutput(string memory deploymentType, string memory json) internal {
-        string memory path = _getOutputPath("ImmutableMultiChainDeployer");
+        string memory path = _getOutputPath(deploymentType);
         vm.writeFile(path, json);
     }
 }

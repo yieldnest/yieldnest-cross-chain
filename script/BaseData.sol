@@ -20,7 +20,7 @@ contract BaseData is Script {
         uint256 optimism;
         uint256 arbitrum;
         uint256 fraxtal;
-        uint256 holeksy;
+        uint256 holesky;
         uint256 fraxtalTestnet;
     }
 
@@ -33,7 +33,7 @@ contract BaseData is Script {
         optimism: 10,
         arbitrum: 42161,
         fraxtal: 252,
-        holeksy: 17000,
+        holesky: 17000,
         fraxtalTestnet: 2522
     });
 
@@ -57,8 +57,8 @@ contract BaseData is Script {
         addresses[chainIds.base] = ChainAddresses({lzEndpoint: 0x1a44076050125825900e736c501f859c50fE728c});
         actors[chainIds.base] = Actors({OFT_DELEGATE: address(0), TOKEN_ADMIN: address(0), PROXY_ADMIN: address(0)});
 
-        addresses[chainIds.holeksy] = ChainAddresses({lzEndpoint: 0x6EDCE65403992e310A62460808c4b910D972f10f});
-        actors[chainIds.holeksy] = Actors({
+        addresses[chainIds.holesky] = ChainAddresses({lzEndpoint: 0x6EDCE65403992e310A62460808c4b910D972f10f});
+        actors[chainIds.holesky] = Actors({
             OFT_DELEGATE: 0x743b91CDB1C694D4F51bCDA3a4A59DcC0d02b913, // yn security council
             TOKEN_ADMIN: 0x743b91CDB1C694D4F51bCDA3a4A59DcC0d02b913,
             PROXY_ADMIN: 0x743b91CDB1C694D4F51bCDA3a4A59DcC0d02b913
@@ -79,7 +79,7 @@ contract BaseData is Script {
 
     function isSupportedChainId(uint256 chainId) public view returns (bool) {
         return chainId == chainIds.mainnet || chainId == chainIds.base || chainId == chainIds.fraxtal
-            || chainId == chainIds.optimism || chainId == chainIds.arbitrum || chainId == chainIds.holeksy
+            || chainId == chainIds.optimism || chainId == chainIds.arbitrum || chainId == chainIds.holesky
             || chainId == chainIds.fraxtalTestnet;
     }
 }

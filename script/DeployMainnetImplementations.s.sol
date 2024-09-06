@@ -7,13 +7,13 @@ import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/Ra
 import {L1YnOFTAdapterUpgradeable} from "@/L1YnOFTAdapterUpgradeable.sol";
 import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
-//forge script script/DeployMainnetImplementations.s.sol:DeployMainnetImplementations --rpc-url ${rpc} --account ${deployerAccountName} --sender ${deployer} --broadcast --etherscan-api-key ${api} --verify
+// forge script script/DeployMainnetImplementations.s.sol:DeployMainnetImplementations --rpc-url ${rpc} --sig "run(string memory)" ${path} --account ${deployerAccountName} --sender ${deployer} --broadcast --etherscan-api-key ${api} --verify
 contract DeployMainnetImplementations is BaseScript {
     address public mainnetOFTAdapterImpl;
     L1YnOFTAdapterUpgradeable public mainnetOFTAdapter;
 
     function run(string memory __path) public {
-        _loadOFTAdapterData(__path);
+        _loadYnOFTImplementationInputs(__path);
 
         vm.broadcast();
 
@@ -23,5 +23,15 @@ contract DeployMainnetImplementations is BaseScript {
             L1YnOFTAdapterUpgradeable(address(new TransparentUpgradeableProxy(mainnetOFTAdapterImpl, msg.sender, "")));
 
         mainnetOFTAdapter.initialize(msg.sender, _rateLimitConfigs);
+
+        _serializeOutputs("MainnetImplementations");
+    }
+
+    function _serializeOutputs(string memory objectKey) internal override {
+        vm.serializeAddress(objectKey, "erc20", _ynOftAdapterInputs.erc20Address);
+        vm.serializeString(objectKey, "chainid", vm.toString(block.chainid));
+        vm.serializeAddress(objectKey, "OFTAdapterImplementation", address(mainnetOFTAdapterImpl));
+        string memory finalJson = vm.serializeAddress(objectKey, "OFTAdapter", address(mainnetOFTAdapter));
+        _writeOutput("MainnetImplementations", finalJson);
     }
 }
