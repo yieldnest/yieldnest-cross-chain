@@ -13,7 +13,7 @@ contract DeployMainnetImplementations is BaseScript {
     L1YnOFTAdapterUpgradeable public mainnetOFTAdapter;
 
     function run(string memory __path) public {
-        _loadOFTAdapter(__path);
+        _loadOFTAdapterData(__path);
 
         vm.broadcast();
 
