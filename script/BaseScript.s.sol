@@ -30,7 +30,6 @@ struct RateLimitConfig {
 
 struct YnERC20Input {
     uint256 chainId;
-    address erc20Address;
     string name;
     string symbol;
 }
@@ -53,6 +52,7 @@ contract BaseScript is BaseData {
     function _loadERC20Data(string memory _inputPath) internal {
         _loadJson(_inputPath);
         _loadYnERC20Inputs();
+        _loadDeployerForChain(block.chainid);
         _verifyChain();
     }
 
