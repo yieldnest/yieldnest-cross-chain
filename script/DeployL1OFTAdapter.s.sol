@@ -38,6 +38,7 @@ contract DeployL1OFTAdapter is BaseScript {
             }
             vm.broadcast();
             l1OFTAdapter.setRateLimits(rateLimitConfigs);
+
             console.log("Rate limits updated");
             return;
         }

@@ -8,6 +8,7 @@ import {L2YnOFTAdapterUpgradeable} from "@/L2YnOFTAdapterUpgradeable.sol";
 import {L2YnERC20Upgradeable} from "@/L2YnERC20Upgradeable.sol";
 import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import "forge-std/console.sol";
+
 // forge script script/DeployL2OFTAdapter.s.sol:DeployL2Adapter --rpc-url ${rpc} --sig "run(string memory, string memory)" ${path2ERC20Input} ${path2OFTAdapterInput} --account ${deployerAccountName} --sender ${deployer} --broadcast --etherscan-api-key ${api} --verify
 
 contract DeployL2OFTAdapter is BaseScript {
@@ -45,6 +46,7 @@ contract DeployL2OFTAdapter is BaseScript {
             }
             vm.broadcast();
             oftAdapter.setRateLimits(rateLimitConfigs);
+
             console.log("Rate limits updated");
             return;
         }
@@ -52,6 +54,7 @@ contract DeployL2OFTAdapter is BaseScript {
         bytes32 proxySalt = createSalt(msg.sender, "L2YnERC20UpgradeableProxy");
         bytes32 implementationSalt = createSalt(msg.sender, "L2YnERC20Upgradeable");
 
+        vm.startBroadcast();
         l2ERC20Address = currentDeployer.deployL2YnERC20(
             implementationSalt,
             proxySalt,
@@ -67,7 +70,7 @@ contract DeployL2OFTAdapter is BaseScript {
         proxySalt = createSalt(msg.sender, "L2YnOFTAdapterUpgradeableProxy");
         implementationSalt = createSalt(msg.sender, "L2YnOFTAdapterUpgradeable");
 
-        l2YnOFTAdapter = (currentDeployer).deployL2YnOFTAdapter(
+        l2YnOFTAdapter = currentDeployer.deployL2YnOFTAdapter(
             implementationSalt,
             proxySalt,
             l2ERC20Address,
@@ -77,6 +80,7 @@ contract DeployL2OFTAdapter is BaseScript {
             getAddresses().PROXY_ADMIN,
             type(L2YnOFTAdapterUpgradeable).creationCode
         );
+        vm.stopBroadcast();
 
         console.log("L2 OFT Adapter deployed at: ", l2YnOFTAdapter);
 
