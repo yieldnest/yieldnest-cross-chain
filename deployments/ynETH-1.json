@@ -1,0 +1,23 @@
+{
+  "chains": {
+    "1": {
+      "chainId": 1,
+      "erc20Address": "0x09db87A538BD693E9d08544577d5cCfAA6373A48",
+      "isL1": true,
+      "lzEID": 30101,
+      "lzEndpoint": "0x1a44076050125825900e736c501f859c50fE728c",
+      "multiChainDeployer": "0x0000000000000000000000000000000000000000",
+      "oftAdapter": "0xc14D9bd99eCe84B59F4868c5df22aFA3a1D349be"
+    },
+    "10": {
+      "chainId": 10,
+      "erc20Address": "0x2F695E76051740Ae1a09203d34F56b18fC02586d",
+      "isL1": false,
+      "lzEID": 30111,
+      "lzEndpoint": "0x1a44076050125825900e736c501f859c50fE728c",
+      "multiChainDeployer": "0x5Eea17c4588348fCAD6aE8Ec00EAb447A139B04D",
+      "oftAdapter": "0x16A7ab66747B86868C45358f4d7A7C502f1C56A2"
+    }
+  },
+  "deployerAddress": "0x19a8eb80c1483CEAA1278B16C5D5eF0104F85905"
+}

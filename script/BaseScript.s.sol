@@ -33,7 +33,7 @@ struct ChainDeployment {
     address erc20Address;
     bool isL1;
     address lzEndpoint;
-    uint256 lzEID;
+    uint32 lzEID;
     address multiChainDeployer;
     address oftAdapter;
 }
@@ -181,7 +181,7 @@ contract BaseScript is BaseData {
             chains[i].isL1 = vm.parseJsonBool(json, string(abi.encodePacked(chainKey, ".isL1")));
             chains[i].chainId = vm.parseJsonUint(json, string(abi.encodePacked(chainKey, ".chainId")));
             chains[i].lzEndpoint = vm.parseJsonAddress(json, string(abi.encodePacked(chainKey, ".lzEndpoint")));
-            chains[i].lzEID = vm.parseJsonUint(json, string(abi.encodePacked(chainKey, ".lzEID")));
+            chains[i].lzEID = uint32(vm.parseJsonUint(json, string(abi.encodePacked(chainKey, ".lzEID"))));
             chains[i].multiChainDeployer =
                 vm.parseJsonAddress(json, string(abi.encodePacked(chainKey, ".multiChainDeployer")));
             chains[i].erc20Address = vm.parseJsonAddress(json, string(abi.encodePacked(chainKey, ".erc20Address")));
@@ -219,5 +219,9 @@ contract BaseScript is BaseData {
         _salt = bytes32(
             abi.encodePacked(bytes20(_deployerAddress), bytes12(bytes32(keccak256(abi.encode(_label, _version)))))
         );
+    }
+
+    function addressToBytes32(address _addr) internal pure returns (bytes32) {
+        return bytes32(uint256(uint160(_addr)));
     }
 }
