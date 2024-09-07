@@ -15,10 +15,13 @@ contract DeployMainnetImplementations is BaseScript {
     function run(string memory __path) public {
         _loadOFTImplementationData(__path);
 
+        _loadDeployerForChain(block.chainid);
+
         vm.broadcast();
 
-        mainnetOFTAdapterImpl =
-            address(new L1YnOFTAdapterUpgradeable(_ynOFTAdapterInputs.erc20Address, addresses[_chainId].lzEndpoint));
+        mainnetOFTAdapterImpl = address(
+            new L1YnOFTAdapterUpgradeable(_ynOFTImplementationInputs.erc20Address, addresses[_chainId].lzEndpoint)
+        );
         mainnetOFTAdapter =
             L1YnOFTAdapterUpgradeable(address(new TransparentUpgradeableProxy(mainnetOFTAdapterImpl, msg.sender, "")));
 
@@ -28,7 +31,7 @@ contract DeployMainnetImplementations is BaseScript {
     }
 
     function _serializeOutputs(string memory objectKey) internal override {
-        vm.serializeAddress(objectKey, "erc20", _ynOFTAdapterInputs.erc20Address);
+        vm.serializeAddress(objectKey, "erc20", _ynOFTImplementationInputs.erc20Address);
         vm.serializeString(objectKey, "chainid", vm.toString(block.chainid));
         vm.serializeAddress(objectKey, "OFTAdapterImplementation", address(mainnetOFTAdapterImpl));
         string memory finalJson = vm.serializeAddress(objectKey, "OFTAdapter", address(mainnetOFTAdapter));

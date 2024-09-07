@@ -11,6 +11,9 @@ struct L2YnOFTAdapterInput {
     address adapterImplementation;
     uint256 chainId;
     address erc20Address;
+    bytes32 implementationSalt;
+    address proxyController;
+    bytes32 proxySalt;
     RateLimitConfig[] rateLimitConfigs;
 }
 
@@ -39,6 +42,9 @@ contract BaseScript is BaseData {
     // TODO: setup saving of deployment data in deployments json file
     uint256 _chainId;
     bytes public data;
+    string public json;
+    address public immutableDeployer;
+    address public adapterImplementation;
     L2YnOFTAdapterInput public _ynOFTAdapterInputs;
     L1YnOFTAdapterInput public _ynOFTImplementationInputs;
     YnERC20Input public _ynERC20Inputs;
@@ -54,6 +60,7 @@ contract BaseScript is BaseData {
         _loadJson(_inputPath);
         _loadYnOFTAdapterInputs();
         _verifyChain();
+        _loadDeployerForChain(block.chainid);
         _getRateLimiterConfigs();
     }
 
@@ -70,9 +77,29 @@ contract BaseScript is BaseData {
         _chainId = _ynOFTImplementationInputs.chainId;
     }
 
+    function _loadDeployerForChain(uint256 chainId) internal {
+        string memory path = string(
+            abi.encodePacked(
+                vm.projectRoot(), "/deployments/ImmutableMultiChainDeployer-", vm.toString(chainId), ".json"
+            )
+        );
+        string memory _json = vm.readFile(path);
+        immutableDeployer = vm.parseJsonAddress(_json, ".ImmutableMultiChainDeployerAddress");
+        require(immutableDeployer != address(0), "invalid deployer");
+    }
+
+    function _loadAdapterImplementationForChain(uint32 chainId) internal {
+        string memory path = string(
+            abi.encodePacked(vm.projectRoot(), "/deployments/MainnetImplementations-", vm.toString(chainId), ".json")
+        );
+        string memory _json = vm.readFile(path);
+        adapterImplementation = vm.parseJsonAddress(_json, ".OFTAdapterImplementation");
+        require(adapterImplementation != address(0), "invalid adapter Implementation");
+    }
+
     function _loadJson(string memory _path) internal {
         string memory path = string(abi.encodePacked(vm.projectRoot(), "/", _path));
-        string memory json = vm.readFile(path);
+        json = vm.readFile(path);
         data = vm.parseJson(json);
     }
 
@@ -120,8 +147,12 @@ contract BaseScript is BaseData {
         return string.concat(root, "/deployments/", _deploymentType, "-", vm.toString(block.chainid), ".json");
     }
 
-    function _writeOutput(string memory deploymentType, string memory json) internal {
+    function _writeOutput(string memory deploymentType, string memory _json) internal {
         string memory path = _getOutputPath(deploymentType);
-        vm.writeFile(path, json);
+        vm.writeFile(path, _json);
+    }
+
+    function createSalt(address deployerAddress, string memory label) public pure returns (bytes32 _salt) {
+        _salt = bytes32(abi.encodePacked(bytes20(deployerAddress), bytes12(bytes32(keccak256(abi.encode(label))))));
     }
 }
