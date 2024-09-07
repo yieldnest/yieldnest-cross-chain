@@ -3,7 +3,7 @@ pragma solidity ^0.8.24;
 
 import {BaseScript} from "./BaseScript.s.sol";
 import {ImmutableMultiChainDeployer} from "@factory/ImmutableMultiChainDeployer.sol";
-import "forge-std/console.sol";
+import {console} from "forge-std/console.sol";
 
 //forge script script/DeployMultiChainDeployer.s.sol:DeployMultiChainDeployer --rpc-url ${rpc} --sig "run(string calldata)" ${path} --account ${deployerAccountName} --sender ${deployer} --broadcast --etherscan-api-key ${api} --verify
 
