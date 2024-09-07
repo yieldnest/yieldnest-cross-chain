@@ -1,158 +1,223 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {BaseData} from "./BaseData.sol";
+import {BaseData} from "./BaseData.s.sol";
 import {ImmutableMultiChainDeployer} from "@factory/ImmutableMultiChainDeployer.sol";
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
 import {EndpointV2} from "@layerzerolabs/lz-evm-protocol-v2/contracts/EndpointV2.sol";
 import "forge-std/console.sol";
-
-struct L2YnOFTAdapterInput {
-    address adapterImplementation;
-    uint256 chainId;
-    address erc20Address;
-    bytes32 implementationSalt;
-    address proxyController;
-    bytes32 proxySalt;
-    RateLimitConfig[] rateLimitConfigs;
-}
-
-struct L1YnOFTAdapterInput {
-    uint256 chainId;
-    address erc20Address;
-    RateLimitConfig[] rateLimitConfigs;
-}
 
 struct RateLimitConfig {
     uint256 limit;
     uint256 window;
 }
 
-struct YnERC20Input {
-    uint256 chainId;
-    string name;
-    string symbol;
+struct BaseInput {
+    string erc20Name;
+    string erc20Symbol;
+    uint256 l1ChainId;
+    address l1ERC20Address;
+    uint256[] l2ChainIds;
+    RateLimitConfig rateLimitConfig;
 }
-//forge script script/DeployMainnetImplementations.s.sol:DeployMainnetImplementations --rpc-url ${rpc} --account ${deployerAccountName} --sender ${deployer} --broadcast --etherscan-api-key ${api} --verify
+
+struct Deployment {
+    ChainDeployment[] chains;
+    address deployerAddress;
+    string erc20Name;
+    string erc20Symbol;
+}
+
+struct ChainDeployment {
+    uint256 chainId;
+    address erc20Address;
+    bool isL1;
+    address lzEndpoint;
+    uint256 lzEID;
+    address multiChainDeployer;
+    address oftAdapter;
+}
 
 contract BaseScript is BaseData {
-    // TODO: parse token address from json or as input from user
-    // TODO: setup forks based on if testnet or mainnet deployment as per json
-    // TODO: setup saving of deployment data in deployments json file
-    uint256 _chainId;
-    bytes public data;
-    string public json;
-    address public immutableDeployer;
-    address public adapterImplementation;
-    L2YnOFTAdapterInput public _ynOFTAdapterInputs;
-    L1YnOFTAdapterInput public _ynOFTImplementationInputs;
-    YnERC20Input public _ynERC20Inputs;
-    RateLimiter.RateLimitConfig[] public _rateLimitConfigs;
+    BaseInput public baseInput;
+    Deployment public deployment;
+    ChainDeployment public currentDeployment;
+    string private constant _version = "1.0.0";
 
-    function _loadERC20Data(string memory _inputPath) internal {
-        _loadJson(_inputPath);
-        _loadYnERC20Inputs();
-        _loadDeployerForChain(block.chainid);
-        _verifyChain();
-    }
-
-    function _loadOFTAdapterData(string memory _inputPath) internal {
-        _loadJson(_inputPath);
-        _loadYnOFTAdapterInputs();
-        _verifyChain();
-        _loadDeployerForChain(block.chainid);
-        _getRateLimiterConfigs();
-    }
-
-    function _loadOFTImplementationData(string memory _inputPath) internal {
-        _loadJson(_inputPath);
-        _loadYnOFTImplementationInputs();
-        _verifyChain();
-        _getRateLimiterConfigs();
-    }
-
-    function _loadYnOFTImplementationInputs() internal {
-        L1YnOFTAdapterInput memory implementationInputs = abi.decode(data, (L1YnOFTAdapterInput));
-        this.loadImplementationInputs(implementationInputs);
-        _chainId = _ynOFTImplementationInputs.chainId;
-    }
-
-    function _loadDeployerForChain(uint256 chainId) internal {
-        string memory path = string(
-            abi.encodePacked(
-                vm.projectRoot(), "/deployments/ImmutableMultiChainDeployer-", vm.toString(chainId), ".json"
-            )
+    function _getRateLimitConfigs() internal view returns (RateLimiter.RateLimitConfig[] memory) {
+        RateLimiter.RateLimitConfig[] memory rateLimitConfigs =
+            new RateLimiter.RateLimitConfig[](baseInput.l2ChainIds.length + 1);
+        rateLimitConfigs[0] = RateLimiter.RateLimitConfig(
+            getEID(baseInput.l1ChainId), baseInput.rateLimitConfig.limit, baseInput.rateLimitConfig.window
         );
-        string memory _json = vm.readFile(path);
-        immutableDeployer = vm.parseJsonAddress(_json, ".ImmutableMultiChainDeployerAddress");
-        require(immutableDeployer != address(0), "invalid deployer");
+        for (uint256 i; i < baseInput.l2ChainIds.length; i++) {
+            rateLimitConfigs[i + 1] = RateLimiter.RateLimitConfig(
+                getEID(baseInput.l2ChainIds[i]), baseInput.rateLimitConfig.limit, baseInput.rateLimitConfig.window
+            );
+        }
+        return rateLimitConfigs;
     }
 
-    function _loadAdapterImplementationForChain(uint32 chainId) internal {
-        string memory path = string(
-            abi.encodePacked(vm.projectRoot(), "/deployments/MainnetImplementations-", vm.toString(chainId), ".json")
-        );
-        string memory _json = vm.readFile(path);
-        adapterImplementation = vm.parseJsonAddress(_json, ".OFTAdapterImplementation");
-        require(adapterImplementation != address(0), "invalid adapter Implementation");
+    function _loadInput(string calldata _inputPath) internal {
+        _loadJson(_inputPath);
+        _validateInput();
+        bool isL1 = _getIsL1();
+        _loadDeployment();
+        if (deployment.deployerAddress != address(0)) {
+            require(deployment.deployerAddress == msg.sender, "Invalid Deployer");
+        }
+        for (uint256 i; i < deployment.chains.length; i++) {
+            if (deployment.chains[i].chainId == block.chainid) {
+                currentDeployment = deployment.chains[i];
+                break;
+            }
+        }
+        currentDeployment.chainId = block.chainid;
+        currentDeployment.isL1 = isL1;
+        if (isL1) {
+            currentDeployment.erc20Address = baseInput.l1ERC20Address;
+        }
+        currentDeployment.lzEndpoint = getAddresses().LZ_ENDPOINT;
+        currentDeployment.lzEID = getEID(block.chainid);
     }
 
-    function _loadJson(string memory _path) internal {
-        string memory path = string(abi.encodePacked(vm.projectRoot(), "/", _path));
-        json = vm.readFile(path);
-        data = vm.parseJson(json);
-    }
-
-    function _loadYnOFTAdapterInputs() internal {
-        L2YnOFTAdapterInput memory ynOFTAdapterInputs = abi.decode(data, (L2YnOFTAdapterInput));
-        this.loadAdapterInputs(ynOFTAdapterInputs);
-        _chainId = _ynOFTAdapterInputs.chainId;
-    }
-
-    function loadAdapterInputs(L2YnOFTAdapterInput calldata _ynInput) external {
-        _ynOFTAdapterInputs = _ynInput;
-    }
-
-    function loadImplementationInputs(L1YnOFTAdapterInput calldata _ynImpInput) external {
-        _ynOFTImplementationInputs = _ynImpInput;
-    }
-
-    function _loadYnERC20Inputs() internal {
-        _ynERC20Inputs = abi.decode(data, (YnERC20Input));
-        _chainId = _ynERC20Inputs.chainId;
-    }
-
-    function _getRateLimiterConfigs() internal {
-        RateLimiter.RateLimitConfig memory _tempConfig;
-        uint32 tempDstEid = EndpointV2(addresses[_chainId].lzEndpoint).eid();
-        for (uint256 i; i < _ynOFTAdapterInputs.rateLimitConfigs.length; i++) {
-            _tempConfig.dstEid = tempDstEid;
-            _tempConfig.limit = _ynOFTAdapterInputs.rateLimitConfigs[i].limit;
-            _tempConfig.window = _ynOFTAdapterInputs.rateLimitConfigs[i].window;
-            _rateLimitConfigs.push(_tempConfig);
+    function _validateInput() internal view {
+        require(bytes(baseInput.erc20Name).length > 0, "Invalid ERC20 Name");
+        require(bytes(baseInput.erc20Symbol).length > 0, "Invalid ERC20 Symbol");
+        require(baseInput.rateLimitConfig.limit > 0, "Invalid Rate Limit");
+        require(baseInput.rateLimitConfig.window > 0, "Invalid Rate Window");
+        require(isSupportedChainId(baseInput.l1ChainId), "Invalid L1 ChainId");
+        require(baseInput.l1ERC20Address != address(0), "Invalid L1 ERC20 Address");
+        require(baseInput.l2ChainIds.length > 0, "Invalid L2 ChainIds");
+        for (uint256 i; i < baseInput.l2ChainIds.length; i++) {
+            require(isSupportedChainId(baseInput.l2ChainIds[i]), "Invalid L2 ChainId");
         }
     }
 
-    function _serializeOutputs(string memory objectKey) internal virtual {
-        // left blank on purpose
+    function _getIsL1() internal view returns (bool) {
+        bool isL1 = block.chainid == baseInput.l1ChainId;
+        bool isL2 = false;
+        for (uint256 i; i < baseInput.l2ChainIds.length; i++) {
+            isL2 = block.chainid == baseInput.l2ChainIds[i];
+            if (isL2) {
+                break;
+            }
+        }
+        if (isL1 == isL2) {
+            console.log("isL1: %s, isL2: %s", isL1, isL2);
+            revert("Invalid ChainId");
+        }
+        return isL1;
     }
 
-    function _verifyChain() internal view returns (bool) {
-        require(isSupportedChainId(_chainId) && block.chainid == _chainId, "Invalid chain");
-        return isSupportedChainId(_chainId) && block.chainid == _chainId;
+    function _getDeploymentFilePath() internal view returns (string memory) {
+        return string(
+            abi.encodePacked(
+                vm.projectRoot(), "/deployments/", baseInput.erc20Symbol, "-", vm.toString(baseInput.l1ChainId), ".json"
+            )
+        );
     }
 
-    function _getOutputPath(string memory _deploymentType) internal view returns (string memory) {
-        string memory root = vm.projectRoot();
-        return string.concat(root, "/deployments/", _deploymentType, "-", vm.toString(block.chainid), ".json");
+    function _saveDeployment() internal {
+        deployment.deployerAddress = msg.sender;
+        bool found = false;
+        for (uint256 i; i < deployment.chains.length; i++) {
+            if (deployment.chains[i].chainId == block.chainid) {
+                deployment.chains[i] = currentDeployment;
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            deployment.chains.push(currentDeployment);
+        }
+        string memory json = vm.serializeAddress("deployment", "deployerAddress", deployment.deployerAddress);
+
+        string memory chainsJson = "";
+
+        for (uint256 i = 0; i < deployment.chains.length; i++) {
+            string memory chainKey = string(abi.encodePacked("chains[", vm.toString(i), "]"));
+
+            string memory chainJson = vm.serializeBool(chainKey, "isL1", deployment.chains[i].isL1);
+            chainJson = vm.serializeUint(chainKey, "chainId", deployment.chains[i].chainId);
+            chainJson = vm.serializeAddress(chainKey, "lzEndpoint", deployment.chains[i].lzEndpoint);
+            chainJson = vm.serializeUint(chainKey, "lzEID", deployment.chains[i].lzEID);
+            chainJson = vm.serializeAddress(chainKey, "multiChainDeployer", deployment.chains[i].multiChainDeployer);
+            chainJson = vm.serializeAddress(chainKey, "erc20Address", deployment.chains[i].erc20Address);
+            chainJson = vm.serializeAddress(chainKey, "oftAdapter", deployment.chains[i].oftAdapter);
+
+            chainsJson = vm.serializeString("chains", vm.toString(deployment.chains[i].chainId), chainJson);
+        }
+
+        json = vm.serializeString("deployment", "chains", chainsJson);
+
+        string memory filePath = _getDeploymentFilePath();
+        vm.writeJson(json, filePath);
     }
 
-    function _writeOutput(string memory deploymentType, string memory _json) internal {
-        string memory path = _getOutputPath(deploymentType);
-        vm.writeFile(path, _json);
+    function _loadDeployment() internal {
+        // Reset the deployment struct
+        delete deployment;
+
+        string memory filePath = _getDeploymentFilePath();
+
+        if (!vm.isFile(filePath)) {
+            return;
+        }
+
+        string memory json = vm.readFile(filePath);
+
+        // Parse deployerAddress
+        deployment.deployerAddress = vm.parseJsonAddress(json, ".deployerAddress");
+
+        // Get the array of chain deployments
+        string[] memory chainKeys = vm.parseJsonKeys(json, ".chains");
+        ChainDeployment[] memory chains = new ChainDeployment[](chainKeys.length);
+
+        // Loop through each chain and parse its fields
+        for (uint256 i = 0; i < chainKeys.length; i++) {
+            string memory chainKey = string(abi.encodePacked(".chains.", chainKeys[i]));
+
+            chains[i].isL1 = vm.parseJsonBool(json, string(abi.encodePacked(chainKey, ".isL1")));
+            chains[i].chainId = vm.parseJsonUint(json, string(abi.encodePacked(chainKey, ".chainId")));
+            chains[i].lzEndpoint = vm.parseJsonAddress(json, string(abi.encodePacked(chainKey, ".lzEndpoint")));
+            chains[i].lzEID = vm.parseJsonUint(json, string(abi.encodePacked(chainKey, ".lzEID")));
+            chains[i].multiChainDeployer =
+                vm.parseJsonAddress(json, string(abi.encodePacked(chainKey, ".multiChainDeployer")));
+            chains[i].erc20Address = vm.parseJsonAddress(json, string(abi.encodePacked(chainKey, ".erc20Address")));
+            chains[i].oftAdapter = vm.parseJsonAddress(json, string(abi.encodePacked(chainKey, ".oftAdapter")));
+
+            // Add the chain to the deployment
+            deployment.chains.push(chains[i]);
+        }
     }
 
-    function createSalt(address deployerAddress, string memory label) public pure returns (bytes32 _salt) {
-        _salt = bytes32(abi.encodePacked(bytes20(deployerAddress), bytes12(bytes32(keccak256(abi.encode(label))))));
+    function _loadJson(string calldata _path) internal {
+        string memory filePath = string(abi.encodePacked(vm.projectRoot(), "/", _path));
+        string memory json = vm.readFile(filePath);
+
+        // Reset the baseInput struct
+        delete baseInput;
+
+        // Parse simple fields
+        baseInput.erc20Name = vm.parseJsonString(json, ".erc20Name");
+        baseInput.erc20Symbol = vm.parseJsonString(json, ".erc20Symbol");
+
+        // Parse the L1Input struct
+        baseInput.l1ChainId = vm.parseJsonUint(json, ".l1ChainId");
+        baseInput.l1ERC20Address = vm.parseJsonAddress(json, ".l1ERC20Address");
+
+        // Parse the L2ChainIds array
+        baseInput.l2ChainIds = vm.parseJsonUintArray(json, ".l2ChainIds");
+
+        // Parse RateLimitConfig struct
+        baseInput.rateLimitConfig.limit = vm.parseJsonUint(json, ".rateLimitConfig.limit");
+        baseInput.rateLimitConfig.window = vm.parseJsonUint(json, ".rateLimitConfig.window");
+    }
+
+    function createSalt(address _deployerAddress, string memory _label) internal pure returns (bytes32 _salt) {
+        _salt = bytes32(
+            abi.encodePacked(bytes20(_deployerAddress), bytes12(bytes32(keccak256(abi.encode(_label, _version)))))
+        );
     }
 }
