@@ -8,6 +8,7 @@ import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/Ra
 import {IImmutableMultiChainDeployer} from "@interfaces/IImmutableMultiChainDeployer.sol";
 import {L2YnOFTAdapterUpgradeable} from "@/L2YnOFTAdapterUpgradeable.sol";
 import {L2YnERC20Upgradeable} from "@/L2YnERC20Upgradeable.sol";
+import "forge-std/console.sol";
 
 contract ImmutableMultiChainDeployer is IImmutableMultiChainDeployer {
     /// @notice Emitted when a new contract is deployed
@@ -67,6 +68,7 @@ contract ImmutableMultiChainDeployer is IImmutableMultiChainDeployer {
         address _proxyController,
         bytes memory _l2YnOFTAdapterBytecode
     ) public override returns (address deployedContract) {
+        console.log(msg.sender);
         bytes memory _constructorParams = abi.encode(_token, _lzEndpoint);
         bytes memory _contractCode = abi.encodePacked(_l2YnOFTAdapterBytecode, _constructorParams);
         bytes memory _initializeArgs =

@@ -9,6 +9,8 @@ import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/Ra
 import {IMintableBurnableERC20} from "./interfaces/IMintableBurnableERC20.sol";
 
 contract L2YnOFTAdapterUpgradeable is OFTAdapterUpgradeable, AccessControlUpgradeable, RateLimiter {
+    bytes32 public constant LIMITER_ROLE = keccak256("LIMITER_ROLE");
+
     /**
      * @dev Constructor for the OFTAdapter contract.
      * @param _token The address of the ERC-20 token to be adapted.
@@ -36,7 +38,7 @@ contract L2YnOFTAdapterUpgradeable is OFTAdapterUpgradeable, AccessControlUpgrad
      * @dev Sets the rate limits for the adapter.
      * @param _rateLimitConfigs The rate limit configurations.
      */
-    function setRateLimits(RateLimitConfig[] calldata _rateLimitConfigs) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setRateLimits(RateLimitConfig[] calldata _rateLimitConfigs) external onlyRole(LIMITER_ROLE) {
         _setRateLimits(_rateLimitConfigs);
     }
 
@@ -45,10 +47,11 @@ contract L2YnOFTAdapterUpgradeable is OFTAdapterUpgradeable, AccessControlUpgrad
      * @return requiresApproval Needs approval of the underlying token implementation.
      *
      * @dev In the case of default OFTAdapter, approval is required.
-     * @dev In non-default OFTAdapter contracts with something like mint and burn privileges, it would NOT need approval.
+     * @dev In non-default OFTAdapter contracts with something like mint and burn privileges, it may not need approval.
+     * @dev In our case, we need approval since we use burnFrom to burn tokens, which requires approval.
      */
     function approvalRequired() external pure virtual override returns (bool) {
-        return false;
+        return true;
     }
 
     /**
