@@ -76,7 +76,7 @@ contract L2YnOFTAdapterUpgradeable is OFTAdapterUpgradeable, AccessControlUpgrad
         // @dev In NON-default OFT, amountSentLD could be 100, with a 10% fee, the amountReceivedLD amount is 90,
         // therefore amountSentLD CAN differ from amountReceivedLD.
 
-        // @dev Default OFT burns on src. Requires approval.
+        // @dev OFT burns on src. Requires approval.
         IMintableBurnableERC20(address(innerToken)).burnFrom(_msgSender(), amountSentLD);
     }
 

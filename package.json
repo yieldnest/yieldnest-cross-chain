@@ -17,7 +17,7 @@
   "main": "index.js",
   "repository": "https://github.com/yieldnest/yieldnest-cross-chain",
   "scripts": {
-    "build": "yarn install && forge install && forge build",
+    "build": "yarn install && forge build",
     "compile": "forge compile",
     "format": "forge fmt --root .",
     "test": "forge test -vvv",
