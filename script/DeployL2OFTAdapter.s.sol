@@ -1,15 +1,22 @@
+/* solhint-disable no-console */
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
 import {BaseScript} from "./BaseScript.s.sol";
+
+import {L2YnERC20Upgradeable} from "@/L2YnERC20Upgradeable.sol";
+import {L2YnOFTAdapterUpgradeable} from "@/L2YnOFTAdapterUpgradeable.sol";
 import {IImmutableMultiChainDeployer} from "@interfaces/IImmutableMultiChainDeployer.sol";
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
-import {L2YnOFTAdapterUpgradeable} from "@/L2YnOFTAdapterUpgradeable.sol";
-import {L2YnERC20Upgradeable} from "@/L2YnERC20Upgradeable.sol";
-import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+
+import {TransparentUpgradeableProxy} from
+    "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {console} from "forge-std/console.sol";
 
-// forge script script/DeployL2OFTAdapter.s.sol:DeployL2Adapter --rpc-url ${rpc} --sig "run(string memory, string memory)" ${path2ERC20Input} ${path2OFTAdapterInput} --account ${deployerAccountName} --sender ${deployer} --broadcast --etherscan-api-key ${api} --verify
+// forge script script/DeployL2OFTAdapter.s.sol:DeployL2Adapter \
+// --rpc-url ${rpc} --sig "run(string calldata)" ${path} \
+// --account ${deployerAccountName} --sender ${deployer} \
+// --broadcast --etherscan-api-key ${api} --verify
 
 contract DeployL2OFTAdapter is BaseScript {
     L2YnOFTAdapterUpgradeable l2OFTAdapter;

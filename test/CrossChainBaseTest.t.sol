@@ -1,17 +1,20 @@
+/* solhint-disable no-console */
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Test} from "forge-std/Test.sol";
-import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
-import {ImmutableMultiChainDeployer} from "@factory/ImmutableMultiChainDeployer.sol";
-import {IMintableBurnableERC20} from "@interfaces/IMintableBurnableERC20.sol";
 import {L1YnOFTAdapterUpgradeable} from "@/L1YnOFTAdapterUpgradeable.sol";
 import {L2YnERC20Upgradeable} from "@/L2YnERC20Upgradeable.sol";
 import {L2YnOFTAdapterUpgradeable} from "@/L2YnOFTAdapterUpgradeable.sol";
+import {ImmutableMultiChainDeployer} from "@factory/ImmutableMultiChainDeployer.sol";
+import {IMintableBurnableERC20} from "@interfaces/IMintableBurnableERC20.sol";
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
 import {ERC20Mock} from "@layerzerolabs/lz-evm-oapp-v2/test/mocks/ERC20Mock.sol";
 import {EndpointV2} from "@layerzerolabs/lz-evm-protocol-v2/contracts/EndpointV2.sol";
-import "forge-std/console.sol";
+import {TransparentUpgradeableProxy} from
+    "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+import {Test} from "forge-std/Test.sol";
+
+import {console} from "forge-std/console.sol";
 
 contract CrossChainBaseTest is Test {
     ImmutableMultiChainDeployer public mainnetDeployer;
@@ -64,9 +67,12 @@ contract CrossChainBaseTest is Test {
         arbitrumEid = arbitrumLzEndpoint.eid();
 
         RateLimiter.RateLimitConfig[] memory _rateLimitConfigs = new RateLimiter.RateLimitConfig[](3);
-        _rateLimitConfigs[0] = RateLimiter.RateLimitConfig({dstEid: mainnetEid, limit: 1000000 ether, window: 1 days});
-        _rateLimitConfigs[1] = RateLimiter.RateLimitConfig({dstEid: optimismEid, limit: 1000000 ether, window: 1 days});
-        _rateLimitConfigs[2] = RateLimiter.RateLimitConfig({dstEid: arbitrumEid, limit: 1000000 ether, window: 1 days});
+        _rateLimitConfigs[0] =
+            RateLimiter.RateLimitConfig({dstEid: mainnetEid, limit: 1000000 ether, window: 1 days});
+        _rateLimitConfigs[1] =
+            RateLimiter.RateLimitConfig({dstEid: optimismEid, limit: 1000000 ether, window: 1 days});
+        _rateLimitConfigs[2] =
+            RateLimiter.RateLimitConfig({dstEid: arbitrumEid, limit: 1000000 ether, window: 1 days});
 
         vm.startPrank(_deployer);
 

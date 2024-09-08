@@ -1,3 +1,4 @@
+/* solhint-disable no-console */
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
@@ -75,9 +76,9 @@ contract BaseData is Script {
     }
 
     function isSupportedChainId(uint256 chainId) internal view returns (bool) {
-        bool isSupported = chainId == __chainIds.mainnet || chainId == __chainIds.base || chainId == __chainIds.fraxtal
-            || chainId == __chainIds.optimism || chainId == __chainIds.arbitrum || chainId == __chainIds.holesky
-            || chainId == __chainIds.fraxtalTestnet;
+        bool isSupported = chainId == __chainIds.mainnet || chainId == __chainIds.base
+            || chainId == __chainIds.fraxtal || chainId == __chainIds.optimism || chainId == __chainIds.arbitrum
+            || chainId == __chainIds.holesky || chainId == __chainIds.fraxtalTestnet;
         bool isEID = __chainIdToLzEID[chainId] != 0;
         return isSupported && isEID;
     }

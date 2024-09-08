@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {CREATE3} from "@solmate/utils/CREATE3.sol";
-import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
-import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
-import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
-import {IImmutableMultiChainDeployer} from "@interfaces/IImmutableMultiChainDeployer.sol";
-import {L2YnOFTAdapterUpgradeable} from "@/L2YnOFTAdapterUpgradeable.sol";
 import {L2YnERC20Upgradeable} from "@/L2YnERC20Upgradeable.sol";
+import {L2YnOFTAdapterUpgradeable} from "@/L2YnOFTAdapterUpgradeable.sol";
+import {IImmutableMultiChainDeployer} from "@interfaces/IImmutableMultiChainDeployer.sol";
+import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
+import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import {TransparentUpgradeableProxy} from
+    "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+import {CREATE3} from "@solmate/utils/CREATE3.sol";
 
 contract ImmutableMultiChainDeployer is IImmutableMultiChainDeployer {
     /// @notice Emitted when a new contract is deployed
@@ -33,7 +34,10 @@ contract ImmutableMultiChainDeployer is IImmutableMultiChainDeployer {
     }
 
     /// @inheritdoc IImmutableMultiChainDeployer
-    function deploy(bytes32 _salt, bytes memory _initCode)
+    function deploy(
+        bytes32 _salt,
+        bytes memory _initCode
+    )
         public
         payable
         override
@@ -66,7 +70,11 @@ contract ImmutableMultiChainDeployer is IImmutableMultiChainDeployer {
         RateLimiter.RateLimitConfig[] calldata _rateLimitConfigs,
         address _proxyController,
         bytes memory _l2YnOFTAdapterBytecode
-    ) public override returns (address deployedContract) {
+    )
+        public
+        override
+        returns (address deployedContract)
+    {
         bytes memory _constructorParams = abi.encode(_token, _lzEndpoint);
         bytes memory _contractCode = abi.encodePacked(_l2YnOFTAdapterBytecode, _constructorParams);
         bytes memory _initializeArgs =
@@ -84,7 +92,11 @@ contract ImmutableMultiChainDeployer is IImmutableMultiChainDeployer {
         address _owner,
         address _proxyController,
         bytes memory _l2YnERC20UpgradeableByteCode
-    ) public override returns (address deployedContract) {
+    )
+        public
+        override
+        returns (address deployedContract)
+    {
         bytes memory _initializeArgs =
             abi.encodeWithSelector(L2YnERC20Upgradeable.initialize.selector, _name, _symbol, _owner);
         deployedContract = deployContractAndProxy(
@@ -103,7 +115,12 @@ contract ImmutableMultiChainDeployer is IImmutableMultiChainDeployer {
     }
 
     /// @inheritdoc IImmutableMultiChainDeployer
-    function deployProxy(bytes32 _salt, address _implementation, address _controller, bytes memory _initializeArgs)
+    function deployProxy(
+        bytes32 _salt,
+        address _implementation,
+        address _controller,
+        bytes memory _initializeArgs
+    )
         public
         returns (address proxy)
     {
@@ -120,7 +137,10 @@ contract ImmutableMultiChainDeployer is IImmutableMultiChainDeployer {
         address _controller,
         bytes memory _bytecode,
         bytes memory _initializeArgs
-    ) public returns (address addr) {
+    )
+        public
+        returns (address addr)
+    {
         address _implAddr = deploy(_implSalt, _bytecode);
         return deployProxy(_proxySalt, _implAddr, _controller, _initializeArgs);
     }

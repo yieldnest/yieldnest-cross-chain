@@ -6,32 +6,33 @@
     "@layerzerolabs/lz-evm-messagelib-v2": "^2.1.27",
     "@layerzerolabs/lz-evm-oapp-v2": "^2.1.18",
     "@layerzerolabs/lz-evm-protocol-v2": "^2.1.27",
+    "@layerzerolabs/lz-evm-v1-0.7": "^2.3.40",
     "@openzeppelin/contracts": "4.9.2",
     "@openzeppelin/contracts-upgradeable": "4.9.2",
     "forge-std": "github:foundry-rs/forge-std#v1.8.1",
+    "hardhat-deploy": "^0.12.4",
     "husky": "^9.1.5",
     "layerzero-v2": "github:JorgeAtPaladin/LayerZero-v2#lz-upgrade",
-    "solidity-bytes-utils": "^0.8.2"
+    "lint-staged": "^15.2.10",
+    "solhint": "^5.0.3",
+    "solidity-bytes-utils": "^0.8.2",
+    "solmate": "^6.2.0"
   },
   "license": "MIT",
+  "lint-staged": {
+    "*.sol": [
+      "forge fmt",
+      "solhint --fix --noPrompt"
+    ]
+  },
   "main": "index.js",
   "repository": "https://github.com/yieldnest/yieldnest-cross-chain",
   "scripts": {
     "build": "yarn install && forge build",
     "compile": "forge compile",
     "format": "forge fmt --root .",
-    "test": "forge test -vvv",
-    "prepare": "husky"
-  },
-  "lint-staged": {
-    "*.sol": [
-      "forge fmt"
-    ]
-  },
-  "dependencies": {
-    "@layerzerolabs/lz-evm-v1-0.7": "^2.3.40",
-    "hardhat-deploy": "^0.12.4",
-    "lint-staged": "^15.2.10",
-    "solmate": "^6.2.0"
+    "lint": "solhint \"src/**/*.sol\" && solhint \"test/**/*.sol\" && solhint \"script/**/*.sol\"",
+    "prepare": "husky",
+    "test": "forge test -vvv"
   }
 }

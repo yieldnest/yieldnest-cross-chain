@@ -1,13 +1,19 @@
+/* solhint-disable no-console */
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
 import {BaseScript} from "./BaseScript.s.sol";
-import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
+
 import {L1YnOFTAdapterUpgradeable} from "@/L1YnOFTAdapterUpgradeable.sol";
-import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
+import {TransparentUpgradeableProxy} from
+    "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {console} from "forge-std/console.sol";
 
-// forge script script/DeployL1OFTAdapter.s.sol:DeployL1OFTAdapter --rpc-url ${rpc} --sig "run(string calldata)" ${path} --account ${deployerAccountName} --sender ${deployer} --broadcast --etherscan-api-key ${api} --verify
+// forge script script/DeployL1OFTAdapter.s.sol:DeployL1OFTAdapter \
+// --rpc-url ${rpc} --sig "run(string calldata)" ${path} \
+// --account ${deployerAccountName} --sender ${deployer} \
+// --broadcast --etherscan-api-key ${api} --verify
 
 contract DeployL1OFTAdapter is BaseScript {
     L1YnOFTAdapterUpgradeable public l1OFTAdapter;

@@ -2,20 +2,24 @@
 pragma solidity ^0.8.24;
 
 import {CrossChainBaseTest} from "./CrossChainBaseTest.t.sol";
-import {ImmutableMultiChainDeployer} from "@factory/ImmutableMultiChainDeployer.sol";
-import {IMintableBurnableERC20} from "@interfaces/IMintableBurnableERC20.sol";
+
 import {L1YnOFTAdapterUpgradeable} from "@/L1YnOFTAdapterUpgradeable.sol";
 import {L2YnERC20Upgradeable} from "@/L2YnERC20Upgradeable.sol";
 import {L2YnOFTAdapterUpgradeable} from "@/L2YnOFTAdapterUpgradeable.sol";
-import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
+import {ImmutableMultiChainDeployer} from "@factory/ImmutableMultiChainDeployer.sol";
+import {IMintableBurnableERC20} from "@interfaces/IMintableBurnableERC20.sol";
+
 import {OptionsBuilder} from "@layerzerolabs/lz-evm-oapp-v2/contracts-upgradeable/oapp/libs/OptionsBuilder.sol";
 import {
     MessagingFee,
     MessagingReceipt
 } from "@layerzerolabs/lz-evm-oapp-v2/contracts-upgradeable/oft/OFTCoreUpgradeable.sol";
+import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
 
 import {
-    IOFT, SendParam, OFTReceipt
+    IOFT,
+    OFTReceipt,
+    SendParam
 } from "@layerzerolabs/lz-evm-oapp-v2/contracts-upgradeable/oft/interfaces/IOFT.sol";
 
 contract OFTCrossChainTest is CrossChainBaseTest {
@@ -120,7 +124,8 @@ contract OFTCrossChainTest is CrossChainBaseTest {
         mainnetOFTAdapter.send{value: fee.nativeFee}(sendParam, fee, payable(address(_owner)));
         vm.stopPrank();
 
-        // The following fails
+        // TODO: test verifyPackets across multiple forks
+        // BUT LayerZero themselves don't have a way to verify packets across multiple forks
         // vm.selectFork(arbitrumFork);
         // vm.startPrank(_owner);
         // verifyPackets(arbitrumEid, addressToBytes32(address(arbitrumOFTAdapter)));

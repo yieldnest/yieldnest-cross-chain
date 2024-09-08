@@ -9,7 +9,7 @@ This repository includes:
 - **Smart Contracts**: Contracts for Yieldnest's cross-chain tokens.
 - **Deployment Scripts**: Scripts for deploying and configuring the contracts across multiple chains.
 - **Testing Framework**: Tests using Foundry's Forge tool.
-  
+
 ### Key Contracts and Scripts
 
 - **Main Contracts**:
@@ -70,22 +70,30 @@ forge compile
 Run the tests with the following command:
 
 ```bash
-forge test -vvv
+yarn test
 ```
 
-The `-vvv` flag provides verbose output for more detailed test results.
+### Lint
+
+To lint Solidity files using `solhint`, run:
+
+```bash
+yarn lint
+```
+
+This will check all Solidity files in the `src/`, `test/`, and `scripts/` directories for issues, adhering to the project's `solhint` configuration.
 
 ### Format
 
 You can format your Solidity code using:
 
 ```bash
-forge fmt
+yarn format
 ```
 
-### Deploy
+### Scripts
 
-To deploy one of the main scripts (e.g., `DeployMultiChainDeployer`), use the following pattern:
+To run one of the scripts (e.g., `DeployMultiChainDeployer`), use the following pattern:
 
 ```bash
 forge script script/DeployMultiChainDeployer.s.sol:DeployMultiChainDeployer \
@@ -104,14 +112,6 @@ To generate gas usage reports for the contracts, run:
 forge snapshot
 ```
 
-### Anvil
-
-You can use Anvil, the local Ethereum testnet, with:
-
-```bash
-anvil
-```
-
 ## Project Structure
 
 - `src/`: Contains the core smart contracts for the project.
@@ -125,6 +125,8 @@ anvil
 ## Linting
 
 This project uses `husky` for Git hooks and `forge fmt` for Solidity file formatting. Pre-commit hooks are set up using `lint-staged` to automatically format `.sol` files on commit.
+
+In addition, `solhint` is used to lint Solidity files. You can run `yarn lint` to manually check the code for common issues and enforce style guidelines.
 
 ## Documentation
 

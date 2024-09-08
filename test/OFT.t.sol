@@ -1,34 +1,38 @@
+/* solhint-disable no-console */
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
 import {OptionsBuilder} from "@layerzerolabs/lz-evm-oapp-v2/contracts-upgradeable/oapp/libs/OptionsBuilder.sol";
 
-import {OFTUpgradeableMock} from "@layerzerolabs/lz-evm-oapp-v2/test/mocks/OFTUpgradeableMock.sol";
+import {
+    EnforcedOptionParam,
+    IOAppOptionsType3
+} from "@layerzerolabs/lz-evm-oapp-v2/contracts-upgradeable/oapp/libs/OAppOptionsType3Upgradeable.sol";
 import {
     MessagingFee,
     MessagingReceipt
 } from "@layerzerolabs/lz-evm-oapp-v2/contracts-upgradeable/oft/OFTCoreUpgradeable.sol";
-import {OFTAdapterUpgradeableMock} from "@layerzerolabs/lz-evm-oapp-v2/test/mocks/OFTAdapterUpgradeableMock.sol";
 import {ERC20Mock} from "@layerzerolabs/lz-evm-oapp-v2/test/mocks/ERC20Mock.sol";
+import {OFTAdapterUpgradeableMock} from "@layerzerolabs/lz-evm-oapp-v2/test/mocks/OFTAdapterUpgradeableMock.sol";
 import {OFTComposerMock} from "@layerzerolabs/lz-evm-oapp-v2/test/mocks/OFTComposerMock.sol";
-import {OFTInspectorMock, IOAppMsgInspector} from "@layerzerolabs/lz-evm-oapp-v2/test/mocks/OFTInspectorMock.sol";
-import {
-    IOAppOptionsType3,
-    EnforcedOptionParam
-} from "@layerzerolabs/lz-evm-oapp-v2/contracts-upgradeable/oapp/libs/OAppOptionsType3Upgradeable.sol";
+import {IOAppMsgInspector, OFTInspectorMock} from "@layerzerolabs/lz-evm-oapp-v2/test/mocks/OFTInspectorMock.sol";
+import {OFTUpgradeableMock} from "@layerzerolabs/lz-evm-oapp-v2/test/mocks/OFTUpgradeableMock.sol";
 
+import {OFTComposeMsgCodec} from
+    "@layerzerolabs/lz-evm-oapp-v2/contracts-upgradeable/oft/libs/OFTComposeMsgCodec.sol";
 import {OFTMsgCodec} from "@layerzerolabs/lz-evm-oapp-v2/contracts-upgradeable/oft/libs/OFTMsgCodec.sol";
-import {OFTComposeMsgCodec} from "@layerzerolabs/lz-evm-oapp-v2/contracts-upgradeable/oft/libs/OFTComposeMsgCodec.sol";
 
 import {
-    IOFT, SendParam, OFTReceipt
+    IOFT,
+    OFTReceipt,
+    SendParam
 } from "@layerzerolabs/lz-evm-oapp-v2/contracts-upgradeable/oft/interfaces/IOFT.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-import "forge-std/console.sol";
-import {TestHelper, Initializable} from "@layerzerolabs/lz-evm-oapp-v2/test/TestHelper.sol";
 import {L1OFTAdapterMock} from "./mocks/L1OFTAdapterMock.sol";
 import {L2OFTAdapterMock} from "./mocks/L2OFTAdapterMock.sol";
+import {Initializable, TestHelper} from "@layerzerolabs/lz-evm-oapp-v2/test/TestHelper.sol";
+import "forge-std/console.sol";
 
 import {L2YnERC20Upgradeable as L2YnERC20} from "@/L2YnERC20Upgradeable.sol";
 
@@ -204,7 +208,8 @@ contract OFTTest is TestHelper {
         assertEq(bERC20.balanceOf(userB), 0 + firstTokensToSend);
 
         uint256 secondTokensToSend = 5 ether;
-        sendParam = SendParam(bEid, addressToBytes32(userB), secondTokensToSend, secondTokensToSend, options, "", "");
+        sendParam =
+            SendParam(bEid, addressToBytes32(userB), secondTokensToSend, secondTokensToSend, options, "", "");
         fee = aOFTAdapter.quoteSend(sendParam, false);
 
         vm.startPrank(userA);
@@ -269,11 +274,12 @@ contract OFTTest is TestHelper {
 
         OFTComposerMock composer = new OFTComposerMock();
 
-        bytes memory options =
-            OptionsBuilder.newOptions().addExecutorLzReceiveOption(200000, 0).addExecutorLzComposeOption(0, 500000, 0);
+        bytes memory options = OptionsBuilder.newOptions().addExecutorLzReceiveOption(200000, 0)
+            .addExecutorLzComposeOption(0, 500000, 0);
         bytes memory composeMsg = hex"1234";
-        SendParam memory sendParam =
-            SendParam(bEid, addressToBytes32(address(composer)), tokensToSend, tokensToSend, options, composeMsg, "");
+        SendParam memory sendParam = SendParam(
+            bEid, addressToBytes32(address(composer)), tokensToSend, tokensToSend, options, composeMsg, ""
+        );
         MessagingFee memory fee = aOFTAdapter.quoteSend(sendParam, false);
 
         assertEq(aERC20.balanceOf(userA), initialBalance);
@@ -293,7 +299,10 @@ contract OFTTest is TestHelper {
         bytes32 guid_ = msgReceipt.guid;
         address to_ = address(composer);
         bytes memory composerMsg_ = OFTComposeMsgCodec.encode(
-            msgReceipt.nonce, aEid, oftReceipt.amountReceivedLD, abi.encodePacked(addressToBytes32(userA), composeMsg)
+            msgReceipt.nonce,
+            aEid,
+            oftReceipt.amountReceivedLD,
+            abi.encodePacked(addressToBytes32(userA), composeMsg)
         );
         this.lzCompose(dstEid_, from_, options_, guid_, to_, composerMsg_);
 
@@ -304,7 +313,8 @@ contract OFTTest is TestHelper {
         assertEq(composer.guid(), guid_);
         assertEq(composer.message(), composerMsg_);
         assertEq(composer.executor(), address(this));
-        assertEq(composer.extraData(), composerMsg_); // default to setting the extraData to the message as well to test
+        assertEq(composer.extraData(), composerMsg_); // default to setting the extraData to the
+            // message as well to test
     }
 
     function test_oft_compose_codec() public view {
@@ -359,7 +369,9 @@ contract OFTTest is TestHelper {
         uint256 minAmountToCreditLD = 1.00000001 ether;
         uint32 dstEid = aEid;
 
-        vm.expectRevert(abi.encodeWithSelector(IOFT.SlippageExceeded.selector, amountToSendLD, minAmountToCreditLD));
+        vm.expectRevert(
+            abi.encodeWithSelector(IOFT.SlippageExceeded.selector, amountToSendLD, minAmountToCreditLD)
+        );
         aOFTAdapter.debit(amountToSendLD, minAmountToCreditLD, dstEid);
     }
 
@@ -374,7 +386,9 @@ contract OFTTest is TestHelper {
         assertEq(aERC20.balanceOf(address(this)), 0, "incorrect contract initial balance");
         assertEq(aERC20.balanceOf(address(aOFTAdapter)), 0, "incorrect adapter initial balance");
 
-        vm.expectRevert(abi.encodeWithSelector(IOFT.SlippageExceeded.selector, amountToSendLD, minAmountToCreditLD + 1));
+        vm.expectRevert(
+            abi.encodeWithSelector(IOFT.SlippageExceeded.selector, amountToSendLD, minAmountToCreditLD + 1)
+        );
         aOFTAdapter.debitView(amountToSendLD, minAmountToCreditLD + 1, dstEid);
 
         vm.startPrank(userC);
@@ -409,8 +423,12 @@ contract OFTTest is TestHelper {
 
         uint256 amountReceived = aOFTAdapter.credit(userB, amountToCreditLD, srcEid);
 
-        assertEq(aERC20.balanceOf(address(userB)), initialBalance + amountReceived, "incorrect userB final balance");
-        assertEq(aERC20.balanceOf(address(userC)), initialBalance - amountReceived, "incorrect userC final balance");
+        assertEq(
+            aERC20.balanceOf(address(userB)), initialBalance + amountReceived, "incorrect userB final balance"
+        );
+        assertEq(
+            aERC20.balanceOf(address(userC)), initialBalance - amountReceived, "incorrect userC final balance"
+        );
         assertEq(aERC20.balanceOf(address(this)), 0, "incorrect contract final balance");
         assertEq(aERC20.balanceOf(address(aOFTAdapter)), 0, "incorrect adapter final balance");
     }
@@ -427,7 +445,9 @@ contract OFTTest is TestHelper {
         assertEq(cERC20.balanceOf(address(this)), 0, "incorrect contract initial balance");
         assertEq(cERC20.balanceOf(address(cOFTAdapter)), 0, "incorrect adapter initial balance");
 
-        vm.expectRevert(abi.encodeWithSelector(IOFT.SlippageExceeded.selector, amountToSendLD, minAmountToCreditLD + 1));
+        vm.expectRevert(
+            abi.encodeWithSelector(IOFT.SlippageExceeded.selector, amountToSendLD, minAmountToCreditLD + 1)
+        );
         cOFTAdapter.debitView(amountToSendLD, minAmountToCreditLD + 1, dstEid);
 
         vm.startPrank(userC);

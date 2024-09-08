@@ -4,8 +4,9 @@ pragma solidity ^0.8.24;
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
 
 /// @title Factory for deploying yieldnest contracts to deterministic addresses via CREATE3
-/// @notice Enables deploying contracts using CREATE3 and then initializing the upgradeable contracts. Each deployer (msg.sender) has
-/// its own namespace for deployed addresses.
+/// @notice Enables deploying contracts using CREATE3 and then initializing the upgradeable
+/// contracts.
+/// Each deployer (msg.sender) has its own namespace for deployed addresses.
 /// @dev Uses CREATE3 for deterministic contract deployment.
 interface IImmutableMultiChainDeployer {
     /// @notice Deploys a contract using CREATE3
@@ -16,7 +17,8 @@ interface IImmutableMultiChainDeployer {
     function deploy(bytes32 salt, bytes calldata creationCode) external payable returns (address deployed);
 
     /// @notice Deploys and initializes a deployOFTAdapter contract using CREATE3.
-    /// @dev The provided salts and parameters are used to configure the deployment and initialization.
+    /// @dev The provided salts and parameters are used to configure the deployment and
+    /// initialization.
     /// @param _implSalt The salt for the OFT adapter implementation.
     /// @param _proxySalt The salt for the OFT adapter proxy.
     /// @param _token The token address for the OFT adapter.
@@ -35,10 +37,13 @@ interface IImmutableMultiChainDeployer {
         RateLimiter.RateLimitConfig[] calldata _rateLimitConfigs,
         address _proxyController,
         bytes calldata _l2YnOFTAdapterBytecode
-    ) external returns (address deployed);
+    )
+        external
+        returns (address deployed);
 
     /// @notice Deploys and initializes a deployYnERC20 contract using CREATE3.
-    /// @dev The provided salts and parameters are used to configure the deployment and initialization.
+    /// @dev The provided salts and parameters are used to configure the deployment and
+    /// initialization.
     /// @param _implSalt The salt for the ERC20 implementation.
     /// @param _proxySalt The salt for the ERC20 proxy.
     /// @param _name The name of the ERC20 token.
@@ -55,10 +60,13 @@ interface IImmutableMultiChainDeployer {
         address _owner,
         address _proxyController,
         bytes calldata _l2YnOFTAdapterBytecode
-    ) external returns (address deployed);
+    )
+        external
+        returns (address deployed);
 
     /// @notice Predicts the address of a contract deployed using CREATE3.
-    /// @dev The provided salt is combined with the deployer address to create a unique predicted address.
+    /// @dev The provided salt is combined with the deployer address to create a unique predicted
+    /// address.
     /// @param salt A deployer-specific salt for determining the deployed contract's address.
     /// @return deployed The address of the contract that will be deployed.
     function getDeployed(bytes32 salt) external view returns (address deployed);
@@ -74,7 +82,12 @@ interface IImmutableMultiChainDeployer {
     /// @param controller The address of the proxy controller.
     /// @param _initializeArgs The initialization arguments for the proxy.
     /// @return proxy The address of the deployed proxy.
-    function deployProxy(bytes32 salt, address implementation, address controller, bytes memory _initializeArgs)
+    function deployProxy(
+        bytes32 salt,
+        address implementation,
+        address controller,
+        bytes memory _initializeArgs
+    )
         external
         returns (address proxy);
 
@@ -91,5 +104,7 @@ interface IImmutableMultiChainDeployer {
         address _controller,
         bytes memory _bytecode,
         bytes memory _initializeArgs
-    ) external returns (address addr);
+    )
+        external
+        returns (address addr);
 }

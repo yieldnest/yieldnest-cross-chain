@@ -1,12 +1,18 @@
+/* solhint-disable no-console */
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
 import {BaseScript} from "./BaseScript.s.sol";
+
+import {OFTAdapterUpgradeable} from
+    "@layerzerolabs/lz-evm-oapp-v2/contracts-upgradeable/oft/OFTAdapterUpgradeable.sol";
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
-import {OFTAdapterUpgradeable} from "@layerzerolabs/lz-evm-oapp-v2/contracts-upgradeable/oft/OFTAdapterUpgradeable.sol";
 import "forge-std/console.sol";
 
-// forge script script/SetPeersOFTAdapter.s.sol:SetPeersOFTAdapter --rpc-url ${rpc} --sig "run(string calldata)" ${path} --account ${deployerAccountName} --sender ${deployer} --broadcast --etherscan-api-key ${api} --verify
+// forge script script/SetPeersOFTAdapter.s.sol:SetPeersOFTAdapter \
+// --rpc-url ${rpc} --sig "run(string calldata)" ${path} \
+// --account ${deployerAccountName} --sender ${deployer} \
+// --broadcast --etherscan-api-key ${api} --verify
 
 contract SetPeersOFTAdapter is BaseScript {
     OFTAdapterUpgradeable public oftAdapter;

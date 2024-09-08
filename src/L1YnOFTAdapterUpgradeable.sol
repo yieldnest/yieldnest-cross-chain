@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {OFTAdapterUpgradeable} from "@layerzerolabs/lz-evm-oapp-v2/contracts-upgradeable/oft/OFTAdapterUpgradeable.sol";
+import {OFTAdapterUpgradeable} from
+    "@layerzerolabs/lz-evm-oapp-v2/contracts-upgradeable/oft/OFTAdapterUpgradeable.sol";
 import {OFTUpgradeable} from "@layerzerolabs/lz-evm-oapp-v2/contracts-upgradeable/oft/OFTUpgradeable.sol";
-import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
+import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 
 contract L1YnOFTAdapterUpgradeable is OFTAdapterUpgradeable, AccessControlUpgradeable, RateLimiter {
     bytes32 public constant LIMITER_ROLE = keccak256("LIMITER_ROLE");
@@ -23,7 +25,14 @@ contract L1YnOFTAdapterUpgradeable is OFTAdapterUpgradeable, AccessControlUpgrad
      * @param _owner The delegate capable of making OApp configurations inside of the endpoint.
      * @param _rateLimitConfigs The rate limit configurations.
      */
-    function initialize(address _owner, RateLimitConfig[] calldata _rateLimitConfigs) external virtual initializer {
+    function initialize(
+        address _owner,
+        RateLimitConfig[] calldata _rateLimitConfigs
+    )
+        external
+        virtual
+        initializer
+    {
         __OFTAdapter_init(_owner);
         __Ownable_init();
         __AccessControl_init();
@@ -48,7 +57,11 @@ contract L1YnOFTAdapterUpgradeable is OFTAdapterUpgradeable, AccessControlUpgrad
      * @return amountSentLD The amount sent in local decimals.
      * @return amountReceivedLD The amount received in local decimals on the remote.
      */
-    function _debit(uint256 _amountLD, uint256 _minAmountLD, uint32 _dstEid)
+    function _debit(
+        uint256 _amountLD,
+        uint256 _minAmountLD,
+        uint32 _dstEid
+    )
         internal
         virtual
         override

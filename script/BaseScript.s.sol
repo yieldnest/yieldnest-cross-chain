@@ -1,3 +1,4 @@
+/* solhint-disable no-console */
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
@@ -113,7 +114,12 @@ contract BaseScript is BaseData {
     function _getDeploymentFilePath() internal view returns (string memory) {
         return string(
             abi.encodePacked(
-                vm.projectRoot(), "/deployments/", baseInput.erc20Symbol, "-", vm.toString(baseInput.l1ChainId), ".json"
+                vm.projectRoot(),
+                "/deployments/",
+                baseInput.erc20Symbol,
+                "-",
+                vm.toString(baseInput.l1ChainId),
+                ".json"
             )
         );
     }
@@ -142,7 +148,8 @@ contract BaseScript is BaseData {
             chainJson = vm.serializeUint(chainKey, "chainId", deployment.chains[i].chainId);
             chainJson = vm.serializeAddress(chainKey, "lzEndpoint", deployment.chains[i].lzEndpoint);
             chainJson = vm.serializeUint(chainKey, "lzEID", deployment.chains[i].lzEID);
-            chainJson = vm.serializeAddress(chainKey, "multiChainDeployer", deployment.chains[i].multiChainDeployer);
+            chainJson =
+                vm.serializeAddress(chainKey, "multiChainDeployer", deployment.chains[i].multiChainDeployer);
             chainJson = vm.serializeAddress(chainKey, "erc20Address", deployment.chains[i].erc20Address);
             chainJson = vm.serializeAddress(chainKey, "oftAdapter", deployment.chains[i].oftAdapter);
 
