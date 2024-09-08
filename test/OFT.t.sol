@@ -255,7 +255,7 @@ contract OFTTest is TestHelper {
         assertEq(aERC20.balanceOf(userA), initialBalance - tokensToSend);
 
         vm.startPrank(userB);
-        bERC20.approve(address(bOFTAdapter), tokensToSend);
+        // bERC20.approve(address(bOFTAdapter), tokensToSend);
         bOFTAdapter.send{value: receiveFee.nativeFee}(receiveParam, receiveFee, payable(address(this)));
         vm.stopPrank();
         verifyPackets(aEid, addressToBytes32(address(aOFTAdapter)));
@@ -431,7 +431,7 @@ contract OFTTest is TestHelper {
         cOFTAdapter.debitView(amountToSendLD, minAmountToCreditLD + 1, dstEid);
 
         vm.startPrank(userC);
-        cERC20.approve(address(cOFTAdapter), amountToSendLD);
+        // cERC20.approve(address(cOFTAdapter), amountToSendLD);
         (uint256 amountDebitedLD, uint256 amountToCreditLD) =
             cOFTAdapter.debit(amountToSendLD, minAmountToCreditLD, dstEid);
         vm.stopPrank();

@@ -24,8 +24,7 @@ contract L2YnERC20Upgradeable is ERC20Upgradeable, AccessControlUpgradeable, IMi
         _mint(_to, _amount);
     }
 
-    function burnFrom(address _from, uint256 _amount) public onlyRole(MINTER_ROLE) {
-        _spendAllowance(_from, _msgSender(), _amount);
+    function burn(address _from, uint256 _amount) public onlyRole(MINTER_ROLE) {
         _burn(_from, _amount);
     }
 }

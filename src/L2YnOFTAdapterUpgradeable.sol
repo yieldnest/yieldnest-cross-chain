@@ -47,11 +47,10 @@ contract L2YnOFTAdapterUpgradeable is OFTAdapterUpgradeable, AccessControlUpgrad
      * @return requiresApproval Needs approval of the underlying token implementation.
      *
      * @dev In the case of default OFTAdapter, approval is required.
-     * @dev In non-default OFTAdapter contracts with something like mint and burn privileges, it may not need approval.
-     * @dev In our case, we need approval since we use burnFrom to burn tokens, which requires approval.
+     * @dev In non-default OFTAdapter contracts with something like mint and burn privileges, it does NOT need approval.
      */
     function approvalRequired() external pure virtual override returns (bool) {
-        return true;
+        return false;
     }
 
     /**
@@ -76,8 +75,8 @@ contract L2YnOFTAdapterUpgradeable is OFTAdapterUpgradeable, AccessControlUpgrad
         // @dev In NON-default OFT, amountSentLD could be 100, with a 10% fee, the amountReceivedLD amount is 90,
         // therefore amountSentLD CAN differ from amountReceivedLD.
 
-        // @dev OFT burns on src. Requires approval.
-        IMintableBurnableERC20(address(innerToken)).burnFrom(_msgSender(), amountSentLD);
+        // @dev OFT burns on src
+        IMintableBurnableERC20(address(innerToken)).burn(_msgSender(), amountSentLD);
     }
 
     /**
