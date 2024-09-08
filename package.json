@@ -28,7 +28,7 @@
   "main": "index.js",
   "repository": "https://github.com/yieldnest/yieldnest-cross-chain",
   "scripts": {
-    "build": "yarn install && forge build",
+    "build": "forge build",
     "compile": "forge compile",
     "format": "forge fmt --root .",
     "lint": "solhint \"src/**/*.sol\" && solhint \"test/**/*.sol\" && solhint \"script/**/*.sol\"",
