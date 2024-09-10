@@ -39,8 +39,15 @@ function simulate() {
 }
 
 function display_help() {
-    echo "Help: /n"
-
+    clear
+    delimitier
+    echo
+    echo "This script is designed to help deploy Yieldnest tokens to new chains: "
+    echo "Please create an input and add the relative path to the script.  For example ..."
+    echo
+    echo "yarn script-manager script/inputs/mainnet-ynETH.json"
+    echo
+    delimitier
 }
 
 function getRpcEndpoints() {
@@ -112,7 +119,7 @@ function selectLayer2RPC() {
     else
         echo "Please enter the Chain Id you would like to deploy on."
         echo "Chain ids: ${CHAIN_ID_ARRAY[@]}"
-        # read -p "enter chain id: " $SELECTED_CHAIN
+        read -p "enter chain id: " $SELECTED_CHAIN
         arrayIndex=$(searchArray $SELECTED_CHAIN $CHAIN_ID_ARRAY)
         L2_RPC_URL="${L2_ENDPOINTS_ARRAY[${arrayIndex}]}"
         if [[ -z $L2_RPC_URL ]]; then
@@ -120,7 +127,12 @@ function selectLayer2RPC() {
             exit 1
         fi
     fi
+    #exit if no url is found
+    if [[ -z $L2_RPC_URL ]]; then
+        exit 1
+    fi
     echo $L2_RPC_URL
+
 }
 
 function checkInput() {
@@ -139,6 +151,7 @@ echo "$FILE_PATH"
 # check that there is an arg
 if [[ -z $FILE_PATH ]]; then
     display_help
+    exit 1
     #if arg is a filepath and is a file set input json and shift down 1 arg
 elif [[ -f $FILE_PATH ]]; then
     INPUT_JSON=$FILE_PATH
@@ -223,7 +236,7 @@ select deployOptions in new-MultiChainDeployer new-L1-adapter new-L2-adapter set
         # call simulation
         simulate script/DeployMultiChainDeployer.s.sol:DeployMultiChainDeployer $CALLDATA $L2_RPC
         echo
-        read -p "Simulation complete.  Would You like to broadcast the deployment? (y/n)" yn
+        read -p "Simulation complete.  Would You like to broadcast the deployment? (y/n) " yn
         case $yn in
         [Yy]*)
             broadcast script/DeployMultiChainDeployer.s.sol:DeployMultiChainDeployer $CALLDATA $L2_RPC
@@ -238,7 +251,7 @@ select deployOptions in new-MultiChainDeployer new-L1-adapter new-L2-adapter set
     new-L1-adapter)
         simulate script/DeployL1OFTAdapter.s.sol:DeployL1OFTAdapter $CALLDATA $L1_RPC_URL
         echo
-        read -p "Simulation complete.  Would You like to broadcast the deployment? (y/n)" yn
+        read -p "Simulation complete.  Would You like to broadcast the deployment? (y/n) " yn
         case $yn in
         [Yy]*)
             broadcast script/DeployL1OFTAdapter.s.sol:DeployL1OFTAdapter $CALLDATA $L1_RPC_URL
@@ -254,7 +267,7 @@ select deployOptions in new-MultiChainDeployer new-L1-adapter new-L2-adapter set
         L2_RPC=$(selectLayer2RPC $L2_CHAIN_IDS_ARRAY)
         simulate script/DeployL2OFTAdapter.s.sol:DeployL2OFTAdapter $CALLDATA $L2_RPC
         echo
-        read -p "Simulation complete.  Would You like to broadcast the deployment? (y/n)" yn
+        read -p "Simulation complete.  Would You like to broadcast the deployment? (y/n) " yn
 
         case $yn in
         [Yy]*)
@@ -270,13 +283,14 @@ select deployOptions in new-MultiChainDeployer new-L1-adapter new-L2-adapter set
         exit 0
         ;;
     set-peers)
-        simulate script/SetPeersOFTAdapter.s.sol:SetPeersOFTAdapter $CALLDATA $L1_RPC_URL
+        L2_RPC=$(selectLayer2RPC $L2_CHAIN_IDS_ARRAY)
+        simulate script/SetPeersOFTAdapter.s.sol:SetPeersOFTAdapter $CALLDATA $L2_RPC
 
-        read -p "Simulation complete.  Would You like to broadcast the deployment? (y/n)" yn
+        read -p "Simulation complete.  Would You like to broadcast the deployment? (y/n) " yn
 
         case $yn in
         [Yy]*)
-            broadcast script/SetPeersOFTAdapter.s.sol:SetPeersOFTAdapter $CALLDATA $L1_RPC_URL
+            broadcast script/SetPeersOFTAdapter.s.sol:SetPeersOFTAdapter $CALLDATA $L2_RPC
             ;;
         [Nn]*)
             echo "Exiting..."
@@ -295,12 +309,6 @@ select deployOptions in new-MultiChainDeployer new-L1-adapter new-L2-adapter set
         ;;
     esac
 done
-echo "Input json: $INPUT_JSON"
-echo "chain id: $L1_CHAIN_ID"
-echo "erc20 name: $ERC20_NAME"
-echo "deployer acount name: $DEPLOYER_ACCOUNT_NAME"
-echo "deployer account address: $DEPLOYER_ADDRESS"
-echo "l1 rpc url: $L1_RPC_URL"
-echo "L2 rpcs:"
-echo "$L2_ENDPOINTS_ARRAY"
+
+echo "Script Complete..."
 exit 0
