@@ -41,4 +41,28 @@ contract Test_ImmutableMultiChainDeployer is CrossChainBaseTest {
             )
         );
     }
+
+    function test_Deploy_AlreadyDeployed_Revert() public {
+        vm.selectFork(arbitrumFork);
+
+        bytes32 arbitrumOFTAdapterSalt = createSalt(_deployer, "OFTAdapter");
+        bytes32 arbitrumOFTAdapterProxySalt = createSalt(_deployer, "OFTAdapterProxy");
+
+        RateLimiter.RateLimitConfig[] memory _rateLimitConfigs = new RateLimiter.RateLimitConfig[](1);
+        _rateLimitConfigs[0] = RateLimiter.RateLimitConfig({dstEid: uint32(1), limit: 1 ether, window: 1 days});
+
+        vm.expectRevert(ImmutableMultiChainDeployer.AlreadyDeployed.selector);
+        vm.prank(_deployer);
+
+        arbitrumDeployer.deployL2YnOFTAdapter(
+            arbitrumOFTAdapterSalt,
+            arbitrumOFTAdapterProxySalt,
+            address(arbitrumERC20),
+            address(arbitrumLzEndpoint),
+            _owner,
+            _rateLimitConfigs,
+            _controller,
+            l2YnOFTAdapterByteCode
+        );
+    }
 }

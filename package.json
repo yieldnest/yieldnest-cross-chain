@@ -33,6 +33,7 @@
     "format": "forge fmt --root .",
     "lint": "solhint \"src/**/*.sol\" && solhint \"test/**/*.sol\" && solhint \"script/**/*.sol\"",
     "prepare": "husky",
-    "test": "forge test -vvv"
+    "test": "forge test -vvv",
+    "script-manager": "./script/scriptManager.sh"
   }
 }
