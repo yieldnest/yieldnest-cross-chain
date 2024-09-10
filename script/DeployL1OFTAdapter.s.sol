@@ -55,6 +55,10 @@ contract DeployL1OFTAdapter is BaseScript {
 
         vm.startBroadcast();
 
+        require(
+            currentDeployment.multiChainDeployer != address(0), "Must deploy multiChainDeployer to this chain."
+        );
+
         address l1OFTAdapterImpl = address(
             new L1YnOFTAdapterUpgradeable{salt: implementationSalt}(
                 baseInput.l1ERC20Address, getAddresses().LZ_ENDPOINT

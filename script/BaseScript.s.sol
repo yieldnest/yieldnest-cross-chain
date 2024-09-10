@@ -200,7 +200,7 @@ contract BaseScript is BaseData {
     }
 
     function _loadJson(string calldata _path) internal {
-        string memory filePath = string(abi.encodePacked(vm.projectRoot(), "/", _path));
+        string memory filePath = string(abi.encodePacked(vm.projectRoot(), _path));
         string memory json = vm.readFile(filePath);
 
         // Reset the baseInput struct
