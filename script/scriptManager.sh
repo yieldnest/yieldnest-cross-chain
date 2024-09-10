@@ -27,10 +27,13 @@ function delimitier() {
 }
 
 function broadcast() {
+    clear
+    echo "broadcasting..."
     forge script $1 -s $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS --broadcast --etherscan-api-key $ETHERSCAN_API_KEY --verify
 }
 
 function simulate() {
+    clear
     echo "simulating..."
     forge script $1 -s $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS
 }
@@ -99,6 +102,25 @@ function error_exit() {
     echo "Error: $1" >&2
     usage
     exit 1
+}
+
+function selectLayer2RPC() {
+    local L2_RPC_URL=''
+    local CHAIN_ID_ARRAY=$1
+    if [[ "${#CHAIN_ID_ARRAY[@]}" == 1 ]]; then
+        L2_RPC_URL="${L2_ENDPOINTS_ARRAY[0]}"
+    else
+        echo "Please enter the Chain Id you would like to deploy on."
+        echo "Chain ids: ${CHAIN_ID_ARRAY[@]}"
+        # read -p "enter chain id: " $SELECTED_CHAIN
+        arrayIndex=$(searchArray $SELECTED_CHAIN $CHAIN_ID_ARRAY)
+        L2_RPC_URL="${L2_ENDPOINTS_ARRAY[${arrayIndex}]}"
+        if [[ -z $L2_RPC_URL ]]; then
+            echo "Chain RPC not ound for $SELECTED_CHAIN"
+            exit 1
+        fi
+    fi
+    echo $L2_RPC_URL
 }
 
 function checkInput() {
@@ -194,15 +216,17 @@ fi
 CALLDATA=$(cast calldata "run(string)" "/$FILE_PATH")
 clear
 echo "What would you like to deploy?"
-select deployOptions in new-MultiChainDeployer new-L1-adapter new-L2-adapter display-help exit; do
+select deployOptions in new-MultiChainDeployer new-L1-adapter new-L2-adapter set-peers display-help exit; do
     case $deployOptions in
     new-MultiChainDeployer)
+        L2_RPC=$(selectLayer2RPC $L2_CHAIN_IDS_ARRAY)
         # call simulation
-        simulate script/MultiChainDeployer.s.sol:MultiChainDeployer $CALLDATA $L1_RPC_URL
+        simulate script/DeployMultiChainDeployer.s.sol:DeployMultiChainDeployer $CALLDATA $L2_RPC
+        echo
         read -p "Simulation complete.  Would You like to broadcast the deployment? (y/n)" yn
         case $yn in
         [Yy]*)
-            broadcast script/MultiChainDeployer.s.sol:DeployMultiChainDeployer $CALLDATA $L1_RPC_URL
+            broadcast script/DeployMultiChainDeployer.s.sol:DeployMultiChainDeployer $CALLDATA $L2_RPC
             ;;
         [Nn]*)
             echo "Exiting..."
@@ -213,10 +237,11 @@ select deployOptions in new-MultiChainDeployer new-L1-adapter new-L2-adapter dis
         ;;
     new-L1-adapter)
         simulate script/DeployL1OFTAdapter.s.sol:DeployL1OFTAdapter $CALLDATA $L1_RPC_URL
+        echo
         read -p "Simulation complete.  Would You like to broadcast the deployment? (y/n)" yn
         case $yn in
         [Yy]*)
-            broadcast script/DeplL2_ENDPOINTS_ARRAYoyL1OFTAdapter.s.sol:DeployL1OFTAdapter $CALLDATA $L1_RPC_URL
+            broadcast script/DeployL1OFTAdapter.s.sol:DeployL1OFTAdapter $CALLDATA $L1_RPC_URL
             ;;
         [Nn]*)
             echo "Exiting..."
@@ -226,24 +251,14 @@ select deployOptions in new-MultiChainDeployer new-L1-adapter new-L2-adapter dis
         break
         ;;
     new-L2-adapter)
-        L2_RPC_URL=''
-        echo "Please enter the Chain Id you would like to deploy on."
-        echo "Chain ids: ${L2_CHAIN_IDS_ARRAY[@]}"
-        read -p "enter chain id: " $SELECTED_CHAIN
-        arrayIndex=$(searchArray $SELECTED_CHAIN $L2_CHAIN_IDS_ARRAY)
-        L2_RPC_URL="${L2_ENDPOINTS_ARRAY[${arrayIndex}]}"
-        if [[ -z $L2_RPC_URL ]]; then
-            echo "Chain RPC not ound for $SELECTED_CHAIN"
-            exit 1
-        fi
-
-        simulate script/DeployL2OFTAdapter.s.sol:DeployL2OFTAdapter $CALLDATA $L2_RPC_URL
-
+        L2_RPC=$(selectLayer2RPC $L2_CHAIN_IDS_ARRAY)
+        simulate script/DeployL2OFTAdapter.s.sol:DeployL2OFTAdapter $CALLDATA $L2_RPC
+        echo
         read -p "Simulation complete.  Would You like to broadcast the deployment? (y/n)" yn
 
         case $yn in
         [Yy]*)
-            broadcast script/DeployL2OFTAdapter.s.sol:DeployL2OFTAdapter $CALLDATA $L2_RPC_URL
+            broadcast script/DeployL2OFTAdapter.s.sol:DeployL2OFTAdapter $CALLDATA $L2_RPC
             ;;
         [Nn]*)
             echo "Exiting..."
@@ -253,6 +268,22 @@ select deployOptions in new-MultiChainDeployer new-L1-adapter new-L2-adapter dis
         break
         echo "Exiting..."
         exit 0
+        ;;
+    set-peers)
+        simulate script/SetPeersOFTAdapter.s.sol:SetPeersOFTAdapter $CALLDATA $L1_RPC_URL
+
+        read -p "Simulation complete.  Would You like to broadcast the deployment? (y/n)" yn
+
+        case $yn in
+        [Yy]*)
+            broadcast script/SetPeersOFTAdapter.s.sol:SetPeersOFTAdapter $CALLDATA $L1_RPC_URL
+            ;;
+        [Nn]*)
+            echo "Exiting..."
+            exit 0
+            ;;
+        esac
+        break
         ;;
     display-help)
         display_help
