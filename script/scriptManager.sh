@@ -204,6 +204,7 @@ ERC20_NAME=$(jq -r ".erc20Name" "$INPUT_JSON")
 L2_CHAIN_IDS_ARRAY=$(jq -r ".l2ChainIds" "$INPUT_JSON" | jq -r ".[]")
 L2_ENDPOINTS_ARRAY=$(< <(getRpcEndpoints $L2_CHAIN_IDS_ARRAY))
 echo "$L2_ENDPOINTS_ARRAY"
+
 # if rpc url is not set by flag set it here
 if [[ -z $L1_RPC_URL ]]; then
     L1_RPC_URL=$(getEndpoint $L1_CHAIN_ID)
