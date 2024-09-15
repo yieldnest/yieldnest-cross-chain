@@ -11,20 +11,9 @@ contract L2OFTAdapterMock is L2YnOFTAdapterUpgradeable {
         _disableInitializers();
     }
 
-    function initialize(
-        address _owner,
-        RateLimitConfig[] calldata _rateLimitConfigs
-    )
-        external
-        virtual
-        override
-        initializer
-    {
+    function initialize(address _owner) external virtual override initializer {
         super.__OFTAdapter_init(_owner);
         super.__Ownable_init();
-        super.__AccessControl_init();
-        super._grantRole(DEFAULT_ADMIN_ROLE, _owner);
-        super._setRateLimits(_rateLimitConfigs);
         super._transferOwnership(_owner);
     }
     // @dev expose internal functions for testing purposes

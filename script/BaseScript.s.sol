@@ -137,9 +137,8 @@ contract BaseScript is BaseData {
 
             address implPredictedAddress = vm.computeCreate2Address(implementationSalt, keccak256(implBytecode));
 
-            bytes memory initializeData = abi.encodeWithSelector(
-                L1YnOFTAdapterUpgradeable.initialize.selector, msg.sender, _getRateLimitConfigs()
-            );
+            bytes memory initializeData =
+                abi.encodeWithSelector(L1YnOFTAdapterUpgradeable.initialize.selector, msg.sender);
 
             bytes memory proxyBytecode = bytes.concat(
                 type(TransparentUpgradeableProxy).creationCode,

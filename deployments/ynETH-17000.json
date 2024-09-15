@@ -1,0 +1,32 @@
+{
+  "chains": {
+    "11155111": {
+      "chainId": 11155111,
+      "erc20Address": "0xF5Cff781bfD6f3A418A589F4aff0a5099f2d69DC",
+      "isL1": false,
+      "lzEID": 40161,
+      "lzEndpoint": "0x6EDCE65403992e310A62460808c4b910D972f10f",
+      "multiChainDeployer": "0x0BC0b44291Eb48241fe7Abf8CC4E62C399A2BF07",
+      "oftAdapter": "0x2a882C5BBCDA9916CA242bDC22764180c9a652E1"
+    },
+    "17000": {
+      "chainId": 17000,
+      "erc20Address": "0xd9029669BC74878BCB5BE58c259ed0A277C5c16E",
+      "isL1": true,
+      "lzEID": 40217,
+      "lzEndpoint": "0x6EDCE65403992e310A62460808c4b910D972f10f",
+      "multiChainDeployer": "0x0000000000000000000000000000000000000000",
+      "oftAdapter": "0xf658bC3DF78D8C521d61F362993081BFc0c1f264"
+    },
+    "2522": {
+      "chainId": 2522,
+      "erc20Address": "0xF5Cff781bfD6f3A418A589F4aff0a5099f2d69DC",
+      "isL1": false,
+      "lzEID": 40255,
+      "lzEndpoint": "0x6EDCE65403992e310A62460808c4b910D972f10f",
+      "multiChainDeployer": "0x0BC0b44291Eb48241fe7Abf8CC4E62C399A2BF07",
+      "oftAdapter": "0x2a882C5BBCDA9916CA242bDC22764180c9a652E1"
+    }
+  },
+  "deployerAddress": "0x19a8eb80c1483CEAA1278B16C5D5eF0104F85905"
+}

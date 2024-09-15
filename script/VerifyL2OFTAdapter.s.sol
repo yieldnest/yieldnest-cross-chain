@@ -107,7 +107,9 @@ contract VerifyL2OFTAdapter is BaseScript {
         }
 
         if (needsUpdate) {
-            // TODO: Print Gnosis Safe Tx Data
+            // TODO: Print All this information in a much more readable manner
+            // Also generate a new Multisend Gnosis Safe Tx Data that combines all the following calls for this
+            // chain into a single call
             console.log("Needs update");
             if (newRateLimitConfigs.length > 0) {
                 console.log("New rate limit configs");

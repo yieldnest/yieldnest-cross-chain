@@ -85,7 +85,11 @@ contract CrossChainBaseTest is Test {
             mainnetOFTAdapter = L1YnOFTAdapterUpgradeable(
                 address(new TransparentUpgradeableProxy(mainnetOFTAdapterImpl, _controller, ""))
             );
-            mainnetOFTAdapter.initialize(_owner, _rateLimitConfigs);
+            mainnetOFTAdapter.initialize(_owner);
+            vm.stopPrank();
+            vm.prank(_owner);
+            mainnetOFTAdapter.setRateLimits(_rateLimitConfigs);
+            vm.startPrank(_deployer);
         }
 
         {
@@ -113,11 +117,14 @@ contract CrossChainBaseTest is Test {
                     address(optimismERC20),
                     address(optimismLzEndpoint),
                     _owner,
-                    _rateLimitConfigs,
                     _controller,
                     l2YnOFTAdapterByteCode
                 )
             );
+            vm.stopPrank();
+            vm.prank(_owner);
+            optimismOFTAdapter.setRateLimits(_rateLimitConfigs);
+            vm.startPrank(_deployer);
         }
 
         {
@@ -145,11 +152,14 @@ contract CrossChainBaseTest is Test {
                     address(arbitrumERC20),
                     address(arbitrumLzEndpoint),
                     _owner,
-                    _rateLimitConfigs,
                     _controller,
                     l2YnOFTAdapterByteCode
                 )
             );
+            vm.stopPrank();
+            vm.prank(_owner);
+            arbitrumOFTAdapter.setRateLimits(_rateLimitConfigs);
+            vm.startPrank(_deployer);
         }
         vm.stopPrank();
 

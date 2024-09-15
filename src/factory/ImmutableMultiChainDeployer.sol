@@ -4,7 +4,6 @@ pragma solidity ^0.8.24;
 import {L2YnERC20Upgradeable} from "@/L2YnERC20Upgradeable.sol";
 import {L2YnOFTAdapterUpgradeable} from "@/L2YnOFTAdapterUpgradeable.sol";
 import {IImmutableMultiChainDeployer} from "@interfaces/IImmutableMultiChainDeployer.sol";
-import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
 import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import {TransparentUpgradeableProxy} from
     "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
@@ -67,7 +66,6 @@ contract ImmutableMultiChainDeployer is IImmutableMultiChainDeployer {
         address _token,
         address _lzEndpoint,
         address _owner,
-        RateLimiter.RateLimitConfig[] calldata _rateLimitConfigs,
         address _proxyController,
         bytes memory _l2YnOFTAdapterBytecode
     )
@@ -78,7 +76,7 @@ contract ImmutableMultiChainDeployer is IImmutableMultiChainDeployer {
         bytes memory _constructorParams = abi.encode(_token, _lzEndpoint);
         bytes memory _contractCode = abi.encodePacked(_l2YnOFTAdapterBytecode, _constructorParams);
         bytes memory _initializeArgs =
-            abi.encodeWithSelector(L2YnOFTAdapterUpgradeable.initialize.selector, _owner, _rateLimitConfigs);
+            abi.encodeWithSelector(L2YnOFTAdapterUpgradeable.initialize.selector, _owner);
         deployedContract =
             deployContractAndProxy(_implSalt, _proxySalt, _proxyController, _contractCode, _initializeArgs);
     }

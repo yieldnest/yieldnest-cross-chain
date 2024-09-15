@@ -23,8 +23,6 @@ contract DeployL1OFTAdapter is BaseScript {
 
         require(currentDeployment.isL1 == true, "Must be L1 deployment");
 
-        RateLimiter.RateLimitConfig[] memory rateLimitConfigs = _getRateLimitConfigs();
-
         bytes32 proxySalt = createSalt(msg.sender, "L1YnOFTAdapterUpgradeableProxy");
         bytes32 implementationSalt = createSalt(msg.sender, "L1YnOFTAdapterUpgradeable");
 
@@ -38,9 +36,8 @@ contract DeployL1OFTAdapter is BaseScript {
                 )
             );
 
-            bytes memory initializeData = abi.encodeWithSelector(
-                L1YnOFTAdapterUpgradeable.initialize.selector, CURRENT_SIGNER, rateLimitConfigs
-            );
+            bytes memory initializeData =
+                abi.encodeWithSelector(L1YnOFTAdapterUpgradeable.initialize.selector, CURRENT_SIGNER);
 
             vm.broadcast();
             l1OFTAdapter = L1YnOFTAdapterUpgradeable(
@@ -59,6 +56,10 @@ contract DeployL1OFTAdapter is BaseScript {
         require(address(l1OFTAdapter) == predictions.l1OftAdapter, "Deployment failed");
 
         if (l1OFTAdapter.owner() == CURRENT_SIGNER) {
+            console.log("Setting rate limits");
+            vm.broadcast();
+            l1OFTAdapter.setRateLimits(_getRateLimitConfigs());
+
             console.log("Setting peers");
             for (uint256 i = 0; i < baseInput.l2ChainIds.length; i++) {
                 uint256 chainId = baseInput.l2ChainIds[i];

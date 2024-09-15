@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
-
 /// @title Factory for deploying yieldnest contracts to deterministic addresses via CREATE3
 /// @notice Enables deploying contracts using CREATE3 and then initializing the upgradeable
 /// contracts.
@@ -24,7 +22,6 @@ interface IImmutableMultiChainDeployer {
     /// @param _token The token address for the OFT adapter.
     /// @param _lzEndpoint The LayerZero endpoint for the OFT adapter.
     /// @param _owner The owner address for the OFT adapter.
-    /// @param _rateLimitConfigs The rate limit configurations for the OFT adapter.
     /// @param _proxyController The proxy controller address for the OFT adapter.
     /// @param _l2YnOFTAdapterBytecode The bytecode of the L2YnOFTAdapter contract to deploy.
     /// @return deployed The address of the deployed contract.
@@ -34,7 +31,6 @@ interface IImmutableMultiChainDeployer {
         address _token,
         address _lzEndpoint,
         address _owner,
-        RateLimiter.RateLimitConfig[] calldata _rateLimitConfigs,
         address _proxyController,
         bytes calldata _l2YnOFTAdapterBytecode
     )

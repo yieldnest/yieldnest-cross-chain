@@ -46,8 +46,6 @@ contract DeployL2OFTAdapter is BaseScript {
 
         currentDeployment.multiChainDeployer = address(multiChainDeployer);
 
-        RateLimiter.RateLimitConfig[] memory rateLimitConfigs = _getRateLimitConfigs();
-
         bytes32 proxySalt = createSalt(msg.sender, "L2YnERC20UpgradeableProxy");
         bytes32 implementationSalt = createSalt(msg.sender, "L2YnERC20Upgradeable");
 
@@ -96,7 +94,6 @@ contract DeployL2OFTAdapter is BaseScript {
                     address(l2ERC20),
                     getAddresses().LZ_ENDPOINT,
                     CURRENT_SIGNER,
-                    rateLimitConfigs,
                     getAddresses().PROXY_ADMIN,
                     type(L2YnOFTAdapterUpgradeable).creationCode
                 )
@@ -112,6 +109,10 @@ contract DeployL2OFTAdapter is BaseScript {
         }
 
         if (l2OFTAdapter.owner() == CURRENT_SIGNER) {
+            console.log("Setting rate limits");
+            vm.broadcast();
+            l2OFTAdapter.setRateLimits(_getRateLimitConfigs());
+
             console.log("Setting peers");
 
             {

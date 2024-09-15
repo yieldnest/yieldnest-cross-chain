@@ -133,8 +133,15 @@ function error_exit() {
     exit 1
 }
 
+FORCE=false
+
 function deployL1OFTAdapter() {
-    echo "$1 $2"
+    if [[ $FORCE == true ]]; then
+        broadcast script/DeployL1OFTAdapter.s.sol:DeployL1OFTAdapter $1 $2
+        echo "Deployed L1OFTAdapter"
+        return
+    fi
+
     # call simulation
     simulate script/DeployL1OFTAdapter.s.sol:DeployL1OFTAdapter $1 $2
     read -p "Simulation complete would you like to deploy the L1OFTAdapter? (y/N) " yn
@@ -152,7 +159,12 @@ function deployL1OFTAdapter() {
 }
 
 function deployL2OFTAdapter() {
-    echo "$1 $2"
+    if [[ $FORCE == true ]]; then
+        broadcast script/DeployL2OFTAdapter.s.sol:DeployL2OFTAdapter $1 $2
+        echo "Deployed L2OFTAdapter"
+        return
+    fi
+
     # call simulation
     simulate script/DeployL2OFTAdapter.s.sol:DeployL2OFTAdapter $1 $2
     read -p "Simulation Complete would you like to deploy the L2OFTAdapter? (y/N) " yn
@@ -232,6 +244,10 @@ while [[ $# -gt 0 ]]; do
     --help | -h)
         display_help
         exit 0
+        ;;
+    --force | -f)
+        FORCE=true
+        shift
         ;;
     *)
         echo "Error, unrecognized flag" >&2
