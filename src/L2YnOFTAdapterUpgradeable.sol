@@ -11,8 +11,6 @@ import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/acce
 import {IMintableBurnableERC20} from "./interfaces/IMintableBurnableERC20.sol";
 
 contract L2YnOFTAdapterUpgradeable is OFTAdapterUpgradeable, AccessControlUpgradeable, RateLimiter {
-    bytes32 public constant LIMITER_ROLE = keccak256("LIMITER_ROLE");
-
     /**
      * @dev Constructor for the OFTAdapter contract.
      * @param _token The address of the ERC-20 token to be adapted.
@@ -47,7 +45,7 @@ contract L2YnOFTAdapterUpgradeable is OFTAdapterUpgradeable, AccessControlUpgrad
      * @dev Sets the rate limits for the adapter.
      * @param _rateLimitConfigs The rate limit configurations.
      */
-    function setRateLimits(RateLimitConfig[] calldata _rateLimitConfigs) external onlyRole(LIMITER_ROLE) {
+    function setRateLimits(RateLimitConfig[] calldata _rateLimitConfigs) external onlyRole(DEFAULT_ADMIN_ROLE) {
         _setRateLimits(_rateLimitConfigs);
     }
 

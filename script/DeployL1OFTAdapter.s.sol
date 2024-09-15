@@ -22,76 +22,63 @@ contract DeployL1OFTAdapter is BaseScript {
         _loadInput(_jsonPath);
 
         require(currentDeployment.isL1 == true, "Must be L1 deployment");
-        require(baseInput.predictedL2AdapterAddress != address(0), "input the l2adapter address");
 
         RateLimiter.RateLimitConfig[] memory rateLimitConfigs = _getRateLimitConfigs();
-
-        if (currentDeployment.oftAdapter != address(0)) {
-            console.log("L1 OFT Adapter already deployed at: %s", currentDeployment.oftAdapter);
-            l1OFTAdapter = L1YnOFTAdapterUpgradeable(currentDeployment.oftAdapter);
-            bool needsChange = false;
-
-            for (uint256 i = 0; i < rateLimitConfigs.length; i++) {
-                (,, uint256 limit, uint256 window) = l1OFTAdapter.rateLimits(rateLimitConfigs[i].dstEid);
-                RateLimiter.RateLimitConfig memory config = rateLimitConfigs[i];
-                if (config.limit != limit || config.window != window) {
-                    needsChange = true;
-                    break;
-                }
-            }
-            if (!needsChange) {
-                console.log("Rate limits are already set");
-                return;
-            }
-            vm.broadcast();
-            // sender needs LIMITER role
-            l1OFTAdapter.setRateLimits(rateLimitConfigs);
-
-            console.log("Rate limits updated");
-            return;
-        }
 
         bytes32 proxySalt = createSalt(msg.sender, "L1YnOFTAdapterUpgradeableProxy");
         bytes32 implementationSalt = createSalt(msg.sender, "L1YnOFTAdapterUpgradeable");
 
-        vm.startBroadcast();
+        address CURRENT_SIGNER = msg.sender;
 
-        address l1OFTAdapterImpl = address(
-            new L1YnOFTAdapterUpgradeable{salt: implementationSalt}(
-                baseInput.l1ERC20Address, getAddresses().LZ_ENDPOINT
-            )
-        );
-
-        bytes memory initializeData = abi.encodeWithSelector(
-            L1YnOFTAdapterUpgradeable.initialize.selector, getAddresses().OFT_DELEGATE, rateLimitConfigs
-        );
-
-        l1OFTAdapter = L1YnOFTAdapterUpgradeable(
-            address(
-                new TransparentUpgradeableProxy{salt: proxySalt}(
-                    l1OFTAdapterImpl, getAddresses().PROXY_ADMIN, initializeData
+        if (!isContract(predictions.l1OftAdapter)) {
+            vm.broadcast();
+            address l1OFTAdapterImpl = address(
+                new L1YnOFTAdapterUpgradeable{salt: implementationSalt}(
+                    baseInput.l1ERC20Address, getAddresses().LZ_ENDPOINT
                 )
-            )
-        );
+            );
 
-        for (uint256 i = 0; i < deployment.chains.length; i++) {
-            if (deployment.chains[i].chainId == block.chainid) {
-                continue;
-            }
-            uint32 eid = deployment.chains[i].lzEID;
-            address adapter = baseInput.predictedL2AdapterAddress;
-            bytes32 adapterBytes32 = addressToBytes32(adapter);
-            if (l1OFTAdapter.peers(eid) == adapterBytes32) {
-                console.log("Adapter already set for chain %d", deployment.chains[i].chainId);
-                continue;
-            }
+            bytes memory initializeData = abi.encodeWithSelector(
+                L1YnOFTAdapterUpgradeable.initialize.selector, CURRENT_SIGNER, rateLimitConfigs
+            );
 
-            l1OFTAdapter.setPeer(eid, adapterBytes32);
+            vm.broadcast();
+            l1OFTAdapter = L1YnOFTAdapterUpgradeable(
+                address(
+                    new TransparentUpgradeableProxy{salt: proxySalt}(
+                        l1OFTAdapterImpl, getAddresses().PROXY_ADMIN, initializeData
+                    )
+                )
+            );
+            console.log("L1 OFT Adapter deployed at: %s", address(l1OFTAdapter));
+        } else {
+            l1OFTAdapter = L1YnOFTAdapterUpgradeable(predictions.l1OftAdapter);
+            console.log("L1 OFT Adapter already deployed at: %s", address(l1OFTAdapter));
         }
 
-        console.log("L1 OFT Adapter deployed at: %s", address(l1OFTAdapter));
+        require(address(l1OFTAdapter) == predictions.l1OftAdapter, "Deployment failed");
 
-        vm.stopBroadcast();
+        if (l1OFTAdapter.owner() == CURRENT_SIGNER) {
+            console.log("Setting peers");
+            for (uint256 i = 0; i < deployment.chains.length; i++) {
+                if (deployment.chains[i].chainId == block.chainid) {
+                    continue;
+                }
+                uint32 eid = deployment.chains[i].lzEID;
+                address adapter = predictions.l2OftAdapter;
+                bytes32 adapterBytes32 = addressToBytes32(adapter);
+                if (l1OFTAdapter.peers(eid) == adapterBytes32) {
+                    console.log("Adapter already set for chain %d", deployment.chains[i].chainId);
+                    continue;
+                }
+
+                vm.broadcast();
+                l1OFTAdapter.setPeer(eid, adapterBytes32);
+            }
+
+            vm.broadcast();
+            l1OFTAdapter.transferOwnership(getAddresses().OFT_DELEGATE);
+        }
 
         currentDeployment.oftAdapter = address(l1OFTAdapter);
 

@@ -26,9 +26,9 @@ mainnet = "${MAINNET_RPC_URL}"
 arbitrum = "${ARBITRUM_RPC_URL}"
 optimism = "${OPTIMISM_RPC_URL}"
 base = "${BASE_RPC_URL}"
-fraxtal = "${FRAXTAL_RPC_URL}"
+fraxtal = "${FRAX_RPC_URL}"
 holesky = "${HOLESKY_RPC_URL}"
-fraxtal_testnet = "${FRAXTAL_TESTNET_RPC_URL}"
+fraxtal_testnet = "${FRAX_TESTNET_RPC_URL}"
 
 [etherscan]
 mainnet = { key = "${ETHERSCAN_API_KEY}" }

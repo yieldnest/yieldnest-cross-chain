@@ -46,9 +46,7 @@ contract SetPeersOFTAdapter is BaseScript {
         _saveDeployment();
     }
 
-    function getPeerData(
-        string calldata _jsonPath
-    )
+    function getPeerData(string calldata _jsonPath)
         public
         returns (uint256[] memory _chains, uint32[] memory _eids, bytes32[] memory _adapterBytes32)
     {

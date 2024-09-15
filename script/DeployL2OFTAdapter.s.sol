@@ -6,7 +6,7 @@ import {BaseScript} from "./BaseScript.s.sol";
 
 import {L2YnERC20Upgradeable} from "@/L2YnERC20Upgradeable.sol";
 import {L2YnOFTAdapterUpgradeable} from "@/L2YnOFTAdapterUpgradeable.sol";
-import {IImmutableMultiChainDeployer} from "@interfaces/IImmutableMultiChainDeployer.sol";
+import {ImmutableMultiChainDeployer} from "@/factory/ImmutableMultiChainDeployer.sol";
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
 
 import {TransparentUpgradeableProxy} from
@@ -19,91 +19,123 @@ import {console} from "forge-std/console.sol";
 // --broadcast --etherscan-api-key ${api} --verify
 
 contract DeployL2OFTAdapter is BaseScript {
-    L2YnOFTAdapterUpgradeable l2OFTAdapter;
-    L2YnERC20Upgradeable l2ERC20;
+    ImmutableMultiChainDeployer public multiChainDeployer;
+    L2YnOFTAdapterUpgradeable public l2OFTAdapter;
+    L2YnERC20Upgradeable public l2ERC20;
 
     function run(string calldata _jsonPath) public {
         _loadInput(_jsonPath);
 
         require(currentDeployment.isL1 != true, "Must be L2 deployment");
 
-        require(currentDeployment.multiChainDeployer != address(0), "MultiChainDeployer not deployed");
+        bytes32 salt = createSalt(msg.sender, "ImmutableMultiChainDeployer");
 
-        IImmutableMultiChainDeployer currentDeployer =
-            IImmutableMultiChainDeployer(currentDeployment.multiChainDeployer);
+        address predictedAddress = predictions.l2MultiChainDeployer;
+        console.log("Predicted ImmutableMultiChainDeployer address: ", predictedAddress);
+
+        if (!isContract(predictedAddress)) {
+            vm.broadcast();
+            multiChainDeployer = new ImmutableMultiChainDeployer{salt: salt}();
+            console.log("ImmutableMultiChainDeployer deployed at: ", address(multiChainDeployer));
+        } else {
+            console.log("ImmutableMultiChainDeployer already deployed at: ", currentDeployment.multiChainDeployer);
+            multiChainDeployer = ImmutableMultiChainDeployer(predictedAddress);
+        }
+
+        require(address(multiChainDeployer) == predictedAddress, "Deployment failed");
+
+        currentDeployment.multiChainDeployer = address(multiChainDeployer);
 
         RateLimiter.RateLimitConfig[] memory rateLimitConfigs = _getRateLimitConfigs();
-
-        // if (currentDeployment.oftAdapter != address(0)) {
-        //     console.log("L2 OFT Adapter already deployed at: %s", currentDeployment.oftAdapter);
-        //     l2OFTAdapter = L2YnOFTAdapterUpgradeable(currentDeployment.oftAdapter);
-        //     bool needsChange = false;
-
-        //     for (uint256 i = 0; i < rateLimitConfigs.length; i++) {
-        //         (,, uint256 limit, uint256 window) = l2OFTAdapter.rateLimits(rateLimitConfigs[i].dstEid);
-        //         RateLimiter.RateLimitConfig memory config = rateLimitConfigs[i];
-        //         if (config.limit != limit || config.window != window) {
-        //             needsChange = true;
-        //             break;
-        //         }
-        //     }
-        //     if (!needsChange) {
-        //         console.log("Rate limits are already set");
-        //         return;
-        //     }
-        //     vm.broadcast();
-        //     // sender needs LIMITER role
-        //     l2OFTAdapter.setRateLimits(rateLimitConfigs);
-
-        //     console.log("Rate limits updated");
-        //     return;
-        // }
 
         bytes32 proxySalt = createSalt(msg.sender, "L2YnERC20UpgradeableProxy");
         bytes32 implementationSalt = createSalt(msg.sender, "L2YnERC20Upgradeable");
 
         address CURRENT_SIGNER = msg.sender;
 
-        vm.startBroadcast();
-        l2ERC20 = L2YnERC20Upgradeable(
-            currentDeployer.deployL2YnERC20(
-                implementationSalt,
-                proxySalt,
-                baseInput.erc20Name,
-                baseInput.erc20Symbol,
-                CURRENT_SIGNER,
-                getAddresses().PROXY_ADMIN,
-                type(L2YnERC20Upgradeable).creationCode
-            )
-        );
+        address predictedERC20 = multiChainDeployer.getDeployed(proxySalt);
+        console.log("Predicted L2ERC20 address: %s", predictedERC20);
+        require(predictedERC20 == predictions.l2Erc20, "Predicted L2ERC20 address mismatch");
 
-        console.log("L2 ERC20 deployed at: ", address(l2ERC20));
+        if (!isContract(predictedERC20)) {
+            vm.broadcast();
+            l2ERC20 = L2YnERC20Upgradeable(
+                multiChainDeployer.deployL2YnERC20(
+                    implementationSalt,
+                    proxySalt,
+                    baseInput.erc20Name,
+                    baseInput.erc20Symbol,
+                    CURRENT_SIGNER,
+                    getAddresses().PROXY_ADMIN,
+                    type(L2YnERC20Upgradeable).creationCode
+                )
+            );
+            console.log("Deployed L2ERC20 address: %s", address(l2ERC20));
+        } else {
+            l2ERC20 = L2YnERC20Upgradeable(predictedERC20);
+            console.log("Already deployed L2ERC20 address: %s", address(l2ERC20));
+        }
+
+        if (predictedERC20 != address(l2ERC20)) {
+            revert("ERC20 address mismatch");
+        }
 
         proxySalt = createSalt(msg.sender, "L2YnOFTAdapterUpgradeableProxy");
         implementationSalt = createSalt(msg.sender, "L2YnOFTAdapterUpgradeable");
 
-        l2OFTAdapter = L2YnOFTAdapterUpgradeable(
-            currentDeployer.deployL2YnOFTAdapter(
-                implementationSalt,
-                proxySalt,
-                address(l2ERC20),
-                getAddresses().LZ_ENDPOINT,
-                CURRENT_SIGNER,
-                rateLimitConfigs,
-                getAddresses().PROXY_ADMIN,
-                type(L2YnOFTAdapterUpgradeable).creationCode
-            )
-        );
+        address predictedOFTAdapter = multiChainDeployer.getDeployed(proxySalt);
+        console.log("Predicted L2OFTAdapter address: %s", predictedOFTAdapter);
+        require(predictedOFTAdapter == predictions.l2OftAdapter, "Predicted L2OFTAdapter address mismatch");
 
-        l2ERC20.grantRole(l2ERC20.MINTER_ROLE(), address(l2OFTAdapter));
+        if (!isContract(predictedOFTAdapter)) {
+            vm.broadcast();
+            l2OFTAdapter = L2YnOFTAdapterUpgradeable(
+                multiChainDeployer.deployL2YnOFTAdapter(
+                    implementationSalt,
+                    proxySalt,
+                    address(l2ERC20),
+                    getAddresses().LZ_ENDPOINT,
+                    CURRENT_SIGNER,
+                    rateLimitConfigs,
+                    getAddresses().PROXY_ADMIN,
+                    type(L2YnOFTAdapterUpgradeable).creationCode
+                )
+            );
+            console.log("Deployed L2OFTAdapter at %s", address(l2OFTAdapter));
+        } else {
+            l2OFTAdapter = L2YnOFTAdapterUpgradeable(predictedOFTAdapter);
+            console.log("Already deployed L2OFTAdapter at %s", address(l2OFTAdapter));
+        }
 
-        // TODO: transfer ownership after setPeers
-        l2OFTAdapter.transferOwnership(getAddresses().OFT_DELEGATE);
-        l2ERC20.grantRole(l2ERC20.DEFAULT_ADMIN_ROLE(), getAddresses().TOKEN_ADMIN);
+        if (l2OFTAdapter.owner() == CURRENT_SIGNER) {
+            console.log("Setting peers");
+            for (uint256 i = 0; i < deployment.chains.length; i++) {
+                if (deployment.chains[i].chainId == block.chainid) {
+                    continue;
+                }
+                uint32 eid = deployment.chains[i].lzEID;
+                address adapter = deployment.chains[i].isL1 ? predictions.l1OftAdapter : predictions.l2OftAdapter;
+                bytes32 adapterBytes32 = addressToBytes32(adapter);
+                if (l2OFTAdapter.peers(eid) == adapterBytes32) {
+                    console.log("Adapter already set for chain %d", deployment.chains[i].chainId);
+                    continue;
+                }
 
-        vm.stopBroadcast();
+                vm.broadcast();
+                l2OFTAdapter.setPeer(eid, adapterBytes32);
+            }
 
-        console.log("L2 OFT Adapter deployed at: ", address(l2OFTAdapter));
+            vm.broadcast();
+            l2OFTAdapter.transferOwnership(getAddresses().OFT_DELEGATE);
+        }
+
+        if (l2ERC20.hasRole(l2ERC20.DEFAULT_ADMIN_ROLE(), CURRENT_SIGNER)) {
+            vm.startBroadcast();
+            l2ERC20.grantRole(l2ERC20.MINTER_ROLE(), address(l2OFTAdapter));
+            l2ERC20.grantRole(l2ERC20.DEFAULT_ADMIN_ROLE(), getAddresses().TOKEN_ADMIN);
+            l2ERC20.renounceRole(l2ERC20.DEFAULT_ADMIN_ROLE(), CURRENT_SIGNER);
+            vm.stopBroadcast();
+        }
 
         currentDeployment.erc20Address = address(l2ERC20);
         currentDeployment.oftAdapter = address(l2OFTAdapter);
