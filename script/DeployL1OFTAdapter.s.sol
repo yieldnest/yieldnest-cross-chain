@@ -60,20 +60,19 @@ contract DeployL1OFTAdapter is BaseScript {
 
         if (l1OFTAdapter.owner() == CURRENT_SIGNER) {
             console.log("Setting peers");
-            for (uint256 i = 0; i < deployment.chains.length; i++) {
-                if (deployment.chains[i].chainId == block.chainid) {
-                    continue;
-                }
-                uint32 eid = deployment.chains[i].lzEID;
+            for (uint256 i = 0; i < baseInput.l2ChainIds.length; i++) {
+                uint256 chainId = baseInput.l2ChainIds[i];
+                uint32 eid = getEID(chainId);
                 address adapter = predictions.l2OftAdapter;
                 bytes32 adapterBytes32 = addressToBytes32(adapter);
                 if (l1OFTAdapter.peers(eid) == adapterBytes32) {
-                    console.log("Adapter already set for chain %d", deployment.chains[i].chainId);
+                    console.log("Adapter already set for chain %d", chainId);
                     continue;
                 }
 
                 vm.broadcast();
                 l1OFTAdapter.setPeer(eid, adapterBytes32);
+                console.log("Set Peer %s for eid %d", adapter, eid);
             }
 
             vm.broadcast();

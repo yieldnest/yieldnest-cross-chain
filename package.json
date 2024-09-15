@@ -29,11 +29,12 @@
   "repository": "https://github.com/yieldnest/yieldnest-cross-chain",
   "scripts": {
     "build": "forge build",
+    "clean": "forge clean",
     "compile": "forge compile",
     "format": "forge fmt --root .",
     "lint": "solhint \"src/**/*.sol\" && solhint \"test/**/*.sol\" && solhint \"script/**/*.sol\"",
     "prepare": "husky",
-    "test": "forge test -vvv",
-    "script-manager": "./script/scriptManager.sh"
+    "script-manager": "./script/scriptManager.sh",
+    "test": "forge test -vvv"
   }
 }

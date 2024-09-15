@@ -37,6 +37,9 @@ contract BaseData is Script {
     });
 
     function setUp() public virtual {
+        // NOTE: All the LZ Addresses and EIDs are picked up from their docs
+        // at https://docs.layerzero.network/v2/developers/evm/technical-reference/deployed-contracts
+
         // mainnets
         __addresses[true] = Addresses({
             OFT_DELEGATE: 0xfcad670592a3b24869C0b51a6c6FDED4F95D6975, // yn security council

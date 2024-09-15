@@ -47,13 +47,11 @@ function delimitier() {
 }
 
 function broadcast() {
-    echo "broadcasting..."
     forge script $1 -s $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS --broadcast
     # forge script $1 -s $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS --broadcast --etherscan-api-key $ETHERSCAN_API_KEY --verify
 }
 
 function simulate() {
-    echo "simulating..."
     forge script $1 -s $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS
 }
 
@@ -134,12 +132,16 @@ function deployL1OFTAdapter() {
     echo "$1 $2"
     # call simulation
     simulate script/DeployL1OFTAdapter.s.sol:DeployL1OFTAdapter $1 $2
-    read -p "Simulation Complete would you like to deploy the L1OFTAdapter? (y/n) " yn
+    read -p "Simulation complete would you like to deploy the L1OFTAdapter? (y/N) " yn
     case $yn in
     [Yy]*)
         broadcast script/DeployL1OFTAdapter.s.sol:DeployL1OFTAdapter $1 $2
+        echo "Deployed L1OFTAdapter"
         ;;
-    [Nn]*) ;;
+    *) 
+        echo "Skipping broadcast for L1OFTAdapter"
+        exit 0
+        ;;
 
     esac
 }
@@ -148,12 +150,16 @@ function deployL2OFTAdapter() {
     echo "$1 $2"
     # call simulation
     simulate script/DeployL2OFTAdapter.s.sol:DeployL2OFTAdapter $1 $2
-    read -p "Simulation Complete would you like to deploy the L2OFTAdapter? (y/n) " yn
+    read -p "Simulation Complete would you like to deploy the L2OFTAdapter? (y/N) " yn
     case $yn in
     [Yy]*)
         broadcast script/DeployL2OFTAdapter.s.sol:DeployL2OFTAdapter $1 $2
+        echo "Deployed L2OFTAdapter"
         ;;
-    [Nn]*) ;;
+    *) 
+        echo "Skipping broadcast for L2OFTAdapter"
+        exit 0
+        ;;
 
     esac
 }
@@ -254,24 +260,28 @@ fi
 
 echo "Deploying with account name:" $DEPLOYER_ACCOUNT_NAME
 echo "DEPLOYER ADDRESS: " $DEPLOYER_ADDRESS
-echo "L1 CHAIN ID: " $L1_CHAIN_ID
 echo "ERC20 NAME: " $ERC20_NAME
+echo "L1 CHAIN ID: " $L1_CHAIN_ID
 echo "L2 CHAIN IDs: " ${L2_CHAIN_IDS_ARRAY[@]}
 
 CALLDATA=$(cast calldata "run(string)" "/$FILE_PATH")
 
 echo "Deploying L2 Adapters"
 for l2 in $L2_CHAIN_IDS_ARRAY; do
-    echo "Deploying on chainId: $l2"
-    L2_RPC=$(findRPC $l2)
-    echo "l2 rpc: " $L2_RPC
-    deployL2OFTAdapter $CALLDATA $L2_RPC
+    L2_RPC_URL=$(findRPC $l2)
+    deployL2OFTAdapter $CALLDATA $L2_RPC_URL
 done
 
-echo "Deploying L1 Adapters"
-echo "Deploying on chainId: $L1_CHAIN_ID"
-echo "l1 rpc: " $L1_RPC_URL
+echo "Deploying L1 Adapter"
 deployL1OFTAdapter $CALLDATA $L1_RPC_URL
 
-echo "Script Complete..."
+echo "Verifying L1 Adapter"
+simulate script/VerifyL1OFTAdapter.s.sol:VerifyL1OFTAdapter $CALLDATA $L1_RPC_URL
+
+echo "Verifying L2 Adapter"
+for l2 in $L2_CHAIN_IDS_ARRAY; do
+    L2_RPC_URL=$(findRPC $l2)
+    simulate script/VerifyL2OFTAdapter.s.sol:VerifyL2OFTAdapter $CALLDATA $L2_RPC_URL
+done
+
 exit 0

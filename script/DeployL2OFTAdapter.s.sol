@@ -109,20 +109,37 @@ contract DeployL2OFTAdapter is BaseScript {
 
         if (l2OFTAdapter.owner() == CURRENT_SIGNER) {
             console.log("Setting peers");
-            for (uint256 i = 0; i < deployment.chains.length; i++) {
-                if (deployment.chains[i].chainId == block.chainid) {
-                    continue;
-                }
-                uint32 eid = deployment.chains[i].lzEID;
-                address adapter = deployment.chains[i].isL1 ? predictions.l1OftAdapter : predictions.l2OftAdapter;
+
+            {
+                uint256 chainId = baseInput.l1ChainId;
+                uint32 eid = getEID(chainId);
+                address adapter = predictions.l1OftAdapter;
                 bytes32 adapterBytes32 = addressToBytes32(adapter);
                 if (l2OFTAdapter.peers(eid) == adapterBytes32) {
-                    console.log("Adapter already set for chain %d", deployment.chains[i].chainId);
+                    console.log("Adapter already set for chain %d", chainId);
+                }
+
+                vm.broadcast();
+                l2OFTAdapter.setPeer(eid, adapterBytes32);
+                console.log("Set Peer %s for eid %d", adapter, eid);
+            }
+
+            for (uint256 i = 0; i < baseInput.l2ChainIds.length; i++) {
+                uint256 chainId = baseInput.l2ChainIds[i];
+                if (chainId == block.chainid) {
+                    continue;
+                }
+                uint32 eid = getEID(chainId);
+                address adapter = predictions.l2OftAdapter;
+                bytes32 adapterBytes32 = addressToBytes32(adapter);
+                if (l2OFTAdapter.peers(eid) == adapterBytes32) {
+                    console.log("Adapter already set for chain %d", chainId);
                     continue;
                 }
 
                 vm.broadcast();
                 l2OFTAdapter.setPeer(eid, adapterBytes32);
+                console.log("Set Peer %s for eid %d", adapter, eid);
             }
 
             vm.broadcast();
