@@ -30,7 +30,7 @@ contract DeployL1OFTAdapter is BaseScript {
 
         address CURRENT_SIGNER = msg.sender;
 
-        if (!isContract(predictions.l1OftAdapter)) {
+        if (!isContract(currentDeployment.oftAdapter)) {
             vm.broadcast();
             address l1OFTAdapterImpl = address(
                 new L1YnOFTAdapterUpgradeable{salt: implementationSalt}(
@@ -52,7 +52,7 @@ contract DeployL1OFTAdapter is BaseScript {
             );
             console.log("L1 OFT Adapter deployed at: %s", address(l1OFTAdapter));
         } else {
-            l1OFTAdapter = L1YnOFTAdapterUpgradeable(predictions.l1OftAdapter);
+            l1OFTAdapter = L1YnOFTAdapterUpgradeable(currentDeployment.oftAdapter);
             console.log("L1 OFT Adapter already deployed at: %s", address(l1OFTAdapter));
         }
 

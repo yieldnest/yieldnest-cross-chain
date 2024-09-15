@@ -19,10 +19,11 @@ This repository includes:
   - `L2YnOFTAdapterUpgradeable.sol`: Adapter for Layer 2 OFT.
 
 - **Deployment Scripts**:
-  - `DeployMultiChainDeployer.s.sol`: Deploys the `ImmutableMultiChainDeployer`.
+  - `deploy.sh`: The main deployment script that handles deployments across multiple chains.
   - `DeployL2OFTAdapter.s.sol`: Deploys the Layer 2 ERC20 token and OFT Adapter.
   - `DeployL1OFTAdapter.s.sol`: Deploys the Layer 1 OFT Adapter.
-  - `SetPeersOFTAdapter.s.sol`: Configures peer relationships between the OFT adapters.
+  - `VerifyL2OFTAdapter.s.sol`: Verifys the Layer 2 ERC20 token and OFT Adapter.
+  - `VerifyL1OFTAdapter.s.sol`: Verifys the Layer 1 OFT Adapter.
 
 ## Prerequisites
 
@@ -93,16 +94,61 @@ yarn format
 
 ### Scripts
 
-To run one of the scripts (e.g., `DeployMultiChainDeployer`), use the following pattern:
+For most users, it is recommended to use the `yarn deploy` command (outlined in the following section), as it simplifies the deployment process and ensures all necessary configurations are handled across multiple chains. Running the Forge scripts manually should only be done if you have a deep understanding of the deployment steps.
+
+However, if you need to run a script manually (e.g., `DeployL1OFTAdapter`), you can use the following command pattern:
 
 ```bash
-forge script script/DeployMultiChainDeployer.s.sol:DeployMultiChainDeployer \
+forge script script/DeployL1OFTAdapter.s.sol:DeployL1OFTAdapter \
   --rpc-url ${rpc} --sig "run(string calldata)" ${path} \
   --account ${deployerAccountName} --sender ${deployer} \
   --broadcast --etherscan-api-key ${api} --verify
 ```
 
-Replace `DeployMultiChainDeployer` with the desired contract name for other scripts.
+Replace `DeployL1OFTAdapter` with the relevant contract name for other scripts if needed. But again, for ease and accuracy, the `yarn deploy` command is recommended.
+
+### Deployment
+
+To deploy Yieldnest tokens to new chains, you can use the `yarn deploy` command, which runs the `script/deploy.sh` script. This script accepts an input JSON file that specifies the token and chain configurations for deployment.
+
+For example, to deploy the `ynETH` token to the specified networks, use the following command:
+
+```bash
+yarn deploy script/inputs/mainnet-ynETH.json
+```
+
+You can find template JSON files for reference in the `script/inputs/` directory. Below is an example of a typical input file:
+
+```json
+{
+  "erc20Name": "ynETH",
+  "erc20Symbol": "ynETH",
+  "l1ChainId": 1,
+  "l2ChainIds": [
+    10,
+    8453
+  ],
+  "l1ERC20Address": "0x09db87A538BD693E9d08544577d5cCfAA6373A48",
+  "rateLimitConfig": {
+    "limit": "100000000000000000000",
+    "window": "86400"
+  }
+}
+```
+
+This script will deploy all the necessary contracts across the chains specified in the JSON file, including both the Layer 1 and all Layer 2 chains.
+
+#### Adding New Chains
+
+If you need to add a new chain after an initial deployment, you can update the input JSON file by adding the new chain's ID to the `l2ChainIds` list and re-run the deployment command:
+
+```bash
+yarn deploy script/inputs/mainnet-ynETH.json
+```
+
+This will deploy the required contracts on the new chain and provide instructions if any manual configuration is needed on previously deployed networks to support the new chain.
+
+The deployment script also includes a verification step to ensure that the contracts have been deployed and configured correctly across all chains.
 
 ### Gas Snapshots
 

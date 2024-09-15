@@ -13,6 +13,16 @@ if [[ "${FILE_PATH:0:1}" == "/" ]]; then
     FILE_PATH="${FILE_PATH:1}"
 fi
 
+function display_help() {
+    echo
+    echo "This script is designed to help deploy Yieldnest tokens to new chains: "
+    echo "Please create an input and add the relative path to the script.  For example:"
+    echo
+    echo "yarn deploy script/inputs/mainnet-ynETH.json"
+    echo
+}
+
+
 # check that there is an arg
 if [[ -z $FILE_PATH ]]; then
     # if no file path display help
@@ -48,23 +58,14 @@ function delimitier() {
 
 function broadcast() {
     forge script $1 -s $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS --broadcast
+    # TODO: Support etherscan verification for chains other than etherscan
+    # Easiest way to do thsi would be use the rpc-url as the labels set in
+    # the foundary.yaml file so we don't have to pass in the api key here
     # forge script $1 -s $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS --broadcast --etherscan-api-key $ETHERSCAN_API_KEY --verify
 }
 
 function simulate() {
     forge script $1 -s $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS
-}
-
-function display_help() {
-    clear
-    delimitier
-    echo
-    echo "This script is designed to help deploy Yieldnest tokens to new chains: "
-    echo "Please create an input and add the relative path to the script.  For example ..."
-    echo
-    echo "yarn script-manager script/inputs/mainnet-ynETH.json"
-    echo
-    delimitier
 }
 
 function getRpcEndpoints() {
@@ -109,6 +110,10 @@ function getEndpoint() {
     17000)
         #holskey
         echo ${HOLESKY_RPC_URL}
+        ;;
+    11155111)
+        #sepolia
+        echo ${SEPOLIA_RPC_URL}
         ;;
     2522)
         #fraxalTestnet

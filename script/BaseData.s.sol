@@ -19,6 +19,7 @@ contract BaseData is Script {
         uint256 arbitrum;
         uint256 fraxtal;
         uint256 holesky;
+        uint256 sepolia;
         uint256 fraxtalTestnet;
     }
 
@@ -33,6 +34,7 @@ contract BaseData is Script {
         arbitrum: 42161,
         fraxtal: 252,
         holesky: 17000,
+        sepolia: 11155111,
         fraxtalTestnet: 2522
     });
 
@@ -65,6 +67,7 @@ contract BaseData is Script {
 
         // testnets
         __chainIdToLzEID[__chainIds.holesky] = 40217;
+        __chainIdToLzEID[__chainIds.sepolia] = 40161;
         __chainIdToLzEID[__chainIds.fraxtalTestnet] = 40255;
     }
 
@@ -81,12 +84,13 @@ contract BaseData is Script {
     function isSupportedChainId(uint256 chainId) internal view returns (bool) {
         bool isSupported = chainId == __chainIds.mainnet || chainId == __chainIds.base
             || chainId == __chainIds.fraxtal || chainId == __chainIds.optimism || chainId == __chainIds.arbitrum
-            || chainId == __chainIds.holesky || chainId == __chainIds.fraxtalTestnet;
+            || chainId == __chainIds.holesky || chainId == __chainIds.fraxtalTestnet || chainId == __chainIds.sepolia;
         bool isEID = __chainIdToLzEID[chainId] != 0;
         return isSupported && isEID;
     }
 
     function isTestnet() internal view returns (bool) {
-        return block.chainid == __chainIds.holesky || block.chainid == __chainIds.fraxtalTestnet;
+        return block.chainid == __chainIds.holesky || block.chainid == __chainIds.fraxtalTestnet
+            || block.chainid == __chainIds.sepolia;
     }
 }

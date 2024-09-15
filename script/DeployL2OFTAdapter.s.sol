@@ -33,7 +33,7 @@ contract DeployL2OFTAdapter is BaseScript {
         address predictedAddress = predictions.l2MultiChainDeployer;
         console.log("Predicted ImmutableMultiChainDeployer address: ", predictedAddress);
 
-        if (!isContract(predictedAddress)) {
+        if (!isContract(currentDeployment.multiChainDeployer)) {
             vm.broadcast();
             multiChainDeployer = new ImmutableMultiChainDeployer{salt: salt}();
             console.log("ImmutableMultiChainDeployer deployed at: ", address(multiChainDeployer));
@@ -57,7 +57,7 @@ contract DeployL2OFTAdapter is BaseScript {
         console.log("Predicted L2ERC20 address: %s", predictedERC20);
         require(predictedERC20 == predictions.l2Erc20, "Predicted L2ERC20 address mismatch");
 
-        if (!isContract(predictedERC20)) {
+        if (!isContract(currentDeployment.erc20Address)) {
             vm.broadcast();
             l2ERC20 = L2YnERC20Upgradeable(
                 multiChainDeployer.deployL2YnERC20(
@@ -72,7 +72,7 @@ contract DeployL2OFTAdapter is BaseScript {
             );
             console.log("Deployed L2ERC20 address: %s", address(l2ERC20));
         } else {
-            l2ERC20 = L2YnERC20Upgradeable(predictedERC20);
+            l2ERC20 = L2YnERC20Upgradeable(currentDeployment.erc20Address);
             console.log("Already deployed L2ERC20 address: %s", address(l2ERC20));
         }
 
@@ -87,7 +87,7 @@ contract DeployL2OFTAdapter is BaseScript {
         console.log("Predicted L2OFTAdapter address: %s", predictedOFTAdapter);
         require(predictedOFTAdapter == predictions.l2OftAdapter, "Predicted L2OFTAdapter address mismatch");
 
-        if (!isContract(predictedOFTAdapter)) {
+        if (!isContract(currentDeployment.oftAdapter)) {
             vm.broadcast();
             l2OFTAdapter = L2YnOFTAdapterUpgradeable(
                 multiChainDeployer.deployL2YnOFTAdapter(
@@ -103,8 +103,12 @@ contract DeployL2OFTAdapter is BaseScript {
             );
             console.log("Deployed L2OFTAdapter at %s", address(l2OFTAdapter));
         } else {
-            l2OFTAdapter = L2YnOFTAdapterUpgradeable(predictedOFTAdapter);
+            l2OFTAdapter = L2YnOFTAdapterUpgradeable(currentDeployment.oftAdapter);
             console.log("Already deployed L2OFTAdapter at %s", address(l2OFTAdapter));
+        }
+
+        if (address(l2OFTAdapter) != predictedOFTAdapter) {
+            revert("OFTAdapter address mismatch");
         }
 
         if (l2OFTAdapter.owner() == CURRENT_SIGNER) {

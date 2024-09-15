@@ -11,7 +11,7 @@ import {EndpointV2} from "@layerzerolabs/lz-evm-protocol-v2/contracts/EndpointV2
 import {TransparentUpgradeableProxy} from
     "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {Bytes32AddressLib} from "@solmate/utils/Bytes32AddressLib.sol";
-import "forge-std/console.sol";
+import {console} from "forge-std/console.sol";
 
 struct RateLimitConfig {
     uint256 limit;
@@ -49,6 +49,11 @@ struct PredictedAddresses {
     address l2MultiChainDeployer;
     address l2Erc20;
     address l2OftAdapter;
+}
+
+struct PeerConfig {
+    uint32 eid;
+    address peer;
 }
 
 contract BaseScript is BaseData {
@@ -157,6 +162,11 @@ contract BaseScript is BaseData {
             address predictedAddress = _computeCreate3Address(salt, predictions.l2MultiChainDeployer);
             predictions.l2Erc20 = predictedAddress;
         }
+
+        console.log("Predicted MultiChainDeployer: %s", predictions.l2MultiChainDeployer);
+        console.log("Predicted L1OFTAdapter: %s", predictions.l1OftAdapter);
+        console.log("Predicted L2OFTAdapter: %s", predictions.l2OftAdapter);
+        console.log("Predicted L2ERC20: %s", predictions.l2Erc20);
     }
 
     function _validateInput() internal view {

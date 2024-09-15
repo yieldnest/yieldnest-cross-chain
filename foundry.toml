@@ -28,6 +28,7 @@ optimism = "${OPTIMISM_RPC_URL}"
 base = "${BASE_RPC_URL}"
 fraxtal = "${FRAX_RPC_URL}"
 holesky = "${HOLESKY_RPC_URL}"
+sepolia = "${SEPOLIA_RPC_URL}"
 fraxtal_testnet = "${FRAX_TESTNET_RPC_URL}"
 
 [etherscan]
@@ -36,5 +37,6 @@ arbitrum = { key = "${ARBISCAN_API_KEY}" }
 optimism = { key = "${OPTIMISTIC_ETHERSCAN_API_KEY}" }
 base = { key = "${BASESCAN_API_KEY}", url = "https://api.basescan.org/api/" }
 holesky = { key = "${ETHERSCAN_API_KEY}" }
+sepolia = { key = "${ETHERSCAN_API_KEY}" }
 fraxtal = { key = "${FRAXSCAN_API_KEY}", url = "https://api.fraxscan.io/api/" }
 fraxtal_testnet = { key = "${FRAXSCAN_API_KEY}", url = "https://api-holesky.fraxscan.io/api/" }
