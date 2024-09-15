@@ -24,15 +24,19 @@ contract DeployMultiChainDeployer is BaseScript {
         address predictedAddress =
             vm.computeCreate2Address(salt, keccak256(type(ImmutableMultiChainDeployer).creationCode));
         console.log("Predicted ImmutableMultiChainDeployer address: ", predictedAddress);
-
+        console.log("CURRENT DEPLOYMENT: ", currentDeployment.multiChainDeployer);
         if (currentDeployment.multiChainDeployer != address(0)) {
             require(currentDeployment.multiChainDeployer == predictedAddress, "Already deployed");
             console.log("ImmutableMultiChainDeployer already deployed at: ", currentDeployment.multiChainDeployer);
             return;
         }
 
-        vm.broadcast();
-        multiChainDeployerAddress = address(new ImmutableMultiChainDeployer{salt: salt}());
+        if (!isContract(predictedAddress)) {
+            vm.broadcast();
+            multiChainDeployerAddress = address(new ImmutableMultiChainDeployer{salt: salt}());
+        } else {
+            multiChainDeployerAddress = predictedAddress;
+        }
 
         console.log("ImmutableMultiChainDeployer deployed at: ", multiChainDeployerAddress);
         require(multiChainDeployerAddress == predictedAddress, "Deployment failed");

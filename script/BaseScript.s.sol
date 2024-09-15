@@ -18,6 +18,7 @@ struct BaseInput {
     string erc20Symbol;
     uint256 l1ChainId;
     address l1ERC20Address;
+    address predictedL2AdapterAddress;
     uint256[] l2ChainIds;
     RateLimitConfig rateLimitConfig;
 }
@@ -213,7 +214,7 @@ contract BaseScript is BaseData {
         // Parse the L1Input struct
         baseInput.l1ChainId = vm.parseJsonUint(json, ".l1ChainId");
         baseInput.l1ERC20Address = vm.parseJsonAddress(json, ".l1ERC20Address");
-
+        baseInput.predictedL2AdapterAddress = vm.parseJsonAddress(json, ".predictedL2AdapterAddress");
         // Parse the L2ChainIds array
         baseInput.l2ChainIds = vm.parseJsonUintArray(json, ".l2ChainIds");
 
@@ -230,5 +231,13 @@ contract BaseScript is BaseData {
 
     function addressToBytes32(address _addr) internal pure returns (bytes32) {
         return bytes32(uint256(uint160(_addr)));
+    }
+
+    function isContract(address _addr) public view returns (bool _isContract) {
+        uint32 size;
+        assembly {
+            size := extcodesize(_addr)
+        }
+        return (size > 0);
     }
 }

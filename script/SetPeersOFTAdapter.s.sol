@@ -45,4 +45,41 @@ contract SetPeersOFTAdapter is BaseScript {
 
         _saveDeployment();
     }
+
+    function getPeerData(
+        string calldata _jsonPath
+    )
+        public
+        returns (uint256[] memory _chains, uint32[] memory _eids, bytes32[] memory _adapterBytes32)
+    {
+        _loadInput(_jsonPath);
+
+        if (currentDeployment.oftAdapter == address(0)) {
+            console.log("OFT Adapter not deployed yet");
+        } else {
+            oftAdapter = OFTAdapterUpgradeable(currentDeployment.oftAdapter);
+
+            _chains = new uint256[](deployment.chains.length);
+            _eids = new uint32[](deployment.chains.length);
+            _adapterBytes32 = new bytes32[](deployment.chains.length);
+
+            for (uint256 i = 0; i < deployment.chains.length; i++) {
+                if (deployment.chains[i].chainId == block.chainid) {
+                    continue;
+                }
+
+                _chains[i] = deployment.chains[i].chainId;
+                _eids[i] = deployment.chains[i].lzEID;
+
+                address adapter = deployment.chains[i].oftAdapter;
+                _adapterBytes32[i] = addressToBytes32(adapter);
+
+                bytes32 adapterBytes32 = addressToBytes32(adapter);
+                if (oftAdapter.peers(_eids[i]) == adapterBytes32) {
+                    console.log("Adapter already set for chain %d", deployment.chains[i].chainId);
+                    continue;
+                }
+            }
+        }
+    }
 }

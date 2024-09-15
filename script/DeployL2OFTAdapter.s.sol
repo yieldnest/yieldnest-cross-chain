@@ -34,30 +34,30 @@ contract DeployL2OFTAdapter is BaseScript {
 
         RateLimiter.RateLimitConfig[] memory rateLimitConfigs = _getRateLimitConfigs();
 
-        if (currentDeployment.oftAdapter != address(0)) {
-            console.log("L2 OFT Adapter already deployed at: %s", currentDeployment.oftAdapter);
-            l2OFTAdapter = L2YnOFTAdapterUpgradeable(currentDeployment.oftAdapter);
-            bool needsChange = false;
+        // if (currentDeployment.oftAdapter != address(0)) {
+        //     console.log("L2 OFT Adapter already deployed at: %s", currentDeployment.oftAdapter);
+        //     l2OFTAdapter = L2YnOFTAdapterUpgradeable(currentDeployment.oftAdapter);
+        //     bool needsChange = false;
 
-            for (uint256 i = 0; i < rateLimitConfigs.length; i++) {
-                (,, uint256 limit, uint256 window) = l2OFTAdapter.rateLimits(rateLimitConfigs[i].dstEid);
-                RateLimiter.RateLimitConfig memory config = rateLimitConfigs[i];
-                if (config.limit != limit || config.window != window) {
-                    needsChange = true;
-                    break;
-                }
-            }
-            if (!needsChange) {
-                console.log("Rate limits are already set");
-                return;
-            }
-            vm.broadcast();
-            // sender needs LIMITER role
-            l2OFTAdapter.setRateLimits(rateLimitConfigs);
+        //     for (uint256 i = 0; i < rateLimitConfigs.length; i++) {
+        //         (,, uint256 limit, uint256 window) = l2OFTAdapter.rateLimits(rateLimitConfigs[i].dstEid);
+        //         RateLimiter.RateLimitConfig memory config = rateLimitConfigs[i];
+        //         if (config.limit != limit || config.window != window) {
+        //             needsChange = true;
+        //             break;
+        //         }
+        //     }
+        //     if (!needsChange) {
+        //         console.log("Rate limits are already set");
+        //         return;
+        //     }
+        //     vm.broadcast();
+        //     // sender needs LIMITER role
+        //     l2OFTAdapter.setRateLimits(rateLimitConfigs);
 
-            console.log("Rate limits updated");
-            return;
-        }
+        //     console.log("Rate limits updated");
+        //     return;
+        // }
 
         bytes32 proxySalt = createSalt(msg.sender, "L2YnERC20UpgradeableProxy");
         bytes32 implementationSalt = createSalt(msg.sender, "L2YnERC20Upgradeable");

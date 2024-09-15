@@ -22,6 +22,7 @@ contract DeployL1OFTAdapter is BaseScript {
         _loadInput(_jsonPath);
 
         require(currentDeployment.isL1 == true, "Must be L1 deployment");
+        require(baseInput.predictedL2AdapterAddress != address(0), "input the l2adapter address");
 
         RateLimiter.RateLimitConfig[] memory rateLimitConfigs = _getRateLimitConfigs();
 
@@ -72,6 +73,21 @@ contract DeployL1OFTAdapter is BaseScript {
                 )
             )
         );
+
+        for (uint256 i = 0; i < deployment.chains.length; i++) {
+            if (deployment.chains[i].chainId == block.chainid) {
+                continue;
+            }
+            uint32 eid = deployment.chains[i].lzEID;
+            address adapter = baseInput.predictedL2AdapterAddress;
+            bytes32 adapterBytes32 = addressToBytes32(adapter);
+            if (l1OFTAdapter.peers(eid) == adapterBytes32) {
+                console.log("Adapter already set for chain %d", deployment.chains[i].chainId);
+                continue;
+            }
+
+            l1OFTAdapter.setPeer(eid, adapterBytes32);
+        }
 
         console.log("L1 OFT Adapter deployed at: %s", address(l1OFTAdapter));
 
