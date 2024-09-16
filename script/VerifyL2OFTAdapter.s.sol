@@ -106,6 +106,8 @@ contract VerifyL2OFTAdapter is BaseScript {
             }
         }
 
+        bytes[] memory setPeersMultiSendTxs;
+
         if (needsUpdate) {
             // TODO: Print All this information in a much more readable manner
             // Also generate a new Multisend Gnosis Safe Tx Data that combines all the following calls for this
@@ -122,10 +124,23 @@ contract VerifyL2OFTAdapter is BaseScript {
                     );
                 }
             }
+
             if (newPeers.length > 0) {
+                setPeersMultiSendTxs = new bytes[](newPeers.length);
                 console.log("New peers");
                 for (uint256 i = 0; i < newPeers.length; i++) {
                     console.log("EID %d: Peer %s", newPeers[i].eid, newPeers[i].peer);
+                    bytes memory newTx = abi.encodePacked(
+                        uint8(0),
+                        bytes20(address(l2OFTAdapter)),
+                        bytes32(0),
+                        abi.encodeWithSelector(
+                            L2YnOFTAdapterUpgradeable.setPeer.selector, newPeers[i].eid, newPeers[i].peer
+                        )
+                    );
+                    setPeersMultiSendTxs[i] = newTx;
+                    console.log("New Multisend tx: ");
+                    console.logBytes(newTx);
                 }
             }
         }
