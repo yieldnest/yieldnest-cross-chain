@@ -4,3 +4,6 @@
 [submodule "lib/forge-safe"]
 	path = lib/forge-safe
 	url = https://github.com/hardyjosh/forge-safe
+[submodule "lib/LayerZero-v2"]
+	path = lib/LayerZero-v2
+	url = https://github.com/JorgeAtPaladin/LayerZero-v2
