@@ -3,10 +3,15 @@
 pragma solidity ^0.8.24;
 
 import {BaseData} from "./BaseData.s.sol";
+
+import {L1YnOFTAdapterUpgradeable} from "@/L1YnOFTAdapterUpgradeable.sol";
 import {ImmutableMultiChainDeployer} from "@factory/ImmutableMultiChainDeployer.sol";
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
 import {EndpointV2} from "@layerzerolabs/lz-evm-protocol-v2/contracts/EndpointV2.sol";
-import "forge-std/console.sol";
+import {TransparentUpgradeableProxy} from
+    "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+import {Bytes32AddressLib} from "@solmate/utils/Bytes32AddressLib.sol";
+import {console} from "forge-std/console.sol";
 
 struct RateLimitConfig {
     uint256 limit;
@@ -39,10 +44,25 @@ struct ChainDeployment {
     address oftAdapter;
 }
 
+struct PredictedAddresses {
+    address l1OftAdapter;
+    address l2MultiChainDeployer;
+    address l2Erc20;
+    address l2OftAdapter;
+}
+
+struct PeerConfig {
+    uint32 eid;
+    address peer;
+}
+
 contract BaseScript is BaseData {
+    using Bytes32AddressLib for bytes32;
+
     BaseInput public baseInput;
     Deployment public deployment;
     ChainDeployment public currentDeployment;
+    PredictedAddresses public predictions;
     string private constant _version = "1.0.0";
 
     function _getRateLimitConfigs() internal view returns (RateLimiter.RateLimitConfig[] memory) {
@@ -80,6 +100,72 @@ contract BaseScript is BaseData {
         }
         currentDeployment.lzEndpoint = getAddresses().LZ_ENDPOINT;
         currentDeployment.lzEID = getEID(block.chainid);
+        _loadPredictions();
+        require(
+            deployment.deployerAddress == address(0) || deployment.deployerAddress == msg.sender,
+            "Invalid Deployer Address"
+        );
+    }
+
+    function _computeCreate3Address(bytes32 _salt, address _deployer) internal pure returns (address) {
+        bytes memory PROXY_BYTECODE = hex"67363d3d37363d34f03d5260086018f3";
+
+        bytes32 PROXY_BYTECODE_HASH = keccak256(PROXY_BYTECODE);
+        address proxy =
+            keccak256(abi.encodePacked(bytes1(0xFF), _deployer, _salt, PROXY_BYTECODE_HASH)).fromLast20Bytes();
+
+        return keccak256(abi.encodePacked(hex"d694", proxy, hex"01")).fromLast20Bytes();
+    }
+
+    function _loadPredictions() internal {
+        {
+            bytes32 salt = createSalt(msg.sender, "ImmutableMultiChainDeployer");
+
+            address predictedAddress =
+                vm.computeCreate2Address(salt, keccak256(type(ImmutableMultiChainDeployer).creationCode));
+            predictions.l2MultiChainDeployer = predictedAddress;
+        }
+
+        {
+            bytes32 proxySalt = createSalt(msg.sender, "L1YnOFTAdapterUpgradeableProxy");
+            bytes32 implementationSalt = createSalt(msg.sender, "L1YnOFTAdapterUpgradeable");
+
+            bytes memory implBytecode = bytes.concat(
+                type(L1YnOFTAdapterUpgradeable).creationCode,
+                abi.encode(baseInput.l1ERC20Address, getAddresses().LZ_ENDPOINT)
+            );
+
+            address implPredictedAddress = vm.computeCreate2Address(implementationSalt, keccak256(implBytecode));
+
+            bytes memory initializeData =
+                abi.encodeWithSelector(L1YnOFTAdapterUpgradeable.initialize.selector, msg.sender);
+
+            bytes memory proxyBytecode = bytes.concat(
+                type(TransparentUpgradeableProxy).creationCode,
+                abi.encode(implPredictedAddress, msg.sender, initializeData)
+            );
+
+            address predictedAddress = vm.computeCreate2Address(proxySalt, keccak256(proxyBytecode));
+            predictions.l1OftAdapter = predictedAddress;
+        }
+
+        {
+            bytes32 salt = createSalt(msg.sender, "L2YnOFTAdapterUpgradeableProxy");
+
+            address predictedAddress = _computeCreate3Address(salt, predictions.l2MultiChainDeployer);
+            predictions.l2OftAdapter = predictedAddress;
+        }
+
+        {
+            bytes32 salt = createSalt(msg.sender, "L2YnERC20UpgradeableProxy");
+            address predictedAddress = _computeCreate3Address(salt, predictions.l2MultiChainDeployer);
+            predictions.l2Erc20 = predictedAddress;
+        }
+
+        // console.log("Predicted MultiChainDeployer: %s", predictions.l2MultiChainDeployer);
+        // console.log("Predicted L1OFTAdapter: %s", predictions.l1OftAdapter);
+        // console.log("Predicted L2OFTAdapter: %s", predictions.l2OftAdapter);
+        // console.log("Predicted L2ERC20: %s", predictions.l2Erc20);
     }
 
     function _validateInput() internal view {
@@ -105,7 +191,7 @@ contract BaseScript is BaseData {
             }
         }
         if (isL1 == isL2) {
-            console.log("isL1: %s, isL2: %s", isL1, isL2);
+            console.log("isL1: %s, isL2: %s, Got chainid: %d", isL1, isL2, block.chainid);
             revert("Invalid ChainId");
         }
         return isL1;
@@ -200,7 +286,7 @@ contract BaseScript is BaseData {
     }
 
     function _loadJson(string calldata _path) internal {
-        string memory filePath = string(abi.encodePacked(vm.projectRoot(), "/", _path));
+        string memory filePath = string(abi.encodePacked(vm.projectRoot(), _path));
         string memory json = vm.readFile(filePath);
 
         // Reset the baseInput struct
@@ -213,7 +299,6 @@ contract BaseScript is BaseData {
         // Parse the L1Input struct
         baseInput.l1ChainId = vm.parseJsonUint(json, ".l1ChainId");
         baseInput.l1ERC20Address = vm.parseJsonAddress(json, ".l1ERC20Address");
-
         // Parse the L2ChainIds array
         baseInput.l2ChainIds = vm.parseJsonUintArray(json, ".l2ChainIds");
 
@@ -230,5 +315,13 @@ contract BaseScript is BaseData {
 
     function addressToBytes32(address _addr) internal pure returns (bytes32) {
         return bytes32(uint256(uint160(_addr)));
+    }
+
+    function isContract(address _addr) public view returns (bool _isContract) {
+        uint32 size;
+        assembly {
+            size := extcodesize(_addr)
+        }
+        return (size > 0);
     }
 }

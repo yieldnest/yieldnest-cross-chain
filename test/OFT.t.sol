@@ -75,9 +75,10 @@ contract OFTTest is TestHelper {
                 _deployContractAndProxy(
                     type(L1OFTAdapterMock).creationCode,
                     abi.encode(address(aERC20), address(endpoints[aEid])),
-                    abi.encodeWithSelector(L1OFTAdapterMock.initialize.selector, address(this), _rateLimitConfigs)
+                    abi.encodeWithSelector(L1OFTAdapterMock.initialize.selector, address(this))
                 )
             );
+            aOFTAdapter.setRateLimits(_rateLimitConfigs);
         }
 
         {
@@ -92,10 +93,11 @@ contract OFTTest is TestHelper {
                 _deployContractAndProxy(
                     type(L2OFTAdapterMock).creationCode,
                     abi.encode(address(bERC20), address(endpoints[bEid])),
-                    abi.encodeWithSelector(L2OFTAdapterMock.initialize.selector, address(this), _rateLimitConfigs)
+                    abi.encodeWithSelector(L2OFTAdapterMock.initialize.selector, address(this))
                 )
             );
             bERC20.grantRole(bERC20.MINTER_ROLE(), address(bOFTAdapter));
+            bOFTAdapter.setRateLimits(_rateLimitConfigs);
         }
 
         {
@@ -110,10 +112,11 @@ contract OFTTest is TestHelper {
                 _deployContractAndProxy(
                     type(L2OFTAdapterMock).creationCode,
                     abi.encode(address(cERC20), address(endpoints[cEid])),
-                    abi.encodeWithSelector(L2OFTAdapterMock.initialize.selector, address(this), _rateLimitConfigs)
+                    abi.encodeWithSelector(L2OFTAdapterMock.initialize.selector, address(this))
                 )
             );
             cERC20.grantRole(cERC20.MINTER_ROLE(), address(cOFTAdapter));
+            cOFTAdapter.setRateLimits(_rateLimitConfigs);
         }
 
         // config and wire the ofts
