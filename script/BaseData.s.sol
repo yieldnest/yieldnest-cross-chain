@@ -23,7 +23,7 @@ contract BaseData is Script {
         uint256 fraxtalTestnet;
     }
 
-    mapping(bool => Addresses) private __addresses; // isTestnet => Actors
+    mapping(uint256 => Addresses) private __chainIdToAddresses;
 
     mapping(uint256 => uint32) private __chainIdToLzEID;
 
@@ -38,23 +38,65 @@ contract BaseData is Script {
         fraxtalTestnet: 2522
     });
 
+    address private TEMP_GNOSIS_SAFE;
+    address private TEMP_PROXY_CONTROLLER;
+
     function setUp() public virtual {
+        TEMP_GNOSIS_SAFE = makeAddr("gnosis-safe");
+        TEMP_PROXY_CONTROLLER = makeAddr("proxy-controller");
+
         // NOTE: All the LZ Addresses and EIDs are picked up from their docs
         // at https://docs.layerzero.network/v2/developers/evm/technical-reference/deployed-contracts
 
         // mainnets
-        __addresses[true] = Addresses({
-            OFT_DELEGATE: 0xfcad670592a3b24869C0b51a6c6FDED4F95D6975, // yn security council
-            TOKEN_ADMIN: 0xfcad670592a3b24869C0b51a6c6FDED4F95D6975,
-            PROXY_ADMIN: 0xfcad670592a3b24869C0b51a6c6FDED4F95D6975,
+        __chainIdToAddresses[__chainIds.mainnet] = Addresses({
+            OFT_DELEGATE: TEMP_GNOSIS_SAFE,
+            TOKEN_ADMIN: TEMP_GNOSIS_SAFE,
+            PROXY_ADMIN: TEMP_PROXY_CONTROLLER,
+            LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c
+        });
+        __chainIdToAddresses[__chainIds.base] = Addresses({
+            OFT_DELEGATE: TEMP_GNOSIS_SAFE,
+            TOKEN_ADMIN: TEMP_GNOSIS_SAFE,
+            PROXY_ADMIN: TEMP_PROXY_CONTROLLER,
+            LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c
+        });
+        __chainIdToAddresses[__chainIds.optimism] = Addresses({
+            OFT_DELEGATE: TEMP_GNOSIS_SAFE,
+            TOKEN_ADMIN: TEMP_GNOSIS_SAFE,
+            PROXY_ADMIN: TEMP_PROXY_CONTROLLER,
+            LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c
+        });
+        __chainIdToAddresses[__chainIds.arbitrum] = Addresses({
+            OFT_DELEGATE: TEMP_GNOSIS_SAFE,
+            TOKEN_ADMIN: TEMP_GNOSIS_SAFE,
+            PROXY_ADMIN: TEMP_PROXY_CONTROLLER,
+            LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c
+        });
+        __chainIdToAddresses[__chainIds.fraxtal] = Addresses({
+            OFT_DELEGATE: TEMP_GNOSIS_SAFE,
+            TOKEN_ADMIN: TEMP_GNOSIS_SAFE,
+            PROXY_ADMIN: TEMP_PROXY_CONTROLLER,
             LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c
         });
 
         // testnets
-        __addresses[false] = Addresses({
-            OFT_DELEGATE: 0x743b91CDB1C694D4F51bCDA3a4A59DcC0d02b913, // yn security council
-            TOKEN_ADMIN: 0x743b91CDB1C694D4F51bCDA3a4A59DcC0d02b913,
-            PROXY_ADMIN: 0x743b91CDB1C694D4F51bCDA3a4A59DcC0d02b913,
+        __chainIdToAddresses[__chainIds.holesky] = Addresses({
+            OFT_DELEGATE: TEMP_GNOSIS_SAFE,
+            TOKEN_ADMIN: TEMP_GNOSIS_SAFE,
+            PROXY_ADMIN: TEMP_PROXY_CONTROLLER,
+            LZ_ENDPOINT: 0x6EDCE65403992e310A62460808c4b910D972f10f
+        });
+        __chainIdToAddresses[__chainIds.sepolia] = Addresses({
+            OFT_DELEGATE: TEMP_GNOSIS_SAFE,
+            TOKEN_ADMIN: TEMP_GNOSIS_SAFE,
+            PROXY_ADMIN: TEMP_PROXY_CONTROLLER,
+            LZ_ENDPOINT: 0x6EDCE65403992e310A62460808c4b910D972f10f
+        });
+        __chainIdToAddresses[__chainIds.fraxtalTestnet] = Addresses({
+            OFT_DELEGATE: TEMP_GNOSIS_SAFE,
+            TOKEN_ADMIN: TEMP_GNOSIS_SAFE,
+            PROXY_ADMIN: TEMP_PROXY_CONTROLLER,
             LZ_ENDPOINT: 0x6EDCE65403992e310A62460808c4b910D972f10f
         });
 
@@ -71,13 +113,18 @@ contract BaseData is Script {
         __chainIdToLzEID[__chainIds.fraxtalTestnet] = 40255;
     }
 
-    function getAddresses() internal view returns (Addresses storage) {
+    function getAddresses() internal view returns (Addresses storage a) {
         require(isSupportedChainId(block.chainid), "BaseData: unsupported chainId");
-        return __addresses[!isTestnet()];
+        a = __chainIdToAddresses[block.chainid];
+        require(a.OFT_DELEGATE != address(0), "BaseData: addresses not set");
+        require(a.OFT_DELEGATE != TEMP_GNOSIS_SAFE, "BaseData: addresses not set");
+        require(a.TOKEN_ADMIN != TEMP_GNOSIS_SAFE, "BaseData: addresses not set");
+        require(a.PROXY_ADMIN != TEMP_PROXY_CONTROLLER, "BaseData: addresses not set");
     }
 
     function getEID(uint256 chainId) internal view returns (uint32) {
         require(isSupportedChainId(chainId), "BaseData: unsupported chainId");
+        require(__chainIdToLzEID[chainId] != 0, "BaseData: EID not set");
         return __chainIdToLzEID[chainId];
     }
 
@@ -87,10 +134,5 @@ contract BaseData is Script {
             || chainId == __chainIds.holesky || chainId == __chainIds.fraxtalTestnet || chainId == __chainIds.sepolia;
         bool isEID = __chainIdToLzEID[chainId] != 0;
         return isSupported && isEID;
-    }
-
-    function isTestnet() internal view returns (bool) {
-        return block.chainid == __chainIds.holesky || block.chainid == __chainIds.fraxtalTestnet
-            || block.chainid == __chainIds.sepolia;
     }
 }

@@ -5,6 +5,9 @@ pragma solidity >=0.6.2 <0.9.0;
 // 💬 ABOUT
 // Gnosis Safe transaction batching script
 
+// @dev picked up from https://github.com/ind-igo/forge-safe
+// @dev modified to work with our script setup
+
 // 🧩 MODULES
 import {
     Script,
@@ -113,24 +116,33 @@ abstract contract BatchScript is Script {
         chainId = block.chainid;
 
         // Set the Safe API base URL and multisend address based on chain
-        SAFE_MULTISEND_ADDRESS = 0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761;
-        // if (chainId == 1) {
-        //     SAFE_API_BASE_URL = "https://safe-transaction-mainnet.safe.global/api/v1/safes/";
-        // } else if (chainId == 5) {
-        //     SAFE_API_BASE_URL = "https://safe-transaction-goerli.safe.global/api/v1/safes/";
-        //     SAFE_MULTISEND_ADDRESS = 0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761;
-        // } else if (chainId == 8453) {
-        //     SAFE_API_BASE_URL = "https://safe-transaction-base.safe.global/api/v1/safes/";
-        //     SAFE_MULTISEND_ADDRESS = 0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761;
-        // } else if (chainId == 42161) {
-        //     SAFE_API_BASE_URL = "https://safe-transaction-arbitrum.safe.global/api/v1/safes/";
-        //     SAFE_MULTISEND_ADDRESS = 0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761;
-        // } else if (chainId == 43114) {
-        //     SAFE_API_BASE_URL = "https://safe-transaction-avalanche.safe.global/api/v1/safes/";
-        //     SAFE_MULTISEND_ADDRESS = 0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761;
-        // } else {
-        //     revert("Unsupported chain");
-        // }
+        if (chainId == 1) {
+            SAFE_MULTISEND_ADDRESS = 0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761;
+            SAFE_API_BASE_URL = "https://safe-transaction-mainnet.safe.global/api/v1/safes/";
+        } else if (chainId == 8453) {
+            SAFE_API_BASE_URL = "https://safe-transaction-base.safe.global/api/v1/safes/";
+            SAFE_MULTISEND_ADDRESS = 0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761;
+        } else if (chainId == 10) {
+            SAFE_API_BASE_URL = "https://safe-transaction-optimism.safe.global/api/v1/safes/";
+            SAFE_MULTISEND_ADDRESS = 0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761;
+        } else if (chainId == 42161) {
+            SAFE_API_BASE_URL = "https://safe-transaction-arbitrum.safe.global/api/v1/safes/";
+            SAFE_MULTISEND_ADDRESS = 0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761;
+        } else if (chainId == 252) {
+            SAFE_API_BASE_URL = "";
+            SAFE_MULTISEND_ADDRESS = 0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761;
+        } else if (chainId == 17000) {
+            SAFE_API_BASE_URL = "https://transaction-holesky.holesky-safe.protofire.io/api/v1/safes/";
+            SAFE_MULTISEND_ADDRESS = 0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761;
+        } else if (chainId == 11155111) {
+            SAFE_API_BASE_URL = "https://safe-transaction-sepolia.safe.global/api/v1/safes/";
+            SAFE_MULTISEND_ADDRESS = 0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761;
+        } else if (chainId == 2522) {
+            SAFE_API_BASE_URL = "";
+            SAFE_MULTISEND_ADDRESS = address(0);
+        } else {
+            revert("Unsupported chain");
+        }
 
         // Store the provided safe address
         safe = safe_;
@@ -186,6 +198,29 @@ abstract contract BatchScript is Script {
         } else {
             revert(string(data));
         }
+    }
+
+    function displayBatch() internal view {
+        // Set initial batch fields
+        address to = SAFE_MULTISEND_ADDRESS;
+        uint256 value = 0;
+        Operation operation = Operation.DELEGATECALL;
+
+        // Encode the batch calldata. The list of transactions is tightly packed.
+        bytes memory data;
+        uint256 len = encodedTxns.length;
+        for (uint256 i; i < len; ++i) {
+            data = bytes.concat(data, encodedTxns[i]);
+        }
+        bytes memory txData = abi.encodeWithSignature("multiSend(bytes)", data);
+
+        console2.log("Safe Batch Transaction:");
+        console2.log("To: ", to);
+        console2.log("Operation: ", uint256(operation));
+        console2.log("Value: ", value);
+        console2.log("Data: ");
+        console2.logBytes(txData);
+        console2.log("");
     }
 
     // Simulate then send the batch to the Safe API. If `send_` is `false`, the

@@ -20,6 +20,13 @@ function display_help() {
     echo
     echo "yarn deploy script/inputs/mainnet-ynETH.json"
     echo
+    echo "Options:"
+    echo "  -h, --help            Display this help and exit"
+    echo "  -a, --account         Set the deployer account name"
+    echo "  -s, --sender          Set the deployer address"
+    echo "  -b, --broadcast       Broadcast the deployment"
+    echo "  -v, --verify          Verify the deployment on Etherscan"
+    echo "  -f, --force           Broadcast and verify the deployment"
     delimiter
 }
 
@@ -63,13 +70,21 @@ fi
 ## FUNCTIONS ##
 ###############
 
-function broadcast() {
-    CHAIN=$(cast chain-id --rpc-url $3) forge script $1 --sig $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS --broadcast
-    # TODO: add --verify
-}
 
 function simulate() {
-    CHAIN=$(cast chain-id --rpc-url $3) forge script $1 --sig $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS
+    forge script $1 --sig $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS
+}
+
+function broadcast() {
+    forge script $1 --sig $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS --broadcast
+}
+
+function verify() {
+    forge script $1 --sig $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS --verify
+}
+
+function broadcastAndVerify() {
+    forge script $1 --sig $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS --broadcast --verify
 }
 
 function getRPC() {
@@ -115,46 +130,49 @@ function error_exit() {
 }
 
 BROADCAST=false
+VERIFY=false
 
-function deployL1OFTAdapter() {
-    if [[ $BROADCAST == true ]]; then
-        broadcast script/DeployL1OFTAdapter.s.sol:DeployL1OFTAdapter $1 $2
-        echo "Deployed L1OFTAdapter for $2"
+function runScript() {
+    local SCRIPT=$1
+    local CALLDATA=$2
+    local RPC=$3
+
+    if [[ $BROADCAST == true && $VERIFY == true ]]; then
+        broadcastAndVerify $SCRIPT $CALLDATA $RPC
         return
     fi
 
-    # call simulation
-    simulate script/DeployL1OFTAdapter.s.sol:DeployL1OFTAdapter $1 $2
-    read -p "Simulation complete would you like to deploy the L1OFTAdapter? (y/N) " yn
+    if [[ $BROADCAST == true ]]; then
+        broadcast $SCRIPT $CALLDATA $RPC
+        return
+    fi
+
+    if [[ $VERIFY == true ]]; then
+        verify $SCRIPT $CALLDATA $RPC
+        return
+    fi
+
+    simulate $SCRIPT $CALLDATA $RPC
+    read -p "Simulation complete, would you like to broadcast the deployment? (y/N) " yn
     case $yn in
     [Yy]*)
-        broadcast script/DeployL1OFTAdapter.s.sol:DeployL1OFTAdapter $1 $2
-        echo "Deployed L1OFTAdapter for $2"
+        broadcast $SCRIPT $CALLDATA $RPC
         ;;
     *) 
-        echo "Skipping broadcast for L1OFTAdapter"
+        echo "Skipping broadcast"
+        return
         ;;
 
     esac
-}
 
-function deployL2OFTAdapter() {
-    if [[ $BROADCAST == true ]]; then
-        broadcast script/DeployL2OFTAdapter.s.sol:DeployL2OFTAdapter $1 $2
-        echo "Deployed L2OFTAdapter for $2"
-        return
-    fi
-
-    # call simulation
-    simulate script/DeployL2OFTAdapter.s.sol:DeployL2OFTAdapter $1 $2
-    read -p "Simulation Complete would you like to deploy the L2OFTAdapter? (y/N) " yn
+    read -p "Deployment complete, would you like to verify on Etherscan? (y/N) " yn
     case $yn in
     [Yy]*)
-        broadcast script/DeployL2OFTAdapter.s.sol:DeployL2OFTAdapter $1 $2
-        echo "Deployed L2OFTAdapter for $2"
+        verify $SCRIPT $CALLDATA $RPC
         ;;
     *) 
-        echo "Skipping broadcast for L2OFTAdapter"
+        echo "Skipping verifcation"
+        return
         ;;
 
     esac
@@ -166,10 +184,10 @@ function checkInput() {
     fi
 }
 
-function getRpcs() {
+function getRPCs() {
     local ids=("$@")
     for i in "${ids[@]}"; do
-        echo "$(getEndpoint $i)"
+        echo "$(getRPC $i)"
     done
 }
 
@@ -198,6 +216,15 @@ while [[ $# -gt 0 ]]; do
         BROADCAST=true
         shift
         ;;
+    --verify | -v)
+        BROADCAST=true
+        shift
+        ;;
+    --force | -f)
+        BROADCAST=true
+        VERIFY=true
+        shift
+        ;;
     *)
         echo "Error, unrecognized flag" >&2
         display_help
@@ -207,7 +234,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 L1_RPC=$(getRPC $L1_CHAIN_ID)
-L2_RPCS_ARRAY=$(< <(getRpcs $L2_CHAIN_IDS_ARRAY))
+L2_RPCS_ARRAY=$(< <(getRPCs $L2_CHAIN_IDS_ARRAY))
 
 delimiter
 echo ""
@@ -225,7 +252,7 @@ echo ""
 for l2 in $L2_CHAIN_IDS_ARRAY; do
     L2_RPC=$(getRPC $l2)
     echo "Deploying L2 Adapter for $L2_RPC"
-    deployL2OFTAdapter $CALLDATA $L2_RPC
+    runScript script/DeployL2OFTAdapter.s.sol:DeployL2OFTAdapter $CALLDATA $L2_RPC
 done
 
 echo ""
@@ -233,7 +260,7 @@ delimiter
 echo ""
 
 echo "Deploying L1 Adapter for $L1_RPC"
-deployL1OFTAdapter $CALLDATA $L1_RPC
+runScript script/DeployL1OFTAdapter.s.sol:DeployL1OFTAdapter $CALLDATA $L1_RPC
 
 echo ""
 delimiter

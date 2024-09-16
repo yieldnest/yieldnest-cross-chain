@@ -142,7 +142,7 @@ contract BaseScript is BaseData {
 
             bytes memory proxyBytecode = bytes.concat(
                 type(TransparentUpgradeableProxy).creationCode,
-                abi.encode(implPredictedAddress, getAddresses().PROXY_ADMIN, initializeData)
+                abi.encode(implPredictedAddress, msg.sender, initializeData)
             );
 
             address predictedAddress = vm.computeCreate2Address(proxySalt, keccak256(proxyBytecode));
@@ -162,10 +162,10 @@ contract BaseScript is BaseData {
             predictions.l2Erc20 = predictedAddress;
         }
 
-        console.log("Predicted MultiChainDeployer: %s", predictions.l2MultiChainDeployer);
-        console.log("Predicted L1OFTAdapter: %s", predictions.l1OftAdapter);
-        console.log("Predicted L2OFTAdapter: %s", predictions.l2OftAdapter);
-        console.log("Predicted L2ERC20: %s", predictions.l2Erc20);
+        // console.log("Predicted MultiChainDeployer: %s", predictions.l2MultiChainDeployer);
+        // console.log("Predicted L1OFTAdapter: %s", predictions.l1OftAdapter);
+        // console.log("Predicted L2OFTAdapter: %s", predictions.l2OftAdapter);
+        // console.log("Predicted L2ERC20: %s", predictions.l2Erc20);
     }
 
     function _validateInput() internal view {

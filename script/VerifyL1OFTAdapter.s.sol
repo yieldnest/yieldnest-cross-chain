@@ -9,8 +9,10 @@ import {L1YnOFTAdapterUpgradeable} from "@/L1YnOFTAdapterUpgradeable.sol";
 
 import {IOAppCore} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/interfaces/IOAppCore.sol";
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
-import {TransparentUpgradeableProxy} from
-    "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+import {
+    ITransparentUpgradeableProxy,
+    TransparentUpgradeableProxy
+} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {console} from "forge-std/console.sol";
 
 // forge script script/VerifyL1OFTAdapter.s.sol:DeployL1OFTAdapter \
@@ -40,6 +42,10 @@ contract VerifyL1OFTAdapter is BaseScript, BatchScript {
             revert("L1 OFT Adapter ownership not transferred");
         }
 
+        if (ITransparentUpgradeableProxy(address(l1OFTAdapter)).admin() != getAddresses().PROXY_ADMIN) {
+            revert("L1 OFT Adapter proxy admin not set");
+        }
+
         uint256[] memory chainIds = new uint256[](baseInput.l2ChainIds.length + 1);
         for (uint256 i = 0; i < baseInput.l2ChainIds.length; i++) {
             chainIds[i] = baseInput.l2ChainIds[i];
@@ -54,7 +60,6 @@ contract VerifyL1OFTAdapter is BaseScript, BatchScript {
             (,, uint256 limit, uint256 window) = l1OFTAdapter.rateLimits(eid);
             if (limit != baseInput.rateLimitConfig.limit || window != baseInput.rateLimitConfig.window) {
                 needsUpdate = true;
-                console.log("Rate limit for chain %d: %d/%d", chainId, limit, window);
                 newRateLimitConfigs.push(
                     RateLimiter.RateLimitConfig(
                         eid, baseInput.rateLimitConfig.limit, baseInput.rateLimitConfig.window
@@ -68,54 +73,58 @@ contract VerifyL1OFTAdapter is BaseScript, BatchScript {
             bytes32 adapterBytes32 = addressToBytes32(adapter);
             if (l1OFTAdapter.peers(eid) != adapterBytes32) {
                 needsUpdate = true;
-                console.log("Peer %s at %d not set", adapter, eid);
                 newPeers.push(PeerConfig(eid, adapter));
             }
         }
 
         if (needsUpdate) {
-            // create setRateLimit multiSend tx;
-            bytes memory setRateLimitConfigMultiSendTx = abi.encodePacked(
-                uint8(0),
-                bytes20(address(l1OFTAdapter)),
-                bytes32(0),
-                abi.encodeWithSelector(L1YnOFTAdapterUpgradeable.setRateLimits.selector, newRateLimitConfigs)
-            );
-            // TODO: Print All this information in a much more readable manner
-            // Also generate a new Multisend Gnosis Safe Tx Data that combines all the following calls for this
-            // chain into a single call
-            console.log("Needs update");
+            console.log("");
+            console.log("Please note that the following transactions must be broadcast manually.");
+            console.log("L1 Safe Address: %s", l1OFTAdapter.owner());
+            console.log("L1 Chain ID: %d", block.chainid);
+            console.log("L1 OFT Adapter: %s", address(l1OFTAdapter));
+            console.log("");
+
             if (newRateLimitConfigs.length > 0) {
-                console.log("New rate limit configs");
+                console.log("The following rate limits need to be set: ");
+                console.log("");
                 for (uint256 i = 0; i < newRateLimitConfigs.length; i++) {
                     console.log(
-                        "EID %d: Limit of %d per window of %d",
+                        "EID %d: Limit %d, Window %d",
                         newRateLimitConfigs[i].dstEid,
                         newRateLimitConfigs[i].limit,
                         newRateLimitConfigs[i].window
                     );
                 }
+                console.log("");
+                console.log("Method: setRateLimits");
+                bytes memory data =
+                    abi.encodeWithSelector(L1YnOFTAdapterUpgradeable.setRateLimits.selector, newRateLimitConfigs);
+                console.log("Encoded Tx Data: ");
+                console.logBytes(data);
+
+                addToBatch(address(l1OFTAdapter), data);
             }
+            console.log("");
 
             if (newPeers.length > 0) {
-                bytes[] memory setPeersMultiSendTxs = new bytes[](newPeers.length);
-                console.log("New peers");
+                console.log("The following peers need to be set: ");
+                console.log("");
                 for (uint256 i = 0; i < newPeers.length; i++) {
                     console.log("EID %d: Peer %s", newPeers[i].eid, newPeers[i].peer);
-                    bytes memory newTx = abi.encodePacked(
-                        uint8(0),
-                        bytes20(address(l1OFTAdapter)),
-                        bytes32(0),
-                        abi.encodeWithSelector(IOAppCore.setPeer.selector, newPeers[i].eid, newPeers[i].peer)
-                    );
-                    setPeersMultiSendTxs[i] = newTx;
-                    console.log("New Set Peer Multisend tx %d: ", i);
-                    console.logBytes(newTx);
+                    console.log("Method: setPeer");
+                    bytes memory data =
+                        abi.encodeWithSelector(IOAppCore.setPeer.selector, newPeers[i].eid, newPeers[i].peer);
+                    console.log("Encoded Tx Data: ");
+                    console.logBytes(data);
+                    addToBatch(address(l1OFTAdapter), data);
                 }
             }
+            console.log("");
 
-            console.log("Set Rate Limit Config tx: ");
-            console.logBytes(setRateLimitConfigMultiSendTx);
+            displayBatch();
+
+            console.log("");
         }
     }
 }

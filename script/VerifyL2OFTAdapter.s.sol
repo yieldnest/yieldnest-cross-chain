@@ -3,6 +3,7 @@
 pragma solidity ^0.8.24;
 
 import {BaseScript, PeerConfig} from "./BaseScript.s.sol";
+import {BatchScript} from "./BatchScript.s.sol";
 
 import {L2YnERC20Upgradeable} from "@/L2YnERC20Upgradeable.sol";
 import {L2YnOFTAdapterUpgradeable} from "@/L2YnOFTAdapterUpgradeable.sol";
@@ -10,15 +11,17 @@ import {ImmutableMultiChainDeployer} from "@/factory/ImmutableMultiChainDeployer
 
 import {IOAppCore} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/interfaces/IOAppCore.sol";
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
-import {TransparentUpgradeableProxy} from
-    "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+import {
+    ITransparentUpgradeableProxy,
+    TransparentUpgradeableProxy
+} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {console} from "forge-std/console.sol";
 
 // forge script script/VerifyL2OFTAdapter.s.sol:DeployL2Adapter \
 // --rpc-url ${rpc} --sig "run(string calldata)" ${path} \
 // --account ${deployerAccountName} --sender ${deployer}
 
-contract VerifyL2OFTAdapter is BaseScript {
+contract VerifyL2OFTAdapter is BaseScript, BatchScript {
     ImmutableMultiChainDeployer public multiChainDeployer;
     L2YnOFTAdapterUpgradeable public l2OFTAdapter;
     L2YnERC20Upgradeable public l2ERC20;
@@ -26,7 +29,7 @@ contract VerifyL2OFTAdapter is BaseScript {
     RateLimiter.RateLimitConfig[] public newRateLimitConfigs;
     PeerConfig[] public newPeers;
 
-    function run(string calldata _jsonPath) public {
+    function run(string calldata _jsonPath) public isBatch(getAddresses().OFT_DELEGATE) {
         _loadInput(_jsonPath);
 
         require(currentDeployment.isL1 != true, "Must be L2 deployment");
@@ -55,12 +58,16 @@ contract VerifyL2OFTAdapter is BaseScript {
         }
         require(
             address(currentDeployment.oftAdapter) == predictions.l2OftAdapter,
-            "Predicted OFT Adapter address mismatch"
+            "Predicted L2 OFT Adapter address mismatch"
         );
         l2OFTAdapter = L2YnOFTAdapterUpgradeable(predictions.l2OftAdapter);
 
         if (l2OFTAdapter.owner() != getAddresses().OFT_DELEGATE) {
-            revert("OFT Adapter ownership not transferred");
+            revert("L2 OFT Adapter ownership not transferred");
+        }
+
+        if (ITransparentUpgradeableProxy(address(l2OFTAdapter)).admin() != getAddresses().PROXY_ADMIN) {
+            revert("L2 OFT Adapter proxy admin not set");
         }
 
         if (l2ERC20.hasRole(l2ERC20.DEFAULT_ADMIN_ROLE(), msg.sender)) {
@@ -68,10 +75,14 @@ contract VerifyL2OFTAdapter is BaseScript {
         }
 
         if (!l2ERC20.hasRole(l2ERC20.MINTER_ROLE(), address(l2OFTAdapter))) {
-            revert("OFT Adapter not Minter");
+            revert("L2 OFT Adapter not Minter");
         }
         if (!l2ERC20.hasRole(l2ERC20.DEFAULT_ADMIN_ROLE(), getAddresses().TOKEN_ADMIN)) {
             revert("Token Admin Role not set");
+        }
+
+        if (ITransparentUpgradeableProxy(address(l2ERC20)).admin() != getAddresses().PROXY_ADMIN) {
+            revert("L2 ERC20 proxy admin not set");
         }
 
         uint256[] memory chainIds = new uint256[](baseInput.l2ChainIds.length + 1);
@@ -108,47 +119,53 @@ contract VerifyL2OFTAdapter is BaseScript {
         }
 
         if (needsUpdate) {
-            // create setRateLimit multiSend tx;
-            bytes memory setRateLimitConfigMultiSendTx = abi.encodePacked(
-                uint8(0),
-                bytes20(address(l2OFTAdapter)),
-                bytes32(0),
-                abi.encodeWithSelector(L2YnOFTAdapterUpgradeable.setRateLimits.selector, newRateLimitConfigs)
-            );
-            // TODO: Print All this information in a much more readable manner
-            // Also generate a new Multisend Gnosis Safe Tx Data that combines all the following calls for this
-            // chain into a single call
-            console.log("Needs update");
+            console.log("");
+            console.log("Please note that the following transactions must be broadcast manually.");
+            console.log("L2 Safe Address: %s", l2OFTAdapter.owner());
+            console.log("L2 Chain ID: %d", block.chainid);
+            console.log("L2 OFT Adapter: %s", address(l2OFTAdapter));
+            console.log("");
+
             if (newRateLimitConfigs.length > 0) {
-                console.log("New rate limit configs");
+                console.log("The following rate limits need to be set: ");
+                console.log("");
                 for (uint256 i = 0; i < newRateLimitConfigs.length; i++) {
                     console.log(
-                        "EID %d: Limit of %d per window of %d",
+                        "EID %d: Limit %d, Window %d",
                         newRateLimitConfigs[i].dstEid,
                         newRateLimitConfigs[i].limit,
                         newRateLimitConfigs[i].window
                     );
                 }
+                console.log("");
+                console.log("Method: setRateLimits");
+                bytes memory data =
+                    abi.encodeWithSelector(L2YnOFTAdapterUpgradeable.setRateLimits.selector, newRateLimitConfigs);
+                console.log("Encoded Tx Data: ");
+                console.logBytes(data);
+
+                addToBatch(address(l2OFTAdapter), data);
             }
+            console.log("");
 
             if (newPeers.length > 0) {
-                bytes[] memory setPeersMultiSendTxs = new bytes[](newPeers.length);
-                console.log("New peers");
+                console.log("The following peers need to be set: ");
+                console.log("");
                 for (uint256 i = 0; i < newPeers.length; i++) {
                     console.log("EID %d: Peer %s", newPeers[i].eid, newPeers[i].peer);
-                    bytes memory newTx = abi.encodePacked(
-                        uint8(0),
-                        bytes20(address(l2OFTAdapter)),
-                        bytes32(0),
-                        abi.encodeWithSelector(IOAppCore.setPeer.selector, newPeers[i].eid, newPeers[i].peer)
-                    );
-                    setPeersMultiSendTxs[i] = newTx;
-                    console.log("New Multisend tx: ");
-                    console.logBytes(newTx);
+                    console.log("Method: setPeer");
+                    bytes memory data =
+                        abi.encodeWithSelector(IOAppCore.setPeer.selector, newPeers[i].eid, newPeers[i].peer);
+                    console.log("Encoded Tx Data: ");
+                    console.logBytes(data);
+                    addToBatch(address(l2OFTAdapter), data);
                 }
             }
-            console.log("Set Rate Limit Config tx: ");
-            console.logBytes(setRateLimitConfigMultiSendTx);
+            console.log("");
+
+            displayBatch();
+
+            console.log("");
         }
     }
 }
