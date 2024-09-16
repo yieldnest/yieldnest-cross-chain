@@ -8,7 +8,6 @@
 [submodule "lib/solmate"]
 	path = lib/solmate
 	url = https://github.com/transmissions11/solmate
-[submodule "lib/forge-safe"]
-	path = lib/forge-safe
-	url = https://github.com/ind-igo/forge-safe
-	branch = main
+[submodule "lib/surl"]
+	path = lib/surl
+	url = https://github.com/memester-xyz/surl

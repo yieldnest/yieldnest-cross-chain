@@ -64,11 +64,12 @@ fi
 ###############
 
 function broadcast() {
-    forge script $1 --sig $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS --broadcast --verify
+    CHAIN=$(cast chain-id --rpc-url $3) forge script $1 --sig $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS --broadcast
+    # TODO: add --verify
 }
 
 function simulate() {
-    forge script $1 --sig $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS
+    CHAIN=$(cast chain-id --rpc-url $3) forge script $1 --sig $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS
 }
 
 function getRPC() {
@@ -91,7 +92,7 @@ function getRPC() {
         echo "fraxtal"
         ;;
     17000)
-        echo "holskey"
+        echo "holesky"
         ;;
     11155111)
         echo "sepolia"
@@ -118,7 +119,7 @@ BROADCAST=false
 function deployL1OFTAdapter() {
     if [[ $BROADCAST == true ]]; then
         broadcast script/DeployL1OFTAdapter.s.sol:DeployL1OFTAdapter $1 $2
-        echo "Deployed L1OFTAdapter"
+        echo "Deployed L1OFTAdapter for $2"
         return
     fi
 
@@ -128,7 +129,7 @@ function deployL1OFTAdapter() {
     case $yn in
     [Yy]*)
         broadcast script/DeployL1OFTAdapter.s.sol:DeployL1OFTAdapter $1 $2
-        echo "Deployed L1OFTAdapter"
+        echo "Deployed L1OFTAdapter for $2"
         ;;
     *) 
         echo "Skipping broadcast for L1OFTAdapter"
@@ -140,7 +141,7 @@ function deployL1OFTAdapter() {
 function deployL2OFTAdapter() {
     if [[ $BROADCAST == true ]]; then
         broadcast script/DeployL2OFTAdapter.s.sol:DeployL2OFTAdapter $1 $2
-        echo "Deployed L2OFTAdapter"
+        echo "Deployed L2OFTAdapter for $2"
         return
     fi
 
@@ -150,7 +151,7 @@ function deployL2OFTAdapter() {
     case $yn in
     [Yy]*)
         broadcast script/DeployL2OFTAdapter.s.sol:DeployL2OFTAdapter $1 $2
-        echo "Deployed L2OFTAdapter"
+        echo "Deployed L2OFTAdapter for $2"
         ;;
     *) 
         echo "Skipping broadcast for L2OFTAdapter"
@@ -205,15 +206,8 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# if rpc url is not set by flag set it here
-if [[ -z "$L1_RPC" ]]; then
-    L1_RPC=$(getRPC $L1_CHAIN_ID)
-fi
-
-# verify all the l2 rpcs has been set
-if [[ "${#L2_RPCS_ARRAY[@]}" == 0 ]]; then
-    L2_RPCS_ARRAY=$(< <(getRpcs $L2_CHAIN_IDS_ARRAY))
-fi
+L1_RPC=$(getRPC $L1_CHAIN_ID)
+L2_RPCS_ARRAY=$(< <(getRpcs $L2_CHAIN_IDS_ARRAY))
 
 delimiter
 echo ""
@@ -228,9 +222,9 @@ delimiter
 CALLDATA=$(cast calldata "run(string)" "/$INPUT_PATH")
 
 echo ""
-echo "Deploying L2 Adapters"
 for l2 in $L2_CHAIN_IDS_ARRAY; do
     L2_RPC=$(getRPC $l2)
+    echo "Deploying L2 Adapter for $L2_RPC"
     deployL2OFTAdapter $CALLDATA $L2_RPC
 done
 
@@ -238,23 +232,23 @@ echo ""
 delimiter
 echo ""
 
-echo "Deploying L1 Adapter"
+echo "Deploying L1 Adapter for $L1_RPC"
 deployL1OFTAdapter $CALLDATA $L1_RPC
 
 echo ""
 delimiter
 echo ""
 
-echo "Verifying L1 Adapter"
+echo "Verifying L1 Adapter for $L1_RPC"
 simulate script/VerifyL1OFTAdapter.s.sol:VerifyL1OFTAdapter $CALLDATA $L1_RPC
 
 echo ""
 delimiter
 echo ""
 
-echo "Verifying L2 Adapter"
 for l2 in $L2_CHAIN_IDS_ARRAY; do
     L2_RPC=$(getRPC $l2)
+    echo "Verifying L2 Adapter for $L2_RPC"
     simulate script/VerifyL2OFTAdapter.s.sol:VerifyL2OFTAdapter $CALLDATA $L2_RPC
 done
 

@@ -3,6 +3,7 @@
 pragma solidity ^0.8.24;
 
 import {BaseScript, PeerConfig} from "./BaseScript.s.sol";
+import {BatchScript} from "./BatchScript.s.sol";
 
 import {L1YnOFTAdapterUpgradeable} from "@/L1YnOFTAdapterUpgradeable.sol";
 
@@ -16,13 +17,13 @@ import {console} from "forge-std/console.sol";
 // --rpc-url ${rpc} --sig "run(string calldata)" ${path} \
 // --account ${deployerAccountName} --sender ${deployer}
 
-contract VerifyL1OFTAdapter is BaseScript {
+contract VerifyL1OFTAdapter is BaseScript, BatchScript {
     L1YnOFTAdapterUpgradeable public l1OFTAdapter;
 
     RateLimiter.RateLimitConfig[] public newRateLimitConfigs;
     PeerConfig[] public newPeers;
 
-    function run(string calldata _jsonPath) public {
+    function run(string calldata _jsonPath) public isBatch(getAddresses().OFT_DELEGATE) {
         _loadInput(_jsonPath);
 
         require(currentDeployment.isL1 == true, "Must be L1 deployment");

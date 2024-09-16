@@ -15,9 +15,9 @@
 @forge-safe/=lib/forge-safe/src/
 @forge-std/=lib/forge-std/src/
 
-solidity-stringutils/=lib/forge-safe/lib/surl/lib/solidity-stringutils/src/
-solmate/=lib/forge-safe/lib/solmate/src/
-surl/=lib/forge-safe/lib/surl/
+solidity-stringutils/=lib/surl/lib/solidity-stringutils/src/
+solmate/=lib/solmate/src/
+surl/=lib/surl/src/
 
 forge-std/=lib/forge-std/src/
 ds-test/=lib/forge-safe/lib/ds-test/src/
