@@ -13,8 +13,7 @@
     "husky": "^9.1.5",
     "lint-staged": "^15.2.10",
     "solhint": "^5.0.3",
-    "solidity-bytes-utils": "^0.8.2",
-    "solmate": "^6.2.0"
+    "solidity-bytes-utils": "^0.8.2"
   },
   "license": "MIT",
   "lint-staged": {
