@@ -7,3 +7,4 @@
 [submodule "lib/LayerZero-v2"]
 	path = lib/LayerZero-v2
 	url = https://github.com/JorgeAtPaladin/LayerZero-v2
+	branch = lz-upgrade
