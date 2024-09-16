@@ -5,6 +5,8 @@ pragma solidity ^0.8.24;
 import {BaseScript, PeerConfig} from "./BaseScript.s.sol";
 
 import {L1YnOFTAdapterUpgradeable} from "@/L1YnOFTAdapterUpgradeable.sol";
+
+import {IOAppCore} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/interfaces/IOAppCore.sol";
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
 import {TransparentUpgradeableProxy} from
     "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
@@ -71,6 +73,13 @@ contract VerifyL1OFTAdapter is BaseScript {
         }
 
         if (needsUpdate) {
+            // create setRateLimit multiSend tx;
+            bytes memory setRateLimitConfigMultiSendTx = abi.encodePacked(
+                uint8(0),
+                bytes20(address(l1OFTAdapter)),
+                bytes32(0),
+                abi.encodeWithSelector(L1YnOFTAdapterUpgradeable.setRateLimits.selector, newRateLimitConfigs)
+            );
             // TODO: Print All this information in a much more readable manner
             // Also generate a new Multisend Gnosis Safe Tx Data that combines all the following calls for this
             // chain into a single call
@@ -86,12 +95,26 @@ contract VerifyL1OFTAdapter is BaseScript {
                     );
                 }
             }
+
             if (newPeers.length > 0) {
+                bytes[] memory setPeersMultiSendTxs = new bytes[](newPeers.length);
                 console.log("New peers");
                 for (uint256 i = 0; i < newPeers.length; i++) {
                     console.log("EID %d: Peer %s", newPeers[i].eid, newPeers[i].peer);
+                    bytes memory newTx = abi.encodePacked(
+                        uint8(0),
+                        bytes20(address(l1OFTAdapter)),
+                        bytes32(0),
+                        abi.encodeWithSelector(IOAppCore.setPeer.selector, newPeers[i].eid, newPeers[i].peer)
+                    );
+                    setPeersMultiSendTxs[i] = newTx;
+                    console.log("New Set Peer Multisend tx %d: ", i);
+                    console.logBytes(newTx);
                 }
             }
+
+            console.log("Set Rate Limit Config tx: ");
+            console.logBytes(setRateLimitConfigMultiSendTx);
         }
     }
 }

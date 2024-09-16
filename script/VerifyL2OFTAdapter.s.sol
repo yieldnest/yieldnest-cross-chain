@@ -7,8 +7,9 @@ import {BaseScript, PeerConfig} from "./BaseScript.s.sol";
 import {L2YnERC20Upgradeable} from "@/L2YnERC20Upgradeable.sol";
 import {L2YnOFTAdapterUpgradeable} from "@/L2YnOFTAdapterUpgradeable.sol";
 import {ImmutableMultiChainDeployer} from "@/factory/ImmutableMultiChainDeployer.sol";
-import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
 
+import {IOAppCore} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/interfaces/IOAppCore.sol";
+import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
 import {TransparentUpgradeableProxy} from
     "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {console} from "forge-std/console.sol";
@@ -106,9 +107,14 @@ contract VerifyL2OFTAdapter is BaseScript {
             }
         }
 
-        bytes[] memory setPeersMultiSendTxs;
-
         if (needsUpdate) {
+            // create setRateLimit multiSend tx;
+            bytes memory setRateLimitConfigMultiSendTx = abi.encodePacked(
+                uint8(0),
+                bytes20(address(l2OFTAdapter)),
+                bytes32(0),
+                abi.encodeWithSelector(L2YnOFTAdapterUpgradeable.setRateLimits.selector, newRateLimitConfigs)
+            );
             // TODO: Print All this information in a much more readable manner
             // Also generate a new Multisend Gnosis Safe Tx Data that combines all the following calls for this
             // chain into a single call
@@ -126,7 +132,7 @@ contract VerifyL2OFTAdapter is BaseScript {
             }
 
             if (newPeers.length > 0) {
-                setPeersMultiSendTxs = new bytes[](newPeers.length);
+                bytes[] memory setPeersMultiSendTxs = new bytes[](newPeers.length);
                 console.log("New peers");
                 for (uint256 i = 0; i < newPeers.length; i++) {
                     console.log("EID %d: Peer %s", newPeers[i].eid, newPeers[i].peer);
@@ -134,15 +140,15 @@ contract VerifyL2OFTAdapter is BaseScript {
                         uint8(0),
                         bytes20(address(l2OFTAdapter)),
                         bytes32(0),
-                        abi.encodeWithSelector(
-                            L2YnOFTAdapterUpgradeable.setPeer.selector, newPeers[i].eid, newPeers[i].peer
-                        )
+                        abi.encodeWithSelector(IOAppCore.setPeer.selector, newPeers[i].eid, newPeers[i].peer)
                     );
                     setPeersMultiSendTxs[i] = newTx;
                     console.log("New Multisend tx: ");
                     console.logBytes(newTx);
                 }
             }
+            console.log("Set Rate Limit Config tx: ");
+            console.logBytes(setRateLimitConfigMultiSendTx);
         }
     }
 }
