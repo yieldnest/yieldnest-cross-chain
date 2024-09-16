@@ -3,45 +3,55 @@ source .env
 
 set -e
 
-######################
-## GLOBAL VARIABLES ##
-######################
 
-FILE_PATH=$1
-# if the first character of the path is a / trim it off
-if [[ "${FILE_PATH:0:1}" == "/" ]]; then
-    FILE_PATH="${FILE_PATH:1}"
-fi
+##########
+## HELP ##
+##########
+
+function delimiter() {
+    echo '###################################################'
+}
 
 function display_help() {
+    delimiter
     echo
     echo "This script is designed to help deploy Yieldnest tokens to new chains: "
     echo "Please create an input and add the relative path to the script.  For example:"
     echo
     echo "yarn deploy script/inputs/mainnet-ynETH.json"
     echo
+    delimiter
 }
 
+######################
+## GLOBAL VARIABLES ##
+######################
+
+INPUT_PATH=$1
+# if the first character of the path is a / trim it off
+if [[ "${INPUT_PATH:0:1}" == "/" ]]; then
+    INPUT_PATH="${INPUT_PATH:1}"
+fi
 
 # check that there is an arg
-if [[ -z $FILE_PATH ]]; then
+if [[ -z $INPUT_PATH ]]; then
     # if no file path display help
     display_help
     exit 1
     #if arg is a filepath and is a file shift down 1 arg
-elif [[ -f $FILE_PATH ]]; then
+elif [[ -f $INPUT_PATH ]]; then
     shift
 fi
 
 # unset private key as we are reading it from cast wallet
 PRIVATE_KEY=""
 DEPLOYER_ACCOUNT_NAME=${DEPLOYER_ACCOUNT_NAME:-"yieldnestDeployerKey"}
-L1_RPC_URL=""
-L1_CHAIN_ID=$(jq -r ".l1ChainId" "$FILE_PATH")
-ERC20_NAME=$(jq -r ".erc20Name" "$FILE_PATH")
-RATE=$(jq -r ".rateLimitConfig.limit" "$FILE_PATH")
-L2_CHAIN_IDS_ARRAY=$(jq -r ".l2ChainIds" "$FILE_PATH" | jq -r ".[]")
-OUTPUT_JSON_PATH="deployments/ynETH-$L1_CHAIN_ID.json"
+L1_RPC=""
+L1_CHAIN_ID=$(jq -r ".l1ChainId" "$INPUT_PATH")
+ERC20_NAME=$(jq -r ".erc20Name" "$INPUT_PATH")
+L2_CHAIN_IDS_ARRAY=$(jq -r ".l2ChainIds" "$INPUT_PATH" | jq -r ".[]")
+
+OUTPUT_PATH="deployments/ynETH-$L1_CHAIN_ID.json"
 
 # verify env variables
 if [[ -z $ETHERSCAN_API_KEY || -z $DEPLOYER_ADDRESS ]]; then
@@ -52,76 +62,46 @@ fi
 ###############
 ## FUNCTIONS ##
 ###############
-function delimitier() {
-    echo '###################################################'
-}
 
 function broadcast() {
-    forge script $1 -s $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS --broadcast
-    # TODO: Support etherscan verification for chains other than etherscan
-    # Easiest way to do thsi would be use the rpc-url as the labels set in
-    # the foundary.yaml file so we don't have to pass in the api key here
-    # forge script $1 -s $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS --broadcast --etherscan-api-key $ETHERSCAN_API_KEY --verify
+    forge script $1 --sig $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS --broadcast --verify
 }
 
 function simulate() {
-    forge script $1 -s $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS
+    forge script $1 --sig $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS
 }
 
-function getRpcEndpoints() {
-    local ids=("$@")
-    for i in "${ids[@]}"; do
-        echo "$(getEndpoint $i)"
-    done
-}
+function getRPC() {
+    local INPUT_ID=$1
 
-function searchArray() {
-    local match=$1
-    local array=$2
-
-    for i in "${!array[@]}"; do
-        [[ "${array[i]}" == "${match}" ]] && break
-    done
-    echo $i
-}
-
-function getEndpoint() {
-    INPUT_ID=$1
     case $INPUT_ID in
     1)
-        echo ${MAINNET_RPC_URL}
+        echo "mainnet"
         ;;
     8453)
-        #base
-        echo ${BASE_RPC_URL}
+        echo "base"
         ;;
     10)
-        #optimism
-        echo ${OPTIMISM_RPC_URL}
+        echo "optimism"
         ;;
     42161)
-        #arbitrum
-        echo ${ARBITRUM_RPC_URL}
+        echo "arbitrum"
         ;;
     252)
-        #fraxal
-        echo ${FRAX_RPC_URL}
+        echo "fraxtal"
         ;;
     17000)
-        #holskey
-        echo ${HOLESKY_RPC_URL}
+        echo "holskey"
         ;;
     11155111)
-        #sepolia
-        echo ${SEPOLIA_RPC_URL}
+        echo "sepolia"
         ;;
     2522)
-        #fraxalTestnet
-        echo ${FRAX_TESTNET_RPC_URL}
+        echo "fraxtal_testnet"
         ;;
     *)
-        echo "Unrecognized Chain id"
-        break
+        echo "Chain RPC not found for $2"
+        exit 1
         ;;
     esac
 }
@@ -133,10 +113,10 @@ function error_exit() {
     exit 1
 }
 
-FORCE=false
+BROADCAST=false
 
 function deployL1OFTAdapter() {
-    if [[ $FORCE == true ]]; then
+    if [[ $BROADCAST == true ]]; then
         broadcast script/DeployL1OFTAdapter.s.sol:DeployL1OFTAdapter $1 $2
         echo "Deployed L1OFTAdapter"
         return
@@ -152,14 +132,13 @@ function deployL1OFTAdapter() {
         ;;
     *) 
         echo "Skipping broadcast for L1OFTAdapter"
-        exit 0
         ;;
 
     esac
 }
 
 function deployL2OFTAdapter() {
-    if [[ $FORCE == true ]]; then
+    if [[ $BROADCAST == true ]]; then
         broadcast script/DeployL2OFTAdapter.s.sol:DeployL2OFTAdapter $1 $2
         echo "Deployed L2OFTAdapter"
         return
@@ -175,23 +154,9 @@ function deployL2OFTAdapter() {
         ;;
     *) 
         echo "Skipping broadcast for L2OFTAdapter"
-        exit 0
         ;;
 
     esac
-}
-
-function findRPC() {
-    local CHAIN_ID=$1
-
-    RPC_URL=$(getEndpoint $1)
-
-    if [[ -z $RPC_URL ]]; then
-        echo "Chain RPC not found for $2"
-        exit 1
-    fi
-
-    echo $RPC_URL
 }
 
 function checkInput() {
@@ -200,12 +165,11 @@ function checkInput() {
     fi
 }
 
-function isAddressEmpty() {
-  if [[ -z "$1" || "$1" == "null" || "$1" == "0x0000000000000000000000000000000000000000" ]]; then
-    return 0  # return 0 indicates success
-  else
-    return 1  # return 1 indicates failure
-  fi
+function getRpcs() {
+    local ids=("$@")
+    for i in "${ids[@]}"; do
+        echo "$(getEndpoint $i)"
+    done
 }
 
 ######################
@@ -215,28 +179,12 @@ function isAddressEmpty() {
 # gather flags used if you want to override the .env vars
 while [[ $# -gt 0 ]]; do
     case $1 in
-    --l1-rpc-url | -l1)
-        checkInput $1 $2
-        L1_RPC_URL=$2
-        shift 2
-        ;;
-        # pass in an array of rpc's
-    --l2-rpc-urls | -l2)
-        checkInput $1 $2
-        L2_ENDPOINTS_ARRAY=$2
-        shift 2
-        ;;
-    --etherscan-api-key | -api)
-        checkInput $1 $2
-        ETHERSCAN_API_KEY=$2
-        shift 2
-        ;;
-    --deployer-account-name | -a)
+    --account | -a)
         checkInput $1 $2
         DEPLOYER_ACCOUNT_NAME=$2
         shift 2
         ;;
-    --sender-account-address | -s)
+    --sender | -s)
         checkInput $1 $2
         DEPLOYER_ADDRESS=$2
         shift 2
@@ -245,8 +193,8 @@ while [[ $# -gt 0 ]]; do
         display_help
         exit 0
         ;;
-    --force | -f)
-        FORCE=true
+    --broadcast | -b)
+        BROADCAST=true
         shift
         ;;
     *)
@@ -258,51 +206,59 @@ while [[ $# -gt 0 ]]; do
 done
 
 # if rpc url is not set by flag set it here
-if [[ -z "$L1_RPC_URL" ]]; then
-    L1_RPC_URL=$(getEndpoint $L1_CHAIN_ID)
+if [[ -z "$L1_RPC" ]]; then
+    L1_RPC=$(getRPC $L1_CHAIN_ID)
 fi
 
-# if there is no l2 endpoints set them
-if [[ "${#L2_ENDPOINTS_ARRAY[@]}" == 0 ]]; then
-    L2_ENDPOINTS_ARRAY=$(< <(getRpcEndpoints $L2_CHAIN_IDS_ARRAY))
+# verify all the l2 rpcs has been set
+if [[ "${#L2_RPCS_ARRAY[@]}" == 0 ]]; then
+    L2_RPCS_ARRAY=$(< <(getRpcs $L2_CHAIN_IDS_ARRAY))
 fi
 
-# verify the l1 rpc has been set
-if [[ -z "$L1_RPC_URL" || "$L1_RPC_URL" == "Unrecognized Chain Id" ]]; then
-    echo "Valid rpc required"
-    exit 1
-fi
+delimiter
+echo ""
+echo "Deployer Account Name:" $DEPLOYER_ACCOUNT_NAME
+echo "Deployer Address: " $DEPLOYER_ADDRESS
+echo "ERC20 Symbol: " $ERC20_NAME
+echo "L1 Chain: " $L1_RPC
+echo "L2 Chains: " ${L2_RPCS_ARRAY[@]}
+echo ""
+delimiter
 
-# if the number of rpc's is less than the number of L2 chain ids
-if [[ "${#L2_CHAIN_IDS_ARRAY[@]}" != "${#L2_ENDPOINTS_ARRAY[@]}" ]]; then
-    echo "Invalid L2 RPCs"
-    exit 1
-fi
+CALLDATA=$(cast calldata "run(string)" "/$INPUT_PATH")
 
-echo "Deploying with account name:" $DEPLOYER_ACCOUNT_NAME
-echo "DEPLOYER ADDRESS: " $DEPLOYER_ADDRESS
-echo "ERC20 NAME: " $ERC20_NAME
-echo "L1 CHAIN ID: " $L1_CHAIN_ID
-echo "L2 CHAIN IDs: " ${L2_CHAIN_IDS_ARRAY[@]}
-
-CALLDATA=$(cast calldata "run(string)" "/$FILE_PATH")
-
+echo ""
 echo "Deploying L2 Adapters"
 for l2 in $L2_CHAIN_IDS_ARRAY; do
-    L2_RPC_URL=$(findRPC $l2)
-    deployL2OFTAdapter $CALLDATA $L2_RPC_URL
+    L2_RPC=$(getRPC $l2)
+    deployL2OFTAdapter $CALLDATA $L2_RPC
 done
 
+echo ""
+delimiter
+echo ""
+
 echo "Deploying L1 Adapter"
-deployL1OFTAdapter $CALLDATA $L1_RPC_URL
+deployL1OFTAdapter $CALLDATA $L1_RPC
+
+echo ""
+delimiter
+echo ""
 
 echo "Verifying L1 Adapter"
-simulate script/VerifyL1OFTAdapter.s.sol:VerifyL1OFTAdapter $CALLDATA $L1_RPC_URL
+simulate script/VerifyL1OFTAdapter.s.sol:VerifyL1OFTAdapter $CALLDATA $L1_RPC
+
+echo ""
+delimiter
+echo ""
 
 echo "Verifying L2 Adapter"
 for l2 in $L2_CHAIN_IDS_ARRAY; do
-    L2_RPC_URL=$(findRPC $l2)
-    simulate script/VerifyL2OFTAdapter.s.sol:VerifyL2OFTAdapter $CALLDATA $L2_RPC_URL
+    L2_RPC=$(getRPC $l2)
+    simulate script/VerifyL2OFTAdapter.s.sol:VerifyL2OFTAdapter $CALLDATA $L2_RPC
 done
+
+echo ""
+delimiter
 
 exit 0
