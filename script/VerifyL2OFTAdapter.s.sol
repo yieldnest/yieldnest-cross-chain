@@ -66,6 +66,7 @@ contract VerifyL2OFTAdapter is BaseScript, BatchScript {
             revert("L2 OFT Adapter ownership not transferred");
         }
 
+        vm.prank(getAddresses().PROXY_ADMIN);
         if (ITransparentUpgradeableProxy(address(l2OFTAdapter)).admin() != getAddresses().PROXY_ADMIN) {
             revert("L2 OFT Adapter proxy admin not set");
         }
@@ -81,6 +82,7 @@ contract VerifyL2OFTAdapter is BaseScript, BatchScript {
             revert("Token Admin Role not set");
         }
 
+        vm.prank(getAddresses().PROXY_ADMIN);
         if (ITransparentUpgradeableProxy(address(l2ERC20)).admin() != getAddresses().PROXY_ADMIN) {
             revert("L2 ERC20 proxy admin not set");
         }

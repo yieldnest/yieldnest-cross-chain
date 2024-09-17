@@ -42,6 +42,7 @@ contract VerifyL1OFTAdapter is BaseScript, BatchScript {
             revert("L1 OFT Adapter ownership not transferred");
         }
 
+        vm.prank(getAddresses().PROXY_ADMIN);
         if (ITransparentUpgradeableProxy(address(l1OFTAdapter)).admin() != getAddresses().PROXY_ADMIN) {
             revert("L1 OFT Adapter proxy admin not set");
         }
