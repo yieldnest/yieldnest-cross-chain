@@ -214,9 +214,10 @@ abstract contract BatchScript is Script {
         }
         bytes memory txData = abi.encodeWithSignature("multiSend(bytes)", data);
 
+        console2.log("");
         console2.log("Safe Batch Transaction:");
         console2.log("To: ", to);
-        console2.log("Operation: ", uint256(operation));
+        console2.log("Operation: %d (%s)", uint256(operation), "DELEGATECALL");
         console2.log("Value: ", value);
         console2.log("Data: ");
         console2.logBytes(txData);

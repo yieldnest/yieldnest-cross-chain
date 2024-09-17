@@ -69,7 +69,7 @@ contract DeployL2OFTAdapter is BaseScript {
             );
 
             vm.broadcast();
-            ITransparentUpgradeableProxy(address(l2ERC20)).changeAdmin(getAddresses().PROXY_ADMIN);
+            ITransparentUpgradeableProxy(address(l2ERC20)).changeAdmin(getData(block.chainid).PROXY_ADMIN);
 
             console.log("Deployed L2ERC20 at: %s", address(l2ERC20));
         } else {
@@ -92,7 +92,7 @@ contract DeployL2OFTAdapter is BaseScript {
                     implementationSalt,
                     proxySalt,
                     address(l2ERC20),
-                    getAddresses().LZ_ENDPOINT,
+                    getData(block.chainid).LZ_ENDPOINT,
                     CURRENT_SIGNER,
                     CURRENT_SIGNER,
                     type(L2YnOFTAdapterUpgradeable).creationCode
@@ -100,7 +100,7 @@ contract DeployL2OFTAdapter is BaseScript {
             );
 
             vm.broadcast();
-            ITransparentUpgradeableProxy(address(l2OFTAdapter)).changeAdmin(getAddresses().PROXY_ADMIN);
+            ITransparentUpgradeableProxy(address(l2OFTAdapter)).changeAdmin(getData(block.chainid).PROXY_ADMIN);
 
             console.log("Deployed L2OFTAdapter at: %s", address(l2OFTAdapter));
         } else {
@@ -131,23 +131,23 @@ contract DeployL2OFTAdapter is BaseScript {
                     chainId == baseInput.l1ChainId ? predictions.l1OftAdapter : predictions.l2OftAdapter;
                 bytes32 adapterBytes32 = addressToBytes32(adapter);
                 if (l2OFTAdapter.peers(eid) == adapterBytes32) {
-                    console.log("Already set peer for chain %d", chainId);
+                    console.log("Already set peer for chainid %d", chainId);
                     continue;
                 }
 
                 vm.broadcast();
                 l2OFTAdapter.setPeer(eid, adapterBytes32);
-                console.log("Set peer %s for eid %d", adapter, eid);
+                console.log("Set peer for chainid %d", chainId);
             }
 
             vm.broadcast();
-            l2OFTAdapter.transferOwnership(getAddresses().OFT_DELEGATE);
+            l2OFTAdapter.transferOwnership(getData(block.chainid).OFT_OWNER);
         }
 
         if (l2ERC20.hasRole(l2ERC20.DEFAULT_ADMIN_ROLE(), CURRENT_SIGNER)) {
             vm.startBroadcast();
             l2ERC20.grantRole(l2ERC20.MINTER_ROLE(), address(l2OFTAdapter));
-            l2ERC20.grantRole(l2ERC20.DEFAULT_ADMIN_ROLE(), getAddresses().TOKEN_ADMIN);
+            l2ERC20.grantRole(l2ERC20.DEFAULT_ADMIN_ROLE(), getData(block.chainid).TOKEN_ADMIN);
             l2ERC20.renounceRole(l2ERC20.DEFAULT_ADMIN_ROLE(), CURRENT_SIGNER);
             vm.stopBroadcast();
         }

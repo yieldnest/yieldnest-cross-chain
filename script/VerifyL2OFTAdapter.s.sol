@@ -29,7 +29,7 @@ contract VerifyL2OFTAdapter is BaseScript, BatchScript {
     RateLimiter.RateLimitConfig[] public newRateLimitConfigs;
     PeerConfig[] public newPeers;
 
-    function run(string calldata _jsonPath) public isBatch(getAddresses().OFT_DELEGATE) {
+    function run(string calldata _jsonPath) public isBatch(getData(block.chainid).OFT_OWNER) {
         _loadInput(_jsonPath);
 
         require(currentDeployment.isL1 != true, "Must be L2 deployment");
@@ -62,12 +62,12 @@ contract VerifyL2OFTAdapter is BaseScript, BatchScript {
         );
         l2OFTAdapter = L2YnOFTAdapterUpgradeable(predictions.l2OftAdapter);
 
-        if (l2OFTAdapter.owner() != getAddresses().OFT_DELEGATE) {
+        if (l2OFTAdapter.owner() != getData(block.chainid).OFT_OWNER) {
             revert("L2 OFT Adapter ownership not transferred");
         }
 
-        vm.prank(getAddresses().PROXY_ADMIN);
-        if (ITransparentUpgradeableProxy(address(l2OFTAdapter)).admin() != getAddresses().PROXY_ADMIN) {
+        vm.prank(getData(block.chainid).PROXY_ADMIN);
+        if (ITransparentUpgradeableProxy(address(l2OFTAdapter)).admin() != getData(block.chainid).PROXY_ADMIN) {
             revert("L2 OFT Adapter proxy admin not set");
         }
 
@@ -78,12 +78,12 @@ contract VerifyL2OFTAdapter is BaseScript, BatchScript {
         if (!l2ERC20.hasRole(l2ERC20.MINTER_ROLE(), address(l2OFTAdapter))) {
             revert("L2 OFT Adapter not Minter");
         }
-        if (!l2ERC20.hasRole(l2ERC20.DEFAULT_ADMIN_ROLE(), getAddresses().TOKEN_ADMIN)) {
+        if (!l2ERC20.hasRole(l2ERC20.DEFAULT_ADMIN_ROLE(), getData(block.chainid).TOKEN_ADMIN)) {
             revert("Token Admin Role not set");
         }
 
-        vm.prank(getAddresses().PROXY_ADMIN);
-        if (ITransparentUpgradeableProxy(address(l2ERC20)).admin() != getAddresses().PROXY_ADMIN) {
+        vm.prank(getData(block.chainid).PROXY_ADMIN);
+        if (ITransparentUpgradeableProxy(address(l2ERC20)).admin() != getData(block.chainid).PROXY_ADMIN) {
             revert("L2 ERC20 proxy admin not set");
         }
 
@@ -145,8 +145,8 @@ contract VerifyL2OFTAdapter is BaseScript, BatchScript {
                 console.logBytes(data);
 
                 addToBatch(address(l2OFTAdapter), data);
+                console.log("");
             }
-            console.log("");
 
             if (newPeers.length > 0) {
                 console.log("The following peers need to be set: ");
@@ -159,13 +159,11 @@ contract VerifyL2OFTAdapter is BaseScript, BatchScript {
                     console.log("Encoded Tx Data: ");
                     console.logBytes(data);
                     addToBatch(address(l2OFTAdapter), data);
+                    console.log("");
                 }
             }
-            console.log("");
 
             displayBatch();
-
-            console.log("");
         }
     }
 }

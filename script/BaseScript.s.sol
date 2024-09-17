@@ -63,7 +63,7 @@ contract BaseScript is BaseData {
     Deployment public deployment;
     ChainDeployment public currentDeployment;
     PredictedAddresses public predictions;
-    string private constant _version = "1.0.0";
+    string private constant _version = "v1.0.0";
 
     function _getRateLimitConfigs() internal view returns (RateLimiter.RateLimitConfig[] memory) {
         RateLimiter.RateLimitConfig[] memory rateLimitConfigs =
@@ -98,7 +98,7 @@ contract BaseScript is BaseData {
         if (isL1) {
             currentDeployment.erc20Address = baseInput.l1ERC20Address;
         }
-        currentDeployment.lzEndpoint = getAddresses().LZ_ENDPOINT;
+        currentDeployment.lzEndpoint = getData(block.chainid).LZ_ENDPOINT;
         currentDeployment.lzEID = getEID(block.chainid);
         _loadPredictions();
         require(
@@ -132,7 +132,7 @@ contract BaseScript is BaseData {
 
             bytes memory implBytecode = bytes.concat(
                 type(L1YnOFTAdapterUpgradeable).creationCode,
-                abi.encode(baseInput.l1ERC20Address, getAddresses().LZ_ENDPOINT)
+                abi.encode(baseInput.l1ERC20Address, getData(block.chainid).LZ_ENDPOINT)
             );
 
             address implPredictedAddress = vm.computeCreate2Address(implementationSalt, keccak256(implBytecode));
@@ -205,6 +205,8 @@ contract BaseScript is BaseData {
                 baseInput.erc20Symbol,
                 "-",
                 vm.toString(baseInput.l1ChainId),
+                "-",
+                _version,
                 ".json"
             )
         );

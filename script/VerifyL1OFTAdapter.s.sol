@@ -25,7 +25,7 @@ contract VerifyL1OFTAdapter is BaseScript, BatchScript {
     RateLimiter.RateLimitConfig[] public newRateLimitConfigs;
     PeerConfig[] public newPeers;
 
-    function run(string calldata _jsonPath) public isBatch(getAddresses().OFT_DELEGATE) {
+    function run(string calldata _jsonPath) public isBatch(getData(block.chainid).OFT_OWNER) {
         _loadInput(_jsonPath);
 
         require(currentDeployment.isL1 == true, "Must be L1 deployment");
@@ -38,12 +38,12 @@ contract VerifyL1OFTAdapter is BaseScript, BatchScript {
 
         l1OFTAdapter = L1YnOFTAdapterUpgradeable(currentDeployment.oftAdapter);
 
-        if (l1OFTAdapter.owner() != getAddresses().OFT_DELEGATE) {
+        if (l1OFTAdapter.owner() != getData(block.chainid).OFT_OWNER) {
             revert("L1 OFT Adapter ownership not transferred");
         }
 
-        vm.prank(getAddresses().PROXY_ADMIN);
-        if (ITransparentUpgradeableProxy(address(l1OFTAdapter)).admin() != getAddresses().PROXY_ADMIN) {
+        vm.prank(getData(block.chainid).PROXY_ADMIN);
+        if (ITransparentUpgradeableProxy(address(l1OFTAdapter)).admin() != getData(block.chainid).PROXY_ADMIN) {
             revert("L1 OFT Adapter proxy admin not set");
         }
 
@@ -105,8 +105,8 @@ contract VerifyL1OFTAdapter is BaseScript, BatchScript {
                 console.logBytes(data);
 
                 addToBatch(address(l1OFTAdapter), data);
+                console.log("");
             }
-            console.log("");
 
             if (newPeers.length > 0) {
                 console.log("The following peers need to be set: ");
@@ -119,13 +119,11 @@ contract VerifyL1OFTAdapter is BaseScript, BatchScript {
                     console.log("Encoded Tx Data: ");
                     console.logBytes(data);
                     addToBatch(address(l1OFTAdapter), data);
+                    console.log("");
                 }
             }
-            console.log("");
 
             displayBatch();
-
-            console.log("");
         }
     }
 }

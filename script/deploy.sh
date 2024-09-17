@@ -8,12 +8,14 @@ set -e
 ##########
 
 function delimiter() {
-    echo '###################################################'
+    echo ""
+    echo "###################################################"
+    echo ""
 }
 
 function display_help() {
     delimiter
-    echo
+
     echo "This script is designed to help deploy Yieldnest tokens to new chains: "
     echo "Please create an input and add the relative path to the script.  For example:"
     echo
@@ -26,6 +28,7 @@ function display_help() {
     echo "  -b, --broadcast       Broadcast the deployment"
     echo "  -v, --verify          Verify the deployment on Etherscan"
     echo "  -f, --force           Broadcast and verify the deployment"
+
     delimiter
 }
 
@@ -235,49 +238,42 @@ L1_RPC=$(getRPC $L1_CHAIN_ID)
 L2_RPCS_ARRAY=$(< <(getRPCs $L2_CHAIN_IDS_ARRAY))
 
 delimiter
-echo ""
+
 echo "Deployer Account Name:" $DEPLOYER_ACCOUNT_NAME
 echo "Deployer Address: " $DEPLOYER_ADDRESS
 echo "ERC20 Symbol: " $ERC20_NAME
 echo "L1 Chain: " $L1_RPC
 echo "L2 Chains: " ${L2_RPCS_ARRAY[@]}
-echo ""
+
 delimiter
 
 CALLDATA=$(cast calldata "run(string)" "/$INPUT_PATH")
 
-echo ""
+echo "Deploying L1 Adapter for $L1_RPC"
+runScript script/DeployL1OFTAdapter.s.sol:DeployL1OFTAdapter $CALLDATA $L1_RPC
+
+delimiter
+
 for l2 in $L2_CHAIN_IDS_ARRAY; do
     L2_RPC=$(getRPC $l2)
     echo "Deploying L2 Adapter for $L2_RPC"
     runScript script/DeployL2OFTAdapter.s.sol:DeployL2OFTAdapter $CALLDATA $L2_RPC
+
+    delimiter
 done
-
-echo ""
-delimiter
-echo ""
-
-echo "Deploying L1 Adapter for $L1_RPC"
-runScript script/DeployL1OFTAdapter.s.sol:DeployL1OFTAdapter $CALLDATA $L1_RPC
-
-echo ""
-delimiter
-echo ""
 
 echo "Verifying L1 Adapter for $L1_RPC"
 simulate script/VerifyL1OFTAdapter.s.sol:VerifyL1OFTAdapter $CALLDATA $L1_RPC
 
-echo ""
 delimiter
-echo ""
 
 for l2 in $L2_CHAIN_IDS_ARRAY; do
     L2_RPC=$(getRPC $l2)
     echo "Verifying L2 Adapter for $L2_RPC"
     simulate script/VerifyL2OFTAdapter.s.sol:VerifyL2OFTAdapter $CALLDATA $L2_RPC
+
+    delimiter
 done
 
-echo ""
-delimiter
 
 exit 0

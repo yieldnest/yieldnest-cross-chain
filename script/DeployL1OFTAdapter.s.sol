@@ -34,7 +34,7 @@ contract DeployL1OFTAdapter is BaseScript {
             vm.broadcast();
             address l1OFTAdapterImpl = address(
                 new L1YnOFTAdapterUpgradeable{salt: implementationSalt}(
-                    baseInput.l1ERC20Address, getAddresses().LZ_ENDPOINT
+                    baseInput.l1ERC20Address, getData(block.chainid).LZ_ENDPOINT
                 )
             );
 
@@ -49,7 +49,7 @@ contract DeployL1OFTAdapter is BaseScript {
             );
 
             vm.broadcast();
-            ITransparentUpgradeableProxy(address(l1OFTAdapter)).changeAdmin(getAddresses().PROXY_ADMIN);
+            ITransparentUpgradeableProxy(address(l1OFTAdapter)).changeAdmin(getData(block.chainid).PROXY_ADMIN);
             console.log("Deployed L1OFTAdapter at: %s", address(l1OFTAdapter));
         } else {
             l1OFTAdapter = L1YnOFTAdapterUpgradeable(currentDeployment.oftAdapter);
@@ -69,17 +69,17 @@ contract DeployL1OFTAdapter is BaseScript {
                 address adapter = predictions.l2OftAdapter;
                 bytes32 adapterBytes32 = addressToBytes32(adapter);
                 if (l1OFTAdapter.peers(eid) == adapterBytes32) {
-                    console.log("Already set peer for chain %d", chainId);
+                    console.log("Already set peer for chainid %d", chainId);
                     continue;
                 }
 
                 vm.broadcast();
                 l1OFTAdapter.setPeer(eid, adapterBytes32);
-                console.log("Set peer %s for eid %d", adapter, eid);
+                console.log("Set peer for chainid %d", chainId);
             }
 
             vm.broadcast();
-            l1OFTAdapter.transferOwnership(getAddresses().OFT_DELEGATE);
+            l1OFTAdapter.transferOwnership(getData(block.chainid).OFT_OWNER);
         }
 
         currentDeployment.oftAdapter = address(l1OFTAdapter);
