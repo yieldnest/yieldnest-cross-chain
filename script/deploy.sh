@@ -3,7 +3,6 @@ source .env
 
 set -e
 
-
 ##########
 ## HELP ##
 ##########
@@ -70,7 +69,6 @@ fi
 ## FUNCTIONS ##
 ###############
 
-
 function simulate() {
     forge script $1 --sig $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS
 }
@@ -80,7 +78,7 @@ function broadcast() {
 }
 
 function verify() {
-    forge script $1 --sig $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS --verify
+    forge script $1 --sig $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS --verify --etherscan-api-key $3
 }
 
 function broadcastAndVerify() {
@@ -158,7 +156,7 @@ function runScript() {
     [Yy]*)
         broadcast $SCRIPT $CALLDATA $RPC
         ;;
-    *) 
+    *)
         echo "Skipping broadcast"
         return
         ;;
@@ -170,7 +168,7 @@ function runScript() {
     [Yy]*)
         verify $SCRIPT $CALLDATA $RPC
         ;;
-    *) 
+    *)
         echo "Skipping verifcation"
         return
         ;;
