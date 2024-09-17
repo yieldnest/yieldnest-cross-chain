@@ -111,11 +111,9 @@ contract DeployL2OFTAdapter is BaseScript {
         require(predictedOFTAdapter == address(l2OFTAdapter), "Prediction mismatch");
 
         if (l2OFTAdapter.owner() == CURRENT_SIGNER) {
-            console.log("Setting rate limits");
             vm.broadcast();
             l2OFTAdapter.setRateLimits(_getRateLimitConfigs());
-
-            console.log("Setting peers");
+            console.log("Set rate limits");
 
             uint256[] memory chainIds = new uint256[](baseInput.l2ChainIds.length + 1);
             for (uint256 i = 0; i < baseInput.l2ChainIds.length; i++) {
@@ -133,13 +131,13 @@ contract DeployL2OFTAdapter is BaseScript {
                     chainId == baseInput.l1ChainId ? predictions.l1OftAdapter : predictions.l2OftAdapter;
                 bytes32 adapterBytes32 = addressToBytes32(adapter);
                 if (l2OFTAdapter.peers(eid) == adapterBytes32) {
-                    console.log("Peer already set for chain %d", chainId);
+                    console.log("Already set peer for chain %d", chainId);
                     continue;
                 }
 
                 vm.broadcast();
                 l2OFTAdapter.setPeer(eid, adapterBytes32);
-                console.log("Set Peer %s for eid %d", adapter, eid);
+                console.log("Set peer %s for eid %d", adapter, eid);
             }
 
             vm.broadcast();

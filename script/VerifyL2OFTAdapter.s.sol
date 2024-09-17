@@ -101,7 +101,6 @@ contract VerifyL2OFTAdapter is BaseScript, BatchScript {
             (,, uint256 limit, uint256 window) = l2OFTAdapter.rateLimits(eid);
             if (limit != baseInput.rateLimitConfig.limit || window != baseInput.rateLimitConfig.window) {
                 needsUpdate = true;
-                console.log("Rate limit for chain %d: %d/%d", chainId, limit, window);
                 newRateLimitConfigs.push(
                     RateLimiter.RateLimitConfig(
                         eid, baseInput.rateLimitConfig.limit, baseInput.rateLimitConfig.window
@@ -115,7 +114,6 @@ contract VerifyL2OFTAdapter is BaseScript, BatchScript {
             bytes32 adapterBytes32 = addressToBytes32(adapter);
             if (l2OFTAdapter.peers(eid) != adapterBytes32) {
                 needsUpdate = true;
-                console.log("Peer %s at %d not set", adapter, eid);
                 newPeers.push(PeerConfig(eid, adapter));
             }
         }

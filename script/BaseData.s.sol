@@ -117,6 +117,13 @@ contract BaseData is Script {
         require(isSupportedChainId(block.chainid), "BaseData: unsupported chainId");
         a = __chainIdToAddresses[block.chainid];
         require(a.OFT_DELEGATE != address(0), "BaseData: addresses not set");
+        require(a.TOKEN_ADMIN != address(0), "BaseData: addresses not set");
+        require(a.PROXY_ADMIN != address(0), "BaseData: addresses not set");
+        if (!isTestnet(block.chainid)) {
+            require(a.OFT_DELEGATE != TEMP_GNOSIS_SAFE, "BaseData: addresses not set");
+            require(a.TOKEN_ADMIN != TEMP_GNOSIS_SAFE, "BaseData: addresses not set");
+            require(a.PROXY_ADMIN != TEMP_PROXY_CONTROLLER, "BaseData: addresses not set");
+        }
     }
 
     function getEID(uint256 chainId) internal view returns (uint32) {
@@ -131,5 +138,10 @@ contract BaseData is Script {
             || chainId == __chainIds.holesky || chainId == __chainIds.fraxtalTestnet || chainId == __chainIds.sepolia;
         bool isEID = __chainIdToLzEID[chainId] != 0;
         return isSupported && isEID;
+    }
+
+    function isTestnet(uint256 chainId) internal view returns (bool) {
+        return
+            chainId == __chainIds.holesky || chainId == __chainIds.fraxtalTestnet || chainId == __chainIds.sepolia;
     }
 }

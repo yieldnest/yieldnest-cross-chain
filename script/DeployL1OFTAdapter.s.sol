@@ -50,7 +50,7 @@ contract DeployL1OFTAdapter is BaseScript {
 
             vm.broadcast();
             ITransparentUpgradeableProxy(address(l1OFTAdapter)).changeAdmin(getAddresses().PROXY_ADMIN);
-            console.log("Deployer L1OFTAdapter at: %s", address(l1OFTAdapter));
+            console.log("Deployed L1OFTAdapter at: %s", address(l1OFTAdapter));
         } else {
             l1OFTAdapter = L1YnOFTAdapterUpgradeable(currentDeployment.oftAdapter);
             console.log("Already deployed L1OFTAdapter at: %s", address(l1OFTAdapter));
@@ -59,24 +59,23 @@ contract DeployL1OFTAdapter is BaseScript {
         require(address(l1OFTAdapter) == predictions.l1OftAdapter, "Prediction mismatch");
 
         if (l1OFTAdapter.owner() == CURRENT_SIGNER) {
-            console.log("Setting rate limits");
             vm.broadcast();
             l1OFTAdapter.setRateLimits(_getRateLimitConfigs());
+            console.log("Set rate limits");
 
-            console.log("Setting peers");
             for (uint256 i = 0; i < baseInput.l2ChainIds.length; i++) {
                 uint256 chainId = baseInput.l2ChainIds[i];
                 uint32 eid = getEID(chainId);
                 address adapter = predictions.l2OftAdapter;
                 bytes32 adapterBytes32 = addressToBytes32(adapter);
                 if (l1OFTAdapter.peers(eid) == adapterBytes32) {
-                    console.log("Peer already set for chain %d", chainId);
+                    console.log("Already set peer for chain %d", chainId);
                     continue;
                 }
 
                 vm.broadcast();
                 l1OFTAdapter.setPeer(eid, adapterBytes32);
-                console.log("Set Peer %s for eid %d", adapter, eid);
+                console.log("Set peer %s for eid %d", adapter, eid);
             }
 
             vm.broadcast();

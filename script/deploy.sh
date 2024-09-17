@@ -74,15 +74,15 @@ function simulate() {
 }
 
 function broadcast() {
-    forge script $1 --sig $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS --broadcast
+    forge script $1 --sig $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS --broadcast --slow
 }
 
 function verify() {
-    forge script $1 --sig $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS --verify --etherscan-api-key $3
+    forge script $1 --sig $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS --verify --etherscan-api-key $3 --slow
 }
 
 function broadcastAndVerify() {
-    forge script $1 --sig $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS --broadcast --verify
+    forge script $1 --sig $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS --broadcast --verify --etherscan-api-key $3 --slow
 }
 
 function getRPC() {
@@ -215,7 +215,7 @@ while [[ $# -gt 0 ]]; do
         shift
         ;;
     --verify | -v)
-        BROADCAST=true
+        VERIFY=true
         shift
         ;;
     --force | -f)
