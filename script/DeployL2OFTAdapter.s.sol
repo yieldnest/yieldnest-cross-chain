@@ -30,7 +30,7 @@ contract DeployL2OFTAdapter is BaseScript {
 
         require(currentDeployment.isL1 != true, "Must be L2 deployment");
 
-        bytes32 salt = createSalt(msg.sender, "ImmutableMultiChainDeployer");
+        bytes32 salt = createImmutableMultiChainDeployerSalt(msg.sender);
 
         address predictedAddress = predictions.l2MultiChainDeployer;
         if (!isContract(currentDeployment.multiChainDeployer)) {
@@ -46,13 +46,13 @@ contract DeployL2OFTAdapter is BaseScript {
 
         currentDeployment.multiChainDeployer = address(multiChainDeployer);
 
-        bytes32 proxySalt = createSalt(msg.sender, "L2YnERC20UpgradeableProxy");
-        bytes32 implementationSalt = createSalt(msg.sender, "L2YnERC20Upgradeable");
+        bytes32 proxySalt = createL2YnERC20UpgradeableProxySalt(msg.sender);
+        bytes32 implementationSalt = createL2YnERC20UpgradeableSalt(msg.sender);
 
         address CURRENT_SIGNER = msg.sender;
 
         address predictedERC20 = multiChainDeployer.getDeployed(proxySalt);
-        require(predictedERC20 == predictions.l2Erc20, "Prediction mismatch");
+        require(predictedERC20 == predictions.l2ERC20, "Prediction mismatch");
 
         if (!isContract(currentDeployment.erc20Address)) {
             vm.broadcast();
@@ -79,11 +79,11 @@ contract DeployL2OFTAdapter is BaseScript {
 
         require(predictedERC20 == address(l2ERC20), "Prediction mismatch");
 
-        proxySalt = createSalt(msg.sender, "L2YnOFTAdapterUpgradeableProxy");
-        implementationSalt = createSalt(msg.sender, "L2YnOFTAdapterUpgradeable");
+        proxySalt = createL2YnOFTAdapterUpgradeableProxySalt(msg.sender);
+        implementationSalt = createL2YnOFTAdapterUpgradeableSalt(msg.sender);
 
         address predictedOFTAdapter = multiChainDeployer.getDeployed(proxySalt);
-        require(predictedOFTAdapter == predictions.l2OftAdapter, "Prediction mismatch");
+        require(predictedOFTAdapter == predictions.l2OFTAdapter, "Prediction mismatch");
 
         if (!isContract(currentDeployment.oftAdapter)) {
             vm.broadcast();
@@ -128,7 +128,7 @@ contract DeployL2OFTAdapter is BaseScript {
                 }
                 uint32 eid = getEID(chainId);
                 address adapter =
-                    chainId == baseInput.l1ChainId ? predictions.l1OftAdapter : predictions.l2OftAdapter;
+                    chainId == baseInput.l1ChainId ? predictions.l1OFTAdapter : predictions.l2OFTAdapter;
                 bytes32 adapterBytes32 = addressToBytes32(adapter);
                 if (l2OFTAdapter.peers(eid) == adapterBytes32) {
                     console.log("Already set peer for chainid %d", chainId);

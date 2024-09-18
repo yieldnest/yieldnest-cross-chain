@@ -34,7 +34,7 @@ contract VerifyL1OFTAdapter is BaseScript, BatchScript {
             revert("L1 OFT Adapter not deployed");
         }
 
-        require(address(currentDeployment.oftAdapter) == predictions.l1OftAdapter, "Predicted address mismatch");
+        require(address(currentDeployment.oftAdapter) == predictions.l1OFTAdapter, "Predicted address mismatch");
 
         l1OFTAdapter = L1YnOFTAdapterUpgradeable(currentDeployment.oftAdapter);
 
@@ -70,7 +70,7 @@ contract VerifyL1OFTAdapter is BaseScript, BatchScript {
             if (chainId == block.chainid) {
                 continue;
             }
-            address adapter = predictions.l2OftAdapter;
+            address adapter = predictions.l2OFTAdapter;
             bytes32 adapterBytes32 = addressToBytes32(adapter);
             if (l1OFTAdapter.peers(eid) != adapterBytes32) {
                 needsUpdate = true;

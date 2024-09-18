@@ -45,10 +45,10 @@ struct ChainDeployment {
 }
 
 struct PredictedAddresses {
-    address l1OftAdapter;
+    address l1OFTAdapter;
     address l2MultiChainDeployer;
-    address l2Erc20;
-    address l2OftAdapter;
+    address l2ERC20;
+    address l2OFTAdapter;
 }
 
 struct PeerConfig {
@@ -119,7 +119,7 @@ contract BaseScript is BaseData {
 
     function _loadPredictions() internal {
         {
-            bytes32 salt = createSalt(msg.sender, "ImmutableMultiChainDeployer");
+            bytes32 salt = createImmutableMultiChainDeployerSalt(msg.sender);
 
             address predictedAddress =
                 vm.computeCreate2Address(salt, keccak256(type(ImmutableMultiChainDeployer).creationCode));
@@ -127,8 +127,8 @@ contract BaseScript is BaseData {
         }
 
         {
-            bytes32 proxySalt = createSalt(msg.sender, "L1YnOFTAdapterUpgradeableProxy");
-            bytes32 implementationSalt = createSalt(msg.sender, "L1YnOFTAdapterUpgradeable");
+            bytes32 proxySalt = createL1YnOFTAdapterUpgradeableProxySalt(msg.sender);
+            bytes32 implementationSalt = createL1YnOFTAdapterUpgradeableSalt(msg.sender);
 
             bytes memory implBytecode = bytes.concat(
                 type(L1YnOFTAdapterUpgradeable).creationCode,
@@ -146,26 +146,26 @@ contract BaseScript is BaseData {
             );
 
             address predictedAddress = vm.computeCreate2Address(proxySalt, keccak256(proxyBytecode));
-            predictions.l1OftAdapter = predictedAddress;
+            predictions.l1OFTAdapter = predictedAddress;
         }
 
         {
-            bytes32 salt = createSalt(msg.sender, "L2YnOFTAdapterUpgradeableProxy");
+            bytes32 salt = createL2YnOFTAdapterUpgradeableProxySalt(msg.sender);
 
             address predictedAddress = _computeCreate3Address(salt, predictions.l2MultiChainDeployer);
-            predictions.l2OftAdapter = predictedAddress;
+            predictions.l2OFTAdapter = predictedAddress;
         }
 
         {
-            bytes32 salt = createSalt(msg.sender, "L2YnERC20UpgradeableProxy");
+            bytes32 salt = createL2YnERC20UpgradeableProxySalt(msg.sender);
             address predictedAddress = _computeCreate3Address(salt, predictions.l2MultiChainDeployer);
-            predictions.l2Erc20 = predictedAddress;
+            predictions.l2ERC20 = predictedAddress;
         }
 
         // console.log("Predicted MultiChainDeployer: %s", predictions.l2MultiChainDeployer);
-        // console.log("Predicted L1OFTAdapter: %s", predictions.l1OftAdapter);
-        // console.log("Predicted L2OFTAdapter: %s", predictions.l2OftAdapter);
-        // console.log("Predicted L2ERC20: %s", predictions.l2Erc20);
+        // console.log("Predicted L1OFTAdapter: %s", predictions.l1OFTAdapter);
+        // console.log("Predicted L2OFTAdapter: %s", predictions.l2OFTAdapter);
+        // console.log("Predicted L2ERC20: %s", predictions.l2ERC20);
     }
 
     function _validateInput() internal view {
@@ -307,6 +307,46 @@ contract BaseScript is BaseData {
         // Parse RateLimitConfig struct
         baseInput.rateLimitConfig.limit = vm.parseJsonUint(json, ".rateLimitConfig.limit");
         baseInput.rateLimitConfig.window = vm.parseJsonUint(json, ".rateLimitConfig.window");
+    }
+
+    function createImmutableMultiChainDeployerSalt(address _deployerAddress)
+        internal
+        pure
+        returns (bytes32 _salt)
+    {
+        _salt = createSalt(_deployerAddress, "ImmutableMultiChainDeployer");
+    }
+
+    function createL1YnOFTAdapterUpgradeableProxySalt(address _deployerAddress)
+        internal
+        pure
+        returns (bytes32 _salt)
+    {
+        _salt = createSalt(_deployerAddress, "L1YnOFTAdapterUpgradeableProxy");
+    }
+
+    function createL1YnOFTAdapterUpgradeableSalt(address _deployerAddress) internal pure returns (bytes32 _salt) {
+        _salt = createSalt(_deployerAddress, "L1YnOFTAdapterUpgradeable");
+    }
+
+    function createL2YnOFTAdapterUpgradeableProxySalt(address _deployerAddress)
+        internal
+        pure
+        returns (bytes32 _salt)
+    {
+        _salt = createSalt(_deployerAddress, "L2YnOFTAdapterUpgradeableProxy");
+    }
+
+    function createL2YnOFTAdapterUpgradeableSalt(address _deployerAddress) internal pure returns (bytes32 _salt) {
+        _salt = createSalt(_deployerAddress, "L2YnOFTAdapterUpgradeable");
+    }
+
+    function createL2YnERC20UpgradeableProxySalt(address _deployerAddress) internal pure returns (bytes32 _salt) {
+        _salt = createSalt(_deployerAddress, "L2YnERC20UpgradeableProxy");
+    }
+
+    function createL2YnERC20UpgradeableSalt(address _deployerAddress) internal pure returns (bytes32 _salt) {
+        _salt = createSalt(_deployerAddress, "L2YnERC20Upgradeable");
     }
 
     function createSalt(address _deployerAddress, string memory _label) internal pure returns (bytes32 _salt) {

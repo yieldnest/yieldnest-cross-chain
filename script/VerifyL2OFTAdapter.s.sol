@@ -49,18 +49,18 @@ contract VerifyL2OFTAdapter is BaseScript, BatchScript {
             revert("L2 ERC20 not deployed");
         }
 
-        require(address(currentDeployment.erc20Address) == predictions.l2Erc20, "Predicted ERC20 address mismatch");
+        require(address(currentDeployment.erc20Address) == predictions.l2ERC20, "Predicted ERC20 address mismatch");
 
-        l2ERC20 = L2YnERC20Upgradeable(predictions.l2Erc20);
+        l2ERC20 = L2YnERC20Upgradeable(predictions.l2ERC20);
 
         if (!isContract(currentDeployment.oftAdapter)) {
             revert("L2 OFT Adapter not deployed");
         }
         require(
-            address(currentDeployment.oftAdapter) == predictions.l2OftAdapter,
+            address(currentDeployment.oftAdapter) == predictions.l2OFTAdapter,
             "Predicted L2 OFT Adapter address mismatch"
         );
-        l2OFTAdapter = L2YnOFTAdapterUpgradeable(predictions.l2OftAdapter);
+        l2OFTAdapter = L2YnOFTAdapterUpgradeable(predictions.l2OFTAdapter);
 
         if (l2OFTAdapter.owner() != getData(block.chainid).OFT_OWNER) {
             revert("L2 OFT Adapter ownership not transferred");
@@ -110,7 +110,7 @@ contract VerifyL2OFTAdapter is BaseScript, BatchScript {
             if (chainId == block.chainid) {
                 continue;
             }
-            address adapter = chainId == baseInput.l1ChainId ? predictions.l1OftAdapter : predictions.l2OftAdapter;
+            address adapter = chainId == baseInput.l1ChainId ? predictions.l1OFTAdapter : predictions.l2OFTAdapter;
             bytes32 adapterBytes32 = addressToBytes32(adapter);
             if (l2OFTAdapter.peers(eid) != adapterBytes32) {
                 needsUpdate = true;

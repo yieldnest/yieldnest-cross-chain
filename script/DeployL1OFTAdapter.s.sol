@@ -25,8 +25,8 @@ contract DeployL1OFTAdapter is BaseScript {
 
         require(currentDeployment.isL1 == true, "Must be L1 deployment");
 
-        bytes32 proxySalt = createSalt(msg.sender, "L1YnOFTAdapterUpgradeableProxy");
-        bytes32 implementationSalt = createSalt(msg.sender, "L1YnOFTAdapterUpgradeable");
+        bytes32 proxySalt = createL1YnOFTAdapterUpgradeableProxySalt(msg.sender);
+        bytes32 implementationSalt = createL1YnOFTAdapterUpgradeableSalt(msg.sender);
 
         address CURRENT_SIGNER = msg.sender;
 
@@ -56,7 +56,7 @@ contract DeployL1OFTAdapter is BaseScript {
             console.log("Already deployed L1OFTAdapter at: %s", address(l1OFTAdapter));
         }
 
-        require(address(l1OFTAdapter) == predictions.l1OftAdapter, "Prediction mismatch");
+        require(address(l1OFTAdapter) == predictions.l1OFTAdapter, "Prediction mismatch");
 
         if (l1OFTAdapter.owner() == CURRENT_SIGNER) {
             vm.broadcast();
@@ -66,7 +66,7 @@ contract DeployL1OFTAdapter is BaseScript {
             for (uint256 i = 0; i < baseInput.l2ChainIds.length; i++) {
                 uint256 chainId = baseInput.l2ChainIds[i];
                 uint32 eid = getEID(chainId);
-                address adapter = predictions.l2OftAdapter;
+                address adapter = predictions.l2OFTAdapter;
                 bytes32 adapterBytes32 = addressToBytes32(adapter);
                 if (l1OFTAdapter.peers(eid) == adapterBytes32) {
                     console.log("Already set peer for chainid %d", chainId);
