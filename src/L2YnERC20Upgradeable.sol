@@ -4,7 +4,7 @@ pragma solidity ^0.8.24;
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 
-import {IMintableBurnableERC20} from "./interfaces/IMintableBurnableERC20.sol";
+import {IMintableBurnableERC20} from "@/interfaces/IMintableBurnableERC20.sol";
 
 /// @title L2YnERC20Upgradeable
 /// @notice This contract implements an upgradeable ERC20 token with minting and burning capabilities, controlled

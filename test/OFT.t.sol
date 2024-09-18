@@ -32,7 +32,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metad
 import {L1OFTAdapterMock} from "./mocks/L1OFTAdapterMock.sol";
 import {L2OFTAdapterMock} from "./mocks/L2OFTAdapterMock.sol";
 import {Initializable, TestHelper} from "@layerzerolabs/lz-evm-oapp-v2/test/TestHelper.sol";
-import "forge-std/console.sol";
+import {console} from "forge-std/console.sol";
 
 import {L2YnERC20Upgradeable as L2YnERC20} from "@/L2YnERC20Upgradeable.sol";
 

@@ -7,7 +7,7 @@ import {OFTUpgradeable} from "@layerzerolabs/lz-evm-oapp-v2/contracts-upgradeabl
 
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
 
-import {IMintableBurnableERC20} from "./interfaces/IMintableBurnableERC20.sol";
+import {IMintableBurnableERC20} from "@/interfaces/IMintableBurnableERC20.sol";
 
 contract L2YnOFTAdapterUpgradeable is OFTAdapterUpgradeable, RateLimiter {
     /**
