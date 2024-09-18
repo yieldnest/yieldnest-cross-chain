@@ -22,6 +22,7 @@ contract BaseData is Script {
         uint256 holesky;
         uint256 sepolia;
         uint256 fraxtalTestnet;
+        uint256 morphTestnet;
     }
 
     mapping(uint256 => Data) private __chainIdToData;
@@ -34,7 +35,8 @@ contract BaseData is Script {
         fraxtal: 252,
         holesky: 17000,
         sepolia: 11155111,
-        fraxtalTestnet: 2522
+        fraxtalTestnet: 2522,
+        morphTestnet: 2810
     });
 
     address private TEMP_GNOSIS_SAFE;
@@ -106,6 +108,14 @@ contract BaseData is Script {
             LZ_ENDPOINT: 0x6EDCE65403992e310A62460808c4b910D972f10f,
             LZ_EID: 40255
         });
+
+        __chainIdToData[__chainIds.morphTestnet] = Data({
+            OFT_OWNER: TEMP_GNOSIS_SAFE,
+            TOKEN_ADMIN: TEMP_GNOSIS_SAFE,
+            PROXY_ADMIN: TEMP_PROXY_CONTROLLER,
+            LZ_ENDPOINT: 0x6C7Ab2202C98C4227C5c46f1417D81144DA716Ff,
+            LZ_EID: 40322
+        });
     }
 
     function getData(uint256 chainId) internal view returns (Data storage _data) {
@@ -133,11 +143,12 @@ contract BaseData is Script {
     function isSupportedChainId(uint256 chainId) internal view returns (bool isSupported) {
         isSupported = chainId == __chainIds.mainnet || chainId == __chainIds.base || chainId == __chainIds.fraxtal
             || chainId == __chainIds.optimism || chainId == __chainIds.arbitrum || chainId == __chainIds.holesky
-            || chainId == __chainIds.fraxtalTestnet || chainId == __chainIds.sepolia;
+            || chainId == __chainIds.fraxtalTestnet || chainId == __chainIds.sepolia
+            || chainId == __chainIds.morphTestnet;
     }
 
     function isTestnetChainId(uint256 chainId) internal view returns (bool isTestnet) {
-        isTestnet =
-            chainId == __chainIds.holesky || chainId == __chainIds.fraxtalTestnet || chainId == __chainIds.sepolia;
+        isTestnet = chainId == __chainIds.holesky || chainId == __chainIds.fraxtalTestnet
+            || chainId == __chainIds.sepolia || chainId == __chainIds.morphTestnet;
     }
 }
