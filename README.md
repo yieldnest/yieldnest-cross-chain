@@ -181,3 +181,76 @@ For more information on Foundry and how to use it, please refer to the [Foundry 
 ## License
 
 This project is licensed under the MIT License.
+
+
+
+## Adding a New L2 Testnet Chain
+
+To add a new L2 testnet chain to the existing deployment, follow these steps using Morph Testnet as an example:
+
+1. Update the `BaseData.s.sol` file:
+   - Add the new testnet chain's ID to the `ChainIds` struct:
+     ```solidity
+     struct ChainIds {
+         // ... existing chain IDs
+         uint256 morphTestnet;
+     }
+     ```
+   - Initialize the new testnet chain ID in the `__chainIds` variable:
+     ```solidity
+     __chainIds = ChainIds({
+         // ... existing chain IDs
+         morphTestnet: 2810
+     });
+     ```
+   - Add the testnet chain-specific data to the `setUp()` function:
+     ```solidity
+     __chainIdToData[__chainIds.morphTestnet] = Data({
+         OFT_OWNER: TEMP_GNOSIS_SAFE,
+         TOKEN_ADMIN: TEMP_GNOSIS_SAFE,
+         PROXY_ADMIN: TEMP_PROXY_CONTROLLER,
+         LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c,
+         LZ_EID: 30210 // LayerZero Endpoint ID for Morph Testnet
+     });
+     ```
+
+2. Update the deployment input JSON file for testnets (e.g., `script/inputs/holesky-ynETH.json`):
+   - Add the new testnet chain ID to the `l2ChainIds` array:
+     ```json
+     {
+       "l2ChainIds": [
+         2522,
+         2810
+       ],
+       // ... other existing configuration
+     }
+     ```
+
+3. Add the new testnet chain's RPC URL to the `.env` file:
+   ```
+   MORPH_TESTNET_RPC_URL=https://rpc-testnet.morphl2.io
+   ```
+
+4. Update the `foundry.toml` file to include the new testnet RPC endpoint:
+   ```toml
+   [rpc_endpoints]
+   morph_testnet = "${MORPH_TESTNET_RPC_URL}"
+   ```
+
+5. Run the deployment script for the testnet environment:
+   ```bash
+   yarn deploy script/inputs/holesky-ynETH.json
+   ```
+
+   This will deploy the necessary contracts on the new Morph Testnet chain and update the existing contracts on other testnet chains to recognize the new L2 testnet.
+
+6. After deployment, verify that the new testnet chain has been properly added:
+   - Check that the L2YnOFTAdapter on Morph Testnet has the correct peers set for all other testnet chains.
+   - Verify that all other L2YnOFTAdapters and the L1YnOFTAdapter on testnets have been updated to include Morph Testnet as a peer.
+
+7. Update any front-end applications or scripts to include support for the new Morph Testnet chain, such as adding it to the list of supported testnet networks and including its contract addresses.
+
+By following these steps, you can successfully add Morph Testnet (or any other new L2 testnet chain) to your existing multi-chain testnet deployment.
+
+
+
