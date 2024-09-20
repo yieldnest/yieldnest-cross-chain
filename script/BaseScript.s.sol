@@ -64,7 +64,7 @@ contract BaseScript is BaseData {
     Deployment public deployment;
     ChainDeployment public currentDeployment;
     PredictedAddresses public predictions;
-    string private constant _version = "v1.0.0";
+    string private constant _version = "v0.0.1";
 
     function _getRateLimitConfigs() internal view returns (RateLimiter.RateLimitConfig[] memory) {
         RateLimiter.RateLimitConfig[] memory rateLimitConfigs =

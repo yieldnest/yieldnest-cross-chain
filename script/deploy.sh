@@ -113,6 +113,9 @@ function getRPC() {
     11155111)
         echo "sepolia"
         ;;
+    2810)
+        echo "morph_testnet"
+        ;;
     2522)
         echo "fraxtal_testnet"
         ;;

@@ -140,6 +140,9 @@ abstract contract BatchScript is Script {
         } else if (chainId == 2522) {
             SAFE_API_BASE_URL = "";
             SAFE_MULTISEND_ADDRESS = 0x998739BFdAAdde7C933B942a68053933098f9EDa;
+        } else if (chainId == 2810) {
+            SAFE_API_BASE_URL = "";
+            SAFE_MULTISEND_ADDRESS = 0x998739BFdAAdde7C933B942a68053933098f9EDa;
         } else {
             revert("Unsupported chain");
         }

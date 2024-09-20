@@ -138,17 +138,73 @@ You can find template JSON files for reference in the `script/inputs/` directory
 
 This script will deploy all the necessary contracts across the chains specified in the JSON file, including both the Layer 1 and all Layer 2 chains.
 
-#### Adding New Chains
+### Adding a New L2 Chain
 
-If you need to add a new chain after an initial deployment, you can update the input JSON file by adding the new chain's ID to the `l2ChainIds` list and re-run the deployment command:
+To add a new L2 chain to an existing deployment, follow these steps using Morph Testnet as an example:
 
-```bash
-yarn deploy script/inputs/mainnet-ynETH.json
-```
+1. Update the `BaseData.s.sol` file:
+   - Add the new testnet chain's ID to the `ChainIds` struct:
+     ```solidity
+     struct ChainIds {
+         // ... existing chain IDs
+         uint256 morphTestnet;
+     }
+     ```
+   - Initialize the new testnet chain ID in the `__chainIds` variable:
+     ```solidity
+     __chainIds = ChainIds({
+         // ... existing chain IDs
+         morphTestnet: 2810
+     });
+     ```
+   - Add the testnet chain-specific data to the `setUp()` function:
+     ```solidity
+     __chainIdToData[__chainIds.morphTestnet] = Data({
+         OFT_OWNER: TEMP_GNOSIS_SAFE,
+         TOKEN_ADMIN: TEMP_GNOSIS_SAFE,
+         PROXY_ADMIN: TEMP_PROXY_CONTROLLER,
+         LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c,
+         LZ_EID: 30210 // LayerZero Endpoint ID for Morph Testnet
+     });
+     ```
 
-This will deploy the required contracts on the new chain and provide instructions if any manual configuration is needed on previously deployed networks to support the new chain.
+2. Update the deployment input JSON file for testnets (e.g., `script/inputs/holesky-ynETH.json`):
+   - Add the new testnet chain ID to the `l2ChainIds` array:
+     ```json
+     {
+       "l2ChainIds": [
+         2522,
+         2810
+       ],
+       // ... other existing configuration
+     }
+     ```
 
-The deployment script also includes a verification step to ensure that the contracts have been deployed and configured correctly across all chains.
+3. Add the new testnet chain's RPC URL to the `.env` file:
+   ```
+   MORPH_TESTNET_RPC_URL=https://rpc-testnet.morphl2.io
+   ```
+
+4. Update the `foundry.toml` file to include the new testnet RPC endpoint:
+   ```toml
+   [rpc_endpoints]
+   morph_testnet = "${MORPH_TESTNET_RPC_URL}"
+   ```
+
+5. Run the deployment script for the testnet environment:
+   ```bash
+   yarn deploy script/inputs/holesky-ynETH.json
+   ```
+
+   This will deploy the necessary contracts on the new Morph Testnet chain and update the existing contracts on other testnet chains to recognize the new L2 testnet.
+
+6. After deployment, verify that the new testnet chain has been properly added:
+   - Check that the L2YnOFTAdapter on Morph Testnet has the correct peers set for all other testnet chains.
+   - Verify that all other L2YnOFTAdapters and the L1YnOFTAdapter on testnets have been updated to include Morph Testnet as a peer.
+
+7. Update any front-end applications or scripts to include support for the new Morph Testnet chain, such as adding it to the list of supported testnet networks and including its contract addresses.
+
+By following these steps, you can successfully add Morph Testnet (or any other new L2 testnet chain) to your existing multi-chain testnet deployment.
 
 ### Gas Snapshots
 
