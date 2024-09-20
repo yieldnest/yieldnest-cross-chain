@@ -138,55 +138,9 @@ You can find template JSON files for reference in the `script/inputs/` directory
 
 This script will deploy all the necessary contracts across the chains specified in the JSON file, including both the Layer 1 and all Layer 2 chains.
 
-#### Adding New Chains
+### Adding a New L2 Chain
 
-If you need to add a new chain after an initial deployment, you can update the input JSON file by adding the new chain's ID to the `l2ChainIds` list and re-run the deployment command:
-
-```bash
-yarn deploy script/inputs/mainnet-ynETH.json
-```
-
-This will deploy the required contracts on the new chain and provide instructions if any manual configuration is needed on previously deployed networks to support the new chain.
-
-The deployment script also includes a verification step to ensure that the contracts have been deployed and configured correctly across all chains.
-
-### Gas Snapshots
-
-To generate gas usage reports for the contracts, run:
-
-```bash
-forge snapshot
-```
-
-## Project Structure
-
-- `src/`: Contains the core smart contracts for the project.
-- `script/`: Contains deployment scripts for the contracts.
-- `test/`: Contains tests for the contracts, utilizing Forge.
-- `deployments/`: Contains deployment artifacts and configuration files for different environments.
-- `foundry.toml`: Foundry configuration file.
-- `package.json`: Yarn configuration file for managing dependencies.
-- `remappings.txt`: Foundry remappings for import resolution.
-
-## Linting
-
-This project uses `husky` for Git hooks and `forge fmt` for Solidity file formatting. Pre-commit hooks are set up using `lint-staged` to automatically format `.sol` files on commit.
-
-In addition, `solhint` is used to lint Solidity files. You can run `yarn lint` to manually check the code for common issues and enforce style guidelines.
-
-## Documentation
-
-For more information on Foundry and how to use it, please refer to the [Foundry Book](https://book.getfoundry.sh/).
-
-## License
-
-This project is licensed under the MIT License.
-
-
-
-## Adding a New L2 Testnet Chain
-
-To add a new L2 testnet chain to the existing deployment, follow these steps using Morph Testnet as an example:
+To add a new L2 chain to an existing deployment, follow these steps using Morph Testnet as an example:
 
 1. Update the `BaseData.s.sol` file:
    - Add the new testnet chain's ID to the `ChainIds` struct:
@@ -252,5 +206,34 @@ To add a new L2 testnet chain to the existing deployment, follow these steps usi
 
 By following these steps, you can successfully add Morph Testnet (or any other new L2 testnet chain) to your existing multi-chain testnet deployment.
 
+### Gas Snapshots
 
+To generate gas usage reports for the contracts, run:
 
+```bash
+forge snapshot
+```
+
+## Project Structure
+
+- `src/`: Contains the core smart contracts for the project.
+- `script/`: Contains deployment scripts for the contracts.
+- `test/`: Contains tests for the contracts, utilizing Forge.
+- `deployments/`: Contains deployment artifacts and configuration files for different environments.
+- `foundry.toml`: Foundry configuration file.
+- `package.json`: Yarn configuration file for managing dependencies.
+- `remappings.txt`: Foundry remappings for import resolution.
+
+## Linting
+
+This project uses `husky` for Git hooks and `forge fmt` for Solidity file formatting. Pre-commit hooks are set up using `lint-staged` to automatically format `.sol` files on commit.
+
+In addition, `solhint` is used to lint Solidity files. You can run `yarn lint` to manually check the code for common issues and enforce style guidelines.
+
+## Documentation
+
+For more information on Foundry and how to use it, please refer to the [Foundry Book](https://book.getfoundry.sh/).
+
+## License
+
+This project is licensed under the MIT License.
