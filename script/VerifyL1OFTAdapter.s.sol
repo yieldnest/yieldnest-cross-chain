@@ -12,7 +12,7 @@ import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/Ra
 import {
     ITransparentUpgradeableProxy,
     TransparentUpgradeableProxy
-} from "@openzeppelin/contracts-5/proxy/transparent/TransparentUpgradeableProxy.sol";
+} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {console} from "forge-std/console.sol";
 
 // forge script script/VerifyL1OFTAdapter.s.sol:DeployL1OFTAdapter \

@@ -5,22 +5,14 @@ pragma solidity ^0.8.24;
 import {OptionsBuilder} from "@layerzerolabs/lz-evm-oapp-v2/contracts-upgradeable/oapp/libs/OptionsBuilder.sol";
 
 import {
-    EnforcedOptionParam,
-    IOAppOptionsType3
-} from "@layerzerolabs/lz-evm-oapp-v2/contracts-upgradeable/oapp/libs/OAppOptionsType3Upgradeable.sol";
-import {
     MessagingFee,
     MessagingReceipt
-} from "@layerzerolabs/lz-evm-oapp-v2/contracts-upgradeable/oft/OFTCoreUpgradeable.sol";
+} from "@layerzerolabs/lz-evm-oapp-v2/contracts-upgradeable/oft/interfaces/IOFT.sol";
 import {ERC20Mock} from "@layerzerolabs/lz-evm-oapp-v2/test/mocks/ERC20Mock.sol";
-import {OFTAdapterUpgradeableMock} from "@layerzerolabs/lz-evm-oapp-v2/test/mocks/OFTAdapterUpgradeableMock.sol";
 import {OFTComposerMock} from "@layerzerolabs/lz-evm-oapp-v2/test/mocks/OFTComposerMock.sol";
-import {IOAppMsgInspector, OFTInspectorMock} from "@layerzerolabs/lz-evm-oapp-v2/test/mocks/OFTInspectorMock.sol";
-import {OFTUpgradeableMock} from "@layerzerolabs/lz-evm-oapp-v2/test/mocks/OFTUpgradeableMock.sol";
 
 import {OFTComposeMsgCodec} from
     "@layerzerolabs/lz-evm-oapp-v2/contracts-upgradeable/oft/libs/OFTComposeMsgCodec.sol";
-import {OFTMsgCodec} from "@layerzerolabs/lz-evm-oapp-v2/contracts-upgradeable/oft/libs/OFTMsgCodec.sol";
 
 import {
     IOFT,
@@ -31,12 +23,14 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metad
 
 import {L1OFTAdapterMock} from "./mocks/L1OFTAdapterMock.sol";
 import {L2OFTAdapterMock} from "./mocks/L2OFTAdapterMock.sol";
-import {Initializable, TestHelper} from "@layerzerolabs/lz-evm-oapp-v2/test/TestHelper.sol";
+
 import {console} from "forge-std/console.sol";
 
 import {L2YnERC20Upgradeable as L2YnERC20} from "@/L2YnERC20Upgradeable.sol";
 
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
+
+import {TestHelper} from "@layerzerolabs/lz-evm-oapp-v2/test/TestHelper.sol";
 
 contract OFTTest is TestHelper {
     using OptionsBuilder for bytes;
@@ -62,7 +56,6 @@ contract OFTTest is TestHelper {
         vm.deal(userB, 1000 ether);
         vm.deal(userC, 1000 ether);
 
-        super.setUp();
         setUpEndpoints(3, LibraryType.UltraLightNode);
         RateLimiter.RateLimitConfig[] memory _rateLimitConfigs = new RateLimiter.RateLimitConfig[](3);
         _rateLimitConfigs[0] = RateLimiter.RateLimitConfig({dstEid: 1, limit: 10 ether, window: 1 days});

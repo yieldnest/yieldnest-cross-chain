@@ -9,9 +9,10 @@ import {ImmutableMultiChainDeployer} from "@/factory/ImmutableMultiChainDeployer
 import {IMintableBurnableERC20} from "@/interfaces/IMintableBurnableERC20.sol";
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
 import {ERC20Mock} from "@layerzerolabs/lz-evm-oapp-v2/test/mocks/ERC20Mock.sol";
-import {EndpointV2} from "@layerzerolabs/lz-evm-protocol-v2/contracts/EndpointV2.sol";
+import {ILayerZeroEndpointV2} from
+    "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroEndpointV2.sol";
 import {TransparentUpgradeableProxy} from
-    "@openzeppelin/contracts-5/proxy/transparent/TransparentUpgradeableProxy.sol";
+    "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {Test} from "forge-std/Test.sol";
 
 import {console} from "forge-std/console.sol";
@@ -29,9 +30,12 @@ contract CrossChainBaseTest is Test {
     address public _owner = makeAddr("owner");
     address public _controller = makeAddr("controller");
 
-    EndpointV2 public arbitrumLzEndpoint = EndpointV2(0x1a44076050125825900e736c501f859c50fE728c);
-    EndpointV2 public optimismLzEndpoint = EndpointV2(0x1a44076050125825900e736c501f859c50fE728c);
-    EndpointV2 public mainnetLzEndpoint = EndpointV2(0x1a44076050125825900e736c501f859c50fE728c);
+    ILayerZeroEndpointV2 public arbitrumLzEndpoint =
+        ILayerZeroEndpointV2(0x1a44076050125825900e736c501f859c50fE728c);
+    ILayerZeroEndpointV2 public optimismLzEndpoint =
+        ILayerZeroEndpointV2(0x1a44076050125825900e736c501f859c50fE728c);
+    ILayerZeroEndpointV2 public mainnetLzEndpoint =
+        ILayerZeroEndpointV2(0x1a44076050125825900e736c501f859c50fE728c);
 
     ERC20Mock public mainnetERC20;
     L2YnERC20Upgradeable public optimismERC20;

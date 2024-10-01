@@ -9,11 +9,12 @@ import {L2YnOFTAdapterUpgradeable} from "@/L2YnOFTAdapterUpgradeable.sol";
 import {ImmutableMultiChainDeployer} from "@/factory/ImmutableMultiChainDeployer.sol";
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
 
-import {Ownable} from "@openzeppelin/contracts-5/access/Ownable.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {
     ITransparentUpgradeableProxy,
+    ProxyAdmin,
     TransparentUpgradeableProxy
-} from "@openzeppelin/contracts-5/proxy/transparent/TransparentUpgradeableProxy.sol";
+} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 import {console} from "forge-std/console.sol";
 
@@ -105,7 +106,6 @@ contract DeployL2OFTAdapter is BaseScript {
             );
 
             vm.broadcast();
-
             address newOwner = getData(block.chainid).PROXY_ADMIN;
             console.log("Changing owner for L2OFTAdapter to: %s", newOwner);
             Ownable(getTransparentUpgradeableProxyAdminAddress(address(l2OFTAdapter))).transferOwnership(newOwner);
