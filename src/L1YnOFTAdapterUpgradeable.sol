@@ -23,8 +23,7 @@ contract L1YnOFTAdapterUpgradeable is OFTAdapterUpgradeable, RateLimiter {
      */
     function initialize(address _owner) external virtual initializer {
         __OFTAdapter_init(_owner);
-        __Ownable_init();
-        _transferOwnership(_owner);
+        __Ownable_init(_owner);
     }
 
     /**

@@ -4,6 +4,7 @@ pragma solidity ^0.8.24;
 
 import {BaseScript, PeerConfig} from "./BaseScript.s.sol";
 import {BatchScript} from "./BatchScript.s.sol";
+import {Utils} from "./Utils.sol";
 
 import {L2YnERC20Upgradeable} from "@/L2YnERC20Upgradeable.sol";
 import {L2YnOFTAdapterUpgradeable} from "@/L2YnOFTAdapterUpgradeable.sol";
@@ -13,6 +14,7 @@ import {IOAppCore} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/interfaces
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
 import {
     ITransparentUpgradeableProxy,
+    ProxyAdmin,
     TransparentUpgradeableProxy
 } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {console} from "forge-std/console.sol";
@@ -21,7 +23,7 @@ import {console} from "forge-std/console.sol";
 // --rpc-url ${rpc} --sig "run(string calldata)" ${path} \
 // --account ${deployerAccountName} --sender ${deployer}
 
-contract VerifyL2OFTAdapter is BaseScript, BatchScript {
+contract VerifyL2OFTAdapter is BaseScript, BatchScript, Utils {
     ImmutableMultiChainDeployer public multiChainDeployer;
     L2YnOFTAdapterUpgradeable public l2OFTAdapter;
     L2YnERC20Upgradeable public l2ERC20;
@@ -66,8 +68,8 @@ contract VerifyL2OFTAdapter is BaseScript, BatchScript {
             revert("L2 OFT Adapter ownership not transferred");
         }
 
-        vm.prank(getData(block.chainid).PROXY_ADMIN);
-        if (ITransparentUpgradeableProxy(address(l2OFTAdapter)).admin() != getData(block.chainid).PROXY_ADMIN) {
+        ProxyAdmin proxyAdmin = ProxyAdmin(getTransparentUpgradeableProxyAdminAddress(address(l2OFTAdapter)));
+        if (proxyAdmin.owner() != getData(block.chainid).PROXY_ADMIN) {
             revert("L2 OFT Adapter proxy admin not set");
         }
 
@@ -82,8 +84,8 @@ contract VerifyL2OFTAdapter is BaseScript, BatchScript {
             revert("Token Admin Role not set");
         }
 
-        vm.prank(getData(block.chainid).PROXY_ADMIN);
-        if (ITransparentUpgradeableProxy(address(l2ERC20)).admin() != getData(block.chainid).PROXY_ADMIN) {
+        proxyAdmin = ProxyAdmin(getTransparentUpgradeableProxyAdminAddress(address(l2ERC20)));
+        if (proxyAdmin.owner() != getData(block.chainid).PROXY_ADMIN) {
             revert("L2 ERC20 proxy admin not set");
         }
 

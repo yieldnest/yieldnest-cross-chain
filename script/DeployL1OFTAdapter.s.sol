@@ -3,11 +3,13 @@
 pragma solidity ^0.8.24;
 
 import {BaseScript} from "./BaseScript.s.sol";
+import {Utils} from "./Utils.sol";
 
 import {L1YnOFTAdapterUpgradeable} from "@/L1YnOFTAdapterUpgradeable.sol";
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
 import {
     ITransparentUpgradeableProxy,
+    ProxyAdmin,
     TransparentUpgradeableProxy
 } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {console} from "forge-std/console.sol";
@@ -17,7 +19,7 @@ import {console} from "forge-std/console.sol";
 // --account ${deployerAccountName} --sender ${deployer} \
 // --broadcast --etherscan-api-key ${api} --verify
 
-contract DeployL1OFTAdapter is BaseScript {
+contract DeployL1OFTAdapter is BaseScript, Utils {
     L1YnOFTAdapterUpgradeable public l1OFTAdapter;
 
     function run(string calldata _jsonPath) public {
@@ -48,8 +50,11 @@ contract DeployL1OFTAdapter is BaseScript {
                 )
             );
 
+            ProxyAdmin proxyAdmin = ProxyAdmin(getTransparentUpgradeableProxyAdminAddress(address(l1OFTAdapter)));
+
             vm.broadcast();
-            ITransparentUpgradeableProxy(address(l1OFTAdapter)).changeAdmin(getData(block.chainid).PROXY_ADMIN);
+            proxyAdmin.transferOwnership(getData(block.chainid).PROXY_ADMIN);
+
             console.log("Deployed L1OFTAdapter at: %s", address(l1OFTAdapter));
         } else {
             l1OFTAdapter = L1YnOFTAdapterUpgradeable(currentDeployment.oftAdapter);

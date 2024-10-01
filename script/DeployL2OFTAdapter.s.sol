@@ -3,6 +3,7 @@
 pragma solidity ^0.8.24;
 
 import {BaseScript} from "./BaseScript.s.sol";
+import {Utils} from "./Utils.sol";
 
 import {L2YnERC20Upgradeable} from "@/L2YnERC20Upgradeable.sol";
 import {L2YnOFTAdapterUpgradeable} from "@/L2YnOFTAdapterUpgradeable.sol";
@@ -11,6 +12,7 @@ import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/Ra
 
 import {
     ITransparentUpgradeableProxy,
+    ProxyAdmin,
     TransparentUpgradeableProxy
 } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {console} from "forge-std/console.sol";
@@ -20,7 +22,7 @@ import {console} from "forge-std/console.sol";
 // --account ${deployerAccountName} --sender ${deployer} \
 // --broadcast --etherscan-api-key ${api} --verify
 
-contract DeployL2OFTAdapter is BaseScript {
+contract DeployL2OFTAdapter is BaseScript, Utils {
     ImmutableMultiChainDeployer public multiChainDeployer;
     L2YnOFTAdapterUpgradeable public l2OFTAdapter;
     L2YnERC20Upgradeable public l2ERC20;
@@ -68,8 +70,10 @@ contract DeployL2OFTAdapter is BaseScript {
                 )
             );
 
+            ProxyAdmin proxyAdmin = ProxyAdmin(getTransparentUpgradeableProxyAdminAddress(address(l2ERC20)));
+
             vm.broadcast();
-            ITransparentUpgradeableProxy(address(l2ERC20)).changeAdmin(getData(block.chainid).PROXY_ADMIN);
+            proxyAdmin.transferOwnership(getData(block.chainid).PROXY_ADMIN);
 
             console.log("Deployed L2ERC20 at: %s", address(l2ERC20));
         } else {
@@ -99,8 +103,10 @@ contract DeployL2OFTAdapter is BaseScript {
                 )
             );
 
+            ProxyAdmin proxyAdmin = ProxyAdmin(getTransparentUpgradeableProxyAdminAddress(address(l2OFTAdapter)));
+
             vm.broadcast();
-            ITransparentUpgradeableProxy(address(l2OFTAdapter)).changeAdmin(getData(block.chainid).PROXY_ADMIN);
+            proxyAdmin.transferOwnership(getData(block.chainid).PROXY_ADMIN);
 
             console.log("Deployed L2OFTAdapter at: %s", address(l2OFTAdapter));
         } else {
