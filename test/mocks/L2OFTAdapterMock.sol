@@ -13,8 +13,7 @@ contract L2OFTAdapterMock is L2YnOFTAdapterUpgradeable {
 
     function initialize(address _owner) external virtual override initializer {
         super.__OFTAdapter_init(_owner);
-        super.__Ownable_init();
-        super._transferOwnership(_owner);
+        super.__Ownable_init(_owner);
     }
     // @dev expose internal functions for testing purposes
 
