@@ -4,9 +4,8 @@ pragma solidity ^0.8.24;
 import {L2YnERC20Upgradeable} from "@/L2YnERC20Upgradeable.sol";
 import {L2YnOFTAdapterUpgradeable} from "@/L2YnOFTAdapterUpgradeable.sol";
 import {IImmutableMultiChainDeployer} from "@/interfaces/IImmutableMultiChainDeployer.sol";
-import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import {TransparentUpgradeableProxy} from
-    "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+    "@openzeppelin/contracts-5/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {CREATE3} from "solmate/utils/CREATE3.sol";
 
 contract ImmutableMultiChainDeployer is IImmutableMultiChainDeployer {
