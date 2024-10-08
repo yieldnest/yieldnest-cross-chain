@@ -19,6 +19,14 @@ contract BaseData is Script {
         uint256 optimism;
         uint256 arbitrum;
         uint256 fraxtal;
+        uint256 manta;
+        uint256 taiko;
+        uint256 scroll;
+        uint256 fantom;
+        uint256 mantle;
+        uint256 blast;
+        uint256 linea;
+        // testnets
         uint256 holesky;
         uint256 sepolia;
         uint256 fraxtalTestnet;
@@ -33,6 +41,14 @@ contract BaseData is Script {
         optimism: 10,
         arbitrum: 42161,
         fraxtal: 252,
+        manta: 169,
+        taiko: 167000,
+        scroll: 534352,
+        fantom: 250,
+        mantle: 5000,
+        blast: 81457,
+        linea: 59144,
+        // testnets
         holesky: 17000,
         sepolia: 11155111,
         fraxtalTestnet: 2522,
