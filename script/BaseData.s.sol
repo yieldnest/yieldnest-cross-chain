@@ -208,8 +208,11 @@ contract BaseData is Script {
 
     function isSupportedChainId(uint256 chainId) internal view returns (bool isSupported) {
         isSupported = chainId == __chainIds.mainnet || chainId == __chainIds.base || chainId == __chainIds.fraxtal
-            || chainId == __chainIds.optimism || chainId == __chainIds.arbitrum || chainId == __chainIds.holesky
-            || chainId == __chainIds.fraxtalTestnet || chainId == __chainIds.sepolia
+            || chainId == __chainIds.optimism || chainId == __chainIds.arbitrum || chainId == __chainIds.manta
+            || chainId == __chainIds.taiko || chainId == __chainIds.scroll || chainId == __chainIds.fantom
+            || chainId == __chainIds.mantle || chainId == __chainIds.blast || chainId == __chainIds.linea
+        // testnets
+        || chainId == __chainIds.holesky || chainId == __chainIds.fraxtalTestnet || chainId == __chainIds.sepolia
             || chainId == __chainIds.morphTestnet;
     }
 
