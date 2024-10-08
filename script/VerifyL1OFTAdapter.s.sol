@@ -43,7 +43,9 @@ contract VerifyL1OFTAdapter is BaseScript, BatchScript {
         }
 
         vm.prank(getData(block.chainid).PROXY_ADMIN);
-        if (ITransparentUpgradeableProxy(address(l1OFTAdapter)).admin() != getData(block.chainid).PROXY_ADMIN) {
+        if (
+            getTransparentUpgradeableProxyAdminAddress(address(l1OFTAdapter)) != getData(block.chainid).PROXY_ADMIN
+        ) {
             revert("L1 OFT Adapter proxy admin not set");
         }
 
