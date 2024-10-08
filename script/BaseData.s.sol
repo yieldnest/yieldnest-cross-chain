@@ -102,6 +102,56 @@ contract BaseData is Script {
             LZ_EID: 30255
         });
 
+        __chainIdToData[__chainIds.manta] = Data({
+            OFT_OWNER: TEMP_GNOSIS_SAFE,
+            TOKEN_ADMIN: TEMP_GNOSIS_SAFE,
+            PROXY_ADMIN: TEMP_PROXY_CONTROLLER,
+            LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c,
+            LZ_EID: 30217
+        });
+        __chainIdToData[__chainIds.taiko] = Data({
+            OFT_OWNER: TEMP_GNOSIS_SAFE,
+            TOKEN_ADMIN: TEMP_GNOSIS_SAFE,
+            PROXY_ADMIN: TEMP_PROXY_CONTROLLER,
+            LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c,
+            LZ_EID: 30290
+        });
+        __chainIdToData[__chainIds.scroll] = Data({
+            OFT_OWNER: TEMP_GNOSIS_SAFE,
+            TOKEN_ADMIN: TEMP_GNOSIS_SAFE,
+            PROXY_ADMIN: TEMP_PROXY_CONTROLLER,
+            LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c,
+            LZ_EID: 30214
+        });
+        __chainIdToData[__chainIds.fantom] = Data({
+            OFT_OWNER: TEMP_GNOSIS_SAFE,
+            TOKEN_ADMIN: TEMP_GNOSIS_SAFE,
+            PROXY_ADMIN: TEMP_PROXY_CONTROLLER,
+            LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c,
+            LZ_EID: 30112
+        });
+        __chainIdToData[__chainIds.mantle] = Data({
+            OFT_OWNER: TEMP_GNOSIS_SAFE,
+            TOKEN_ADMIN: TEMP_GNOSIS_SAFE,
+            PROXY_ADMIN: TEMP_PROXY_CONTROLLER,
+            LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c,
+            LZ_EID: 30181
+        });
+        __chainIdToData[__chainIds.blast] = Data({
+            OFT_OWNER: TEMP_GNOSIS_SAFE,
+            TOKEN_ADMIN: TEMP_GNOSIS_SAFE,
+            PROXY_ADMIN: TEMP_PROXY_CONTROLLER,
+            LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c,
+            LZ_EID: 30243
+        });
+        __chainIdToData[__chainIds.linea] = Data({
+            OFT_OWNER: TEMP_GNOSIS_SAFE,
+            TOKEN_ADMIN: TEMP_GNOSIS_SAFE,
+            PROXY_ADMIN: TEMP_PROXY_CONTROLLER,
+            LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c,
+            LZ_EID: 30183
+        });
+
         // testnets
         __chainIdToData[__chainIds.holesky] = Data({
             OFT_OWNER: TEMP_GNOSIS_SAFE,
