@@ -9,10 +9,12 @@ import {L2YnOFTAdapterUpgradeable} from "@/L2YnOFTAdapterUpgradeable.sol";
 import {ImmutableMultiChainDeployer} from "@/factory/ImmutableMultiChainDeployer.sol";
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
 
+import {Ownable} from "@openzeppelin/contracts-5/access/Ownable.sol";
 import {
     ITransparentUpgradeableProxy,
     TransparentUpgradeableProxy
-} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+} from "@openzeppelin/contracts-5/proxy/transparent/TransparentUpgradeableProxy.sol";
+
 import {console} from "forge-std/console.sol";
 
 // forge script script/DeployL2OFTAdapter.s.sol:DeployL2Adapter \
@@ -69,7 +71,10 @@ contract DeployL2OFTAdapter is BaseScript {
             );
 
             vm.broadcast();
-            ITransparentUpgradeableProxy(address(l2ERC20)).changeAdmin(getData(block.chainid).PROXY_ADMIN);
+
+            address newOwner = getData(block.chainid).PROXY_ADMIN;
+            console.log("Changing owner for L2ERC20 to: %s", newOwner);
+            Ownable(getTransparentUpgradeableProxyAdminAddress(address(l2ERC20))).transferOwnership(newOwner);
 
             console.log("Deployed L2ERC20 at: %s", address(l2ERC20));
         } else {
@@ -100,7 +105,10 @@ contract DeployL2OFTAdapter is BaseScript {
             );
 
             vm.broadcast();
-            ITransparentUpgradeableProxy(address(l2OFTAdapter)).changeAdmin(getData(block.chainid).PROXY_ADMIN);
+
+            address newOwner = getData(block.chainid).PROXY_ADMIN;
+            console.log("Changing owner for L2OFTAdapter to: %s", newOwner);
+            Ownable(getTransparentUpgradeableProxyAdminAddress(address(l2OFTAdapter))).transferOwnership(newOwner);
 
             console.log("Deployed L2OFTAdapter at: %s", address(l2OFTAdapter));
         } else {

@@ -6,10 +6,13 @@ import {BaseScript} from "./BaseScript.s.sol";
 
 import {L1YnOFTAdapterUpgradeable} from "@/L1YnOFTAdapterUpgradeable.sol";
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
+
+import {Ownable} from "@openzeppelin/contracts-5/access/Ownable.sol";
 import {
     ITransparentUpgradeableProxy,
     TransparentUpgradeableProxy
-} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+} from "@openzeppelin/contracts-5/proxy/transparent/TransparentUpgradeableProxy.sol";
+
 import {console} from "forge-std/console.sol";
 
 // forge script script/DeployL1OFTAdapter.s.sol:DeployL1OFTAdapter \
@@ -49,7 +52,10 @@ contract DeployL1OFTAdapter is BaseScript {
             );
 
             vm.broadcast();
-            ITransparentUpgradeableProxy(address(l1OFTAdapter)).changeAdmin(getData(block.chainid).PROXY_ADMIN);
+
+            address newOwner = getData(block.chainid).PROXY_ADMIN;
+            console.log("Changing owner for L1OFTAdapter to: %s", newOwner);
+            Ownable(getTransparentUpgradeableProxyAdminAddress(address(l1OFTAdapter))).transferOwnership(newOwner);
             console.log("Deployed L1OFTAdapter at: %s", address(l1OFTAdapter));
         } else {
             l1OFTAdapter = L1YnOFTAdapterUpgradeable(currentDeployment.oftAdapter);

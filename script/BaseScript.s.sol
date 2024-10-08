@@ -9,7 +9,8 @@ import {ImmutableMultiChainDeployer} from "@/factory/ImmutableMultiChainDeployer
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
 import {EndpointV2} from "@layerzerolabs/lz-evm-protocol-v2/contracts/EndpointV2.sol";
 import {TransparentUpgradeableProxy} from
-    "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+    "@openzeppelin/contracts-5/proxy/transparent/TransparentUpgradeableProxy.sol";
+import {Utils} from "script/Utils.sol";
 
 import {console} from "forge-std/console.sol";
 import {Bytes32AddressLib} from "solmate/utils/Bytes32AddressLib.sol";
@@ -57,14 +58,14 @@ struct PeerConfig {
     address peer;
 }
 
-contract BaseScript is BaseData {
+contract BaseScript is BaseData, Utils {
     using Bytes32AddressLib for bytes32;
 
     BaseInput public baseInput;
     Deployment public deployment;
     ChainDeployment public currentDeployment;
     PredictedAddresses public predictions;
-    string private constant _version = "v0.0.1";
+    string private constant _version = "v0.0.3";
 
     function _getRateLimitConfigs() internal view returns (RateLimiter.RateLimitConfig[] memory) {
         RateLimiter.RateLimitConfig[] memory rateLimitConfigs =

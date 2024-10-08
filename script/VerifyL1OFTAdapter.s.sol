@@ -12,7 +12,7 @@ import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/Ra
 import {
     ITransparentUpgradeableProxy,
     TransparentUpgradeableProxy
-} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+} from "@openzeppelin/contracts-5/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {console} from "forge-std/console.sol";
 
 // forge script script/VerifyL1OFTAdapter.s.sol:DeployL1OFTAdapter \
@@ -43,7 +43,9 @@ contract VerifyL1OFTAdapter is BaseScript, BatchScript {
         }
 
         vm.prank(getData(block.chainid).PROXY_ADMIN);
-        if (ITransparentUpgradeableProxy(address(l1OFTAdapter)).admin() != getData(block.chainid).PROXY_ADMIN) {
+        if (
+            getTransparentUpgradeableProxyAdminAddress(address(l1OFTAdapter)) != getData(block.chainid).PROXY_ADMIN
+        ) {
             revert("L1 OFT Adapter proxy admin not set");
         }
 
