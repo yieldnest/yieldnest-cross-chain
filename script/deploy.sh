@@ -107,6 +107,27 @@ function getRPC() {
     252)
         echo "fraxtal"
         ;;
+    169)
+        echo "manta"
+        ;;
+    167000)
+        echo "taiko"
+        ;;
+    534352)
+        echo "scroll"
+        ;;
+    250)
+        echo "fantom"
+        ;;
+    5000)
+        echo "mantle"
+        ;;
+    81457)
+        echo "blast"
+        ;;
+    59144)
+        echo "linea"
+        ;;
     17000)
         echo "holesky"
         ;;
