@@ -42,11 +42,18 @@ morph_testnet = "${MORPH_TESTNET_RPC_URL}"
 
 [etherscan]
 mainnet = { key = "${ETHERSCAN_API_KEY}" }
-arbitrum = { key = "${ARBISCAN_API_KEY}" }
-optimism = { key = "${OPTIMISTIC_ETHERSCAN_API_KEY}" }
+arbitrum = { key = "${ARBISCAN_API_KEY}", url = "https://api.arbiscan.io/api/" }
+optimism = { key = "${OPTIMISTIC_ETHERSCAN_API_KEY}", url = "https://api-optimistic.etherscan.io/api" }
 base = { key = "${BASESCAN_API_KEY}", url = "https://api.basescan.org/api/" }
 holesky = { key = "${ETHERSCAN_API_KEY}" }
 sepolia = { key = "${ETHERSCAN_API_KEY}" }
 fraxtal = { key = "${FRAXSCAN_API_KEY}", url = "https://api.fraxscan.io/api/" }
 fraxtal_testnet = { key = "${FRAXSCAN_API_KEY}", url = "https://api-holesky.fraxscan.io/api/" }
 morph_testnet = { key = "${MORPHSCAN_API_KEY}", url = "https://explorer-api-holesky.morphl2.io/api/" }
+scroll = { key = "${SCROLLSCAN_API_KEY}", url = "https://api.scrollscan.com/" }
+fantom = { key = "${FANTOMSCAN_API_KEY}", url = "https://api.ftmscan.com/api/" }
+taiko = { key = "${TAIKOSCAN_API_KEY}", url = "https://api.taikoscan.io/api" }
+mantle = { key = "${MANTLESCAN_API_KEY}", url = "https://explorer.mantle.xyz/api/" }
+blast = { key = "${BLASTSCAN_API_KEY}", url = "https://api.blastscan.io/api/" }
+linea = { key = "${LINEASCAN_API_KEY}", url = "https://api.lineascan.build/api/" }
+
