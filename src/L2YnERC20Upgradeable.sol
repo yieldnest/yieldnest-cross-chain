@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import "src/external/AccessControlUpgradeable.sol";
+import "src/external/ERC20Upgradeable.sol";
 
 import {IMintableBurnableERC20} from "@/interfaces/IMintableBurnableERC20.sol";
 
