@@ -11,7 +11,7 @@ import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/Ra
 import {ERC20Mock} from "@layerzerolabs/lz-evm-oapp-v2/test/mocks/ERC20Mock.sol";
 import {EndpointV2} from "@layerzerolabs/lz-evm-protocol-v2/contracts/EndpointV2.sol";
 import {TransparentUpgradeableProxy} from
-    "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+    "@openzeppelin/contracts-5/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {Test} from "forge-std/Test.sol";
 
 import {console} from "forge-std/console.sol";

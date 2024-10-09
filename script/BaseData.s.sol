@@ -19,6 +19,14 @@ contract BaseData is Script {
         uint256 optimism;
         uint256 arbitrum;
         uint256 fraxtal;
+        uint256 manta;
+        uint256 taiko;
+        uint256 scroll;
+        uint256 fantom;
+        uint256 mantle;
+        uint256 blast;
+        uint256 linea;
+        // testnets
         uint256 holesky;
         uint256 sepolia;
         uint256 fraxtalTestnet;
@@ -33,6 +41,14 @@ contract BaseData is Script {
         optimism: 10,
         arbitrum: 42161,
         fraxtal: 252,
+        manta: 169,
+        taiko: 167000,
+        scroll: 534352,
+        fantom: 250,
+        mantle: 5000,
+        blast: 81457,
+        linea: 59144,
+        // testnets
         holesky: 17000,
         sepolia: 11155111,
         fraxtalTestnet: 2522,
@@ -84,6 +100,56 @@ contract BaseData is Script {
             PROXY_ADMIN: TEMP_PROXY_CONTROLLER,
             LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c,
             LZ_EID: 30255
+        });
+
+        __chainIdToData[__chainIds.manta] = Data({
+            OFT_OWNER: TEMP_GNOSIS_SAFE,
+            TOKEN_ADMIN: TEMP_GNOSIS_SAFE,
+            PROXY_ADMIN: TEMP_PROXY_CONTROLLER,
+            LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c,
+            LZ_EID: 30217
+        });
+        __chainIdToData[__chainIds.taiko] = Data({
+            OFT_OWNER: TEMP_GNOSIS_SAFE,
+            TOKEN_ADMIN: TEMP_GNOSIS_SAFE,
+            PROXY_ADMIN: TEMP_PROXY_CONTROLLER,
+            LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c,
+            LZ_EID: 30290
+        });
+        __chainIdToData[__chainIds.scroll] = Data({
+            OFT_OWNER: TEMP_GNOSIS_SAFE,
+            TOKEN_ADMIN: TEMP_GNOSIS_SAFE,
+            PROXY_ADMIN: TEMP_PROXY_CONTROLLER,
+            LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c,
+            LZ_EID: 30214
+        });
+        __chainIdToData[__chainIds.fantom] = Data({
+            OFT_OWNER: TEMP_GNOSIS_SAFE,
+            TOKEN_ADMIN: TEMP_GNOSIS_SAFE,
+            PROXY_ADMIN: TEMP_PROXY_CONTROLLER,
+            LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c,
+            LZ_EID: 30112
+        });
+        __chainIdToData[__chainIds.mantle] = Data({
+            OFT_OWNER: TEMP_GNOSIS_SAFE,
+            TOKEN_ADMIN: TEMP_GNOSIS_SAFE,
+            PROXY_ADMIN: TEMP_PROXY_CONTROLLER,
+            LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c,
+            LZ_EID: 30181
+        });
+        __chainIdToData[__chainIds.blast] = Data({
+            OFT_OWNER: TEMP_GNOSIS_SAFE,
+            TOKEN_ADMIN: TEMP_GNOSIS_SAFE,
+            PROXY_ADMIN: TEMP_PROXY_CONTROLLER,
+            LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c,
+            LZ_EID: 30243
+        });
+        __chainIdToData[__chainIds.linea] = Data({
+            OFT_OWNER: TEMP_GNOSIS_SAFE,
+            TOKEN_ADMIN: TEMP_GNOSIS_SAFE,
+            PROXY_ADMIN: TEMP_PROXY_CONTROLLER,
+            LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c,
+            LZ_EID: 30183
         });
 
         // testnets
@@ -142,8 +208,11 @@ contract BaseData is Script {
 
     function isSupportedChainId(uint256 chainId) internal view returns (bool isSupported) {
         isSupported = chainId == __chainIds.mainnet || chainId == __chainIds.base || chainId == __chainIds.fraxtal
-            || chainId == __chainIds.optimism || chainId == __chainIds.arbitrum || chainId == __chainIds.holesky
-            || chainId == __chainIds.fraxtalTestnet || chainId == __chainIds.sepolia
+            || chainId == __chainIds.optimism || chainId == __chainIds.arbitrum || chainId == __chainIds.manta
+            || chainId == __chainIds.taiko || chainId == __chainIds.scroll || chainId == __chainIds.fantom
+            || chainId == __chainIds.mantle || chainId == __chainIds.blast || chainId == __chainIds.linea
+        // testnets
+        || chainId == __chainIds.holesky || chainId == __chainIds.fraxtalTestnet || chainId == __chainIds.sepolia
             || chainId == __chainIds.morphTestnet;
     }
 

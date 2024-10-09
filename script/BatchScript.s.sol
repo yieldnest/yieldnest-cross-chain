@@ -143,6 +143,27 @@ abstract contract BatchScript is Script {
         } else if (chainId == 2810) {
             SAFE_API_BASE_URL = "";
             SAFE_MULTISEND_ADDRESS = 0x998739BFdAAdde7C933B942a68053933098f9EDa;
+        } else if (chainId == 169) {
+            SAFE_API_BASE_URL = "";
+            SAFE_MULTISEND_ADDRESS = 0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761;
+        } else if (chainId == 167000) {
+            SAFE_API_BASE_URL = "";
+            SAFE_MULTISEND_ADDRESS = 0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761;
+        } else if (chainId == 534352) {
+            SAFE_API_BASE_URL = "";
+            SAFE_MULTISEND_ADDRESS = 0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761;
+        } else if (chainId == 250) {
+            SAFE_API_BASE_URL = "";
+            SAFE_MULTISEND_ADDRESS = 0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761;
+        } else if (chainId == 5000) {
+            SAFE_API_BASE_URL = "";
+            SAFE_MULTISEND_ADDRESS = 0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761;
+        } else if (chainId == 81457) {
+            SAFE_API_BASE_URL = "";
+            SAFE_MULTISEND_ADDRESS = 0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761;
+        } else if (chainId == 59144) {
+            SAFE_API_BASE_URL = "";
+            SAFE_MULTISEND_ADDRESS = 0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761;
         } else {
             revert("Unsupported chain");
         }
