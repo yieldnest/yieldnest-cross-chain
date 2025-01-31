@@ -13,6 +13,7 @@ import {IOAppCore} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/interfaces
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
 import {
     ITransparentUpgradeableProxy,
+    ProxyAdmin,
     TransparentUpgradeableProxy
 } from "@openzeppelin/contracts-5/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {console} from "forge-std/console.sol";
@@ -66,11 +67,10 @@ contract VerifyL2OFTAdapter is BaseScript, BatchScript {
             revert("L2 OFT Adapter ownership not transferred");
         }
 
-        vm.prank(getData(block.chainid).PROXY_ADMIN);
-        if (
-            getTransparentUpgradeableProxyAdminAddress(address(l2OFTAdapter)) != getData(block.chainid).PROXY_ADMIN
-        ) {
-            revert("L2 OFT Adapter proxy admin not set");
+        address proxyAdmin = getTransparentUpgradeableProxyAdminAddress(address(l2OFTAdapter));
+        address proxyAdminOwner = ProxyAdmin(proxyAdmin).owner();
+        if (proxyAdminOwner != getData(block.chainid).PROXY_ADMIN) {
+            revert("L2 OFT Adapter proxy admin is not correct");
         }
 
         if (l2ERC20.hasRole(l2ERC20.DEFAULT_ADMIN_ROLE(), msg.sender)) {
@@ -84,9 +84,10 @@ contract VerifyL2OFTAdapter is BaseScript, BatchScript {
             revert("Token Admin Role not set");
         }
 
-        vm.prank(getData(block.chainid).PROXY_ADMIN);
-        if (getTransparentUpgradeableProxyAdminAddress(address(l2ERC20)) != getData(block.chainid).PROXY_ADMIN) {
-            revert("L2 ERC20 proxy admin not set");
+        proxyAdmin = getTransparentUpgradeableProxyAdminAddress(address(l2ERC20));
+        proxyAdminOwner = ProxyAdmin(proxyAdmin).owner();
+        if (proxyAdminOwner != getData(block.chainid).PROXY_ADMIN) {
+            revert("L2 ERC20 proxy admin is not correct");
         }
 
         uint256[] memory chainIds = new uint256[](baseInput.l2ChainIds.length + 1);
