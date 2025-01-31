@@ -75,7 +75,7 @@ function simulate() {
 
 function broadcast() {
     if [[ $3 == "morph_testnet" ]]; then
-        forge script $1 --sig $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS --broadcast --verify --verifier blockscout --slow --with-gas-price 3gwei --priority-gas-price 3gwei
+        forge script $1 --sig $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS --broadcast --verify --verifier blockscout --slow --with-gas-price 3gwei --priority-gas-price 3gwei --verifier-url "https://explorer-api-holesky.morphl2.io/api?" --chain 2810
     else
         forge script $1 --sig $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS --broadcast --verify --etherscan-api-key $4 --slow  --with-gas-price 3gwei
     fi
