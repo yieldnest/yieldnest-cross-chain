@@ -66,8 +66,8 @@ contract BaseData is Script {
         // mainnets
         __chainIdToData[__chainIds.mainnet] = Data({
             OFT_OWNER: TEMP_YN_SECURITY_COUNCIL,
-            TOKEN_ADMIN: TEMP_YN_SECURITY_COUNCIL,
-            PROXY_ADMIN: TEMP_YN_SECURITY_COUNCIL,
+            TOKEN_ADMIN: 0xfcad670592a3b24869C0b51a6c6FDED4F95D6975,
+            PROXY_ADMIN: 0xfcad670592a3b24869C0b51a6c6FDED4F95D6975,
             LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c,
             LZ_EID: 30101
         });
