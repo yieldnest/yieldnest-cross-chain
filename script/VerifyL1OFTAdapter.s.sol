@@ -11,6 +11,7 @@ import {IOAppCore} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/interfaces
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
 import {
     ITransparentUpgradeableProxy,
+    ProxyAdmin,
     TransparentUpgradeableProxy
 } from "@openzeppelin/contracts-5/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {console} from "forge-std/console.sol";
@@ -42,11 +43,10 @@ contract VerifyL1OFTAdapter is BaseScript, BatchScript {
             revert("L1 OFT Adapter ownership not transferred");
         }
 
-        vm.prank(getData(block.chainid).PROXY_ADMIN);
-        if (
-            getTransparentUpgradeableProxyAdminAddress(address(l1OFTAdapter)) != getData(block.chainid).PROXY_ADMIN
-        ) {
-            revert("L1 OFT Adapter proxy admin not set");
+        address proxyAdmin = getTransparentUpgradeableProxyAdminAddress(address(l1OFTAdapter));
+        address proxyAdminOwner = ProxyAdmin(proxyAdmin).owner();
+        if (proxyAdminOwner != getData(block.chainid).PROXY_ADMIN) {
+            revert("L1 OFT Adapter proxy admin is not correct");
         }
 
         uint256[] memory chainIds = new uint256[](baseInput.l2ChainIds.length + 1);

@@ -25,9 +25,7 @@ function display_help() {
     echo "  -h, --help            Display this help and exit"
     echo "  -a, --account         Set the deployer account name"
     echo "  -s, --sender          Set the deployer address"
-    echo "  -b, --broadcast       Broadcast the deployment"
-    echo "  -v, --verify          Verify the deployment on Etherscan"
-    echo "  -f, --force           Broadcast and verify the deployment"
+    echo "  -b, --broadcast       Broadcast and verify the deployment"
 
     delimiter
 }
@@ -55,7 +53,6 @@ fi
 # unset private key as we are reading it from cast wallet
 PRIVATE_KEY=""
 DEPLOYER_ACCOUNT_NAME=${DEPLOYER_ACCOUNT_NAME:-"yieldnestDeployerKey"}
-L1_RPC=""
 L1_CHAIN_ID=$(jq -r ".l1ChainId" "$INPUT_PATH")
 ERC20_NAME=$(jq -r ".erc20Name" "$INPUT_PATH")
 L2_CHAIN_IDS_ARRAY=$(jq -r ".l2ChainIds" "$INPUT_PATH" | jq -r ".[]")
@@ -77,15 +74,11 @@ function simulate() {
 }
 
 function broadcast() {
-    forge script $1 --sig $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS --broadcast --slow
-}
-
-function verify() {
-    forge script $1 --sig $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS --verify --etherscan-api-key $3 --slow
-}
-
-function broadcastAndVerify() {
-    forge script $1 --sig $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS --broadcast --verify --etherscan-api-key $3 --slow
+    if [[ $3 == "morph_testnet" ]]; then
+        forge script $1 --sig $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS --broadcast --verify --verifier blockscout --slow --with-gas-price 3gwei --priority-gas-price 3gwei --verifier-url "https://explorer-api-holesky.morphl2.io/api?" --chain 2810
+    else
+        forge script $1 --sig $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS --broadcast --verify --etherscan-api-key $4 --slow  --with-gas-price 3gwei
+    fi
 }
 
 function getRPC() {
@@ -147,6 +140,32 @@ function getRPC() {
     esac
 }
 
+function getEtherscanAPIKey() {
+    local INPUT_ID=$1
+
+    case $INPUT_ID in
+    1)
+        echo "$ETHERSCAN_API_KEY"
+        ;;
+    2522)
+        echo "$FRAXSCAN_API_KEY"
+        ;;
+    252)
+        echo "$FRAXSCAN_API_KEY"
+        ;;
+    2810)
+        echo "$MORPHSCAN_API_KEY"
+        ;;
+    17000)
+        echo "$ETHERSCAN_API_KEY"
+        ;;
+    *)
+        echo "Etherscan API key not found for $1"
+        exit 1
+        ;;
+    esac
+}
+
 # Function to handle errors
 function error_exit() {
     echo "Error: $1" >&2
@@ -155,25 +174,15 @@ function error_exit() {
 }
 
 BROADCAST=false
-VERIFY=false
 
 function runScript() {
     local SCRIPT=$1
     local CALLDATA=$2
     local RPC=$3
-
-    if [[ $BROADCAST == true && $VERIFY == true ]]; then
-        broadcastAndVerify $SCRIPT $CALLDATA $RPC
-        return
-    fi
+    local ETHERSCAN_API_KEY=$4
 
     if [[ $BROADCAST == true ]]; then
-        broadcast $SCRIPT $CALLDATA $RPC
-        return
-    fi
-
-    if [[ $VERIFY == true ]]; then
-        verify $SCRIPT $CALLDATA $RPC
+        broadcast $SCRIPT $CALLDATA $RPC $ETHERSCAN_API_KEY
         return
     fi
 
@@ -181,23 +190,10 @@ function runScript() {
     read -p "Simulation complete, would you like to broadcast the deployment? (y/N) " yn
     case $yn in
     [Yy]*)
-        broadcast $SCRIPT $CALLDATA $RPC
+        broadcast $SCRIPT $CALLDATA $RPC $ETHERSCAN_API_KEY
         ;;
     *)
         echo "Skipping broadcast"
-        return
-        ;;
-
-    esac
-
-    read -p "Deployment complete, would you like to verify on Etherscan? (y/N) " yn
-    case $yn in
-    [Yy]*)
-        verify $SCRIPT $CALLDATA $RPC
-        ;;
-    *)
-        echo "Skipping verifcation"
-        return
         ;;
 
     esac
@@ -241,15 +237,6 @@ while [[ $# -gt 0 ]]; do
         BROADCAST=true
         shift
         ;;
-    --verify | -v)
-        VERIFY=true
-        shift
-        ;;
-    --force | -f)
-        BROADCAST=true
-        VERIFY=true
-        shift
-        ;;
     *)
         echo "Error, unrecognized flag" >&2
         display_help
@@ -260,6 +247,7 @@ done
 
 L1_RPC=$(getRPC $L1_CHAIN_ID)
 L2_RPCS_ARRAY=$(< <(getRPCs $L2_CHAIN_IDS_ARRAY))
+L1_ETHERSCAN_API_KEY=$(getEtherscanAPIKey $L1_CHAIN_ID)
 
 delimiter
 
@@ -274,27 +262,29 @@ delimiter
 CALLDATA=$(cast calldata "run(string)" "/$INPUT_PATH")
 
 echo "Deploying L1 Adapter for $L1_RPC"
-runScript script/DeployL1OFTAdapter.s.sol:DeployL1OFTAdapter $CALLDATA $L1_RPC
+runScript script/DeployL1OFTAdapter.s.sol:DeployL1OFTAdapter $CALLDATA $L1_RPC $L1_ETHERSCAN_API_KEY
 
 delimiter
 
 for l2 in $L2_CHAIN_IDS_ARRAY; do
     L2_RPC=$(getRPC $l2)
+    L2_ETHERSCAN_API_KEY=$(getEtherscanAPIKey $l2)
     echo "Deploying L2 Adapter for $L2_RPC"
-    runScript script/DeployL2OFTAdapter.s.sol:DeployL2OFTAdapter $CALLDATA $L2_RPC
+    runScript script/DeployL2OFTAdapter.s.sol:DeployL2OFTAdapter $CALLDATA $L2_RPC $L2_ETHERSCAN_API_KEY
 
     delimiter
 done
 
 echo "Verifying L1 Adapter for $L1_RPC"
-simulate script/VerifyL1OFTAdapter.s.sol:VerifyL1OFTAdapter $CALLDATA $L1_RPC
+simulate script/VerifyL1OFTAdapter.s.sol:VerifyL1OFTAdapter $CALLDATA $L1_RPC $L1_ETHERSCAN_API_KEY
 
 delimiter
 
 for l2 in $L2_CHAIN_IDS_ARRAY; do
     L2_RPC=$(getRPC $l2)
+    L2_ETHERSCAN_API_KEY=$(getEtherscanAPIKey $l2)
     echo "Verifying L2 Adapter for $L2_RPC"
-    simulate script/VerifyL2OFTAdapter.s.sol:VerifyL2OFTAdapter $CALLDATA $L2_RPC
+    simulate script/VerifyL2OFTAdapter.s.sol:VerifyL2OFTAdapter $CALLDATA $L2_RPC $L2_ETHERSCAN_API_KEY
 
     delimiter
 done

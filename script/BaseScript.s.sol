@@ -10,6 +10,7 @@ import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/Ra
 import {EndpointV2} from "@layerzerolabs/lz-evm-protocol-v2/contracts/EndpointV2.sol";
 import {TransparentUpgradeableProxy} from
     "@openzeppelin/contracts-5/proxy/transparent/TransparentUpgradeableProxy.sol";
+import {IERC20Metadata as IERC20} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {Utils} from "script/Utils.sol";
 
 import {console} from "forge-std/console.sol";
@@ -65,7 +66,7 @@ contract BaseScript is BaseData, Utils {
     Deployment public deployment;
     ChainDeployment public currentDeployment;
     PredictedAddresses public predictions;
-    string private constant _version = "v0.0.3";
+    string private constant _version = "v0.0.1";
 
     function _getRateLimitConfigs() internal view returns (RateLimiter.RateLimitConfig[] memory) {
         RateLimiter.RateLimitConfig[] memory rateLimitConfigs =
@@ -99,6 +100,16 @@ contract BaseScript is BaseData, Utils {
         currentDeployment.isL1 = isL1;
         if (isL1) {
             currentDeployment.erc20Address = baseInput.l1ERC20Address;
+            require(
+                keccak256(bytes(IERC20(baseInput.l1ERC20Address).symbol()))
+                    == keccak256(bytes(baseInput.erc20Symbol)),
+                "Invalid ERC20 Symbol"
+            );
+
+            require(
+                keccak256(bytes(IERC20(baseInput.l1ERC20Address).name())) == keccak256(bytes(baseInput.erc20Name)),
+                "Invalid ERC20 Name"
+            );
         }
         currentDeployment.lzEndpoint = getData(block.chainid).LZ_ENDPOINT;
         currentDeployment.lzEID = getEID(block.chainid);
