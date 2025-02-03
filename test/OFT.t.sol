@@ -353,7 +353,7 @@ contract OFTTest is TestHelperOz5 {
                 IOFT.SlippageExceeded.selector, aOFTAdapter.removeDust(amountToSendLD), minAmountToCreditLD
             )
         );
-        aOFTAdapter.debit(address(this), amountToSendLD, minAmountToCreditLD, dstEid);
+        aOFTAdapter.debit(userA, amountToSendLD, minAmountToCreditLD, dstEid);
     }
 
     function test_debit_slippage_minAmountToCreditLD() public {
@@ -364,7 +364,7 @@ contract OFTTest is TestHelperOz5 {
         vm.expectRevert(
             abi.encodeWithSelector(IOFT.SlippageExceeded.selector, amountToSendLD, minAmountToCreditLD)
         );
-        aOFTAdapter.debit(address(this), amountToSendLD, minAmountToCreditLD, dstEid);
+        aOFTAdapter.debit(userA, amountToSendLD, minAmountToCreditLD, dstEid);
     }
 
     function test_L1OFTAdapter_debit() public {
