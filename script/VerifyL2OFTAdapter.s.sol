@@ -1,4 +1,4 @@
-/* solhint-disable no-console */
+/* solhint-disable no-console, gas-custom-errors */
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
@@ -11,11 +11,7 @@ import {ImmutableMultiChainDeployer} from "@/factory/ImmutableMultiChainDeployer
 
 import {IOAppCore} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/interfaces/IOAppCore.sol";
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
-import {
-    ITransparentUpgradeableProxy,
-    ProxyAdmin,
-    TransparentUpgradeableProxy
-} from "@openzeppelin/contracts-5/proxy/transparent/TransparentUpgradeableProxy.sol";
+import {ProxyAdmin} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {console} from "forge-std/console.sol";
 
 // forge script script/VerifyL2OFTAdapter.s.sol:DeployL2Adapter \

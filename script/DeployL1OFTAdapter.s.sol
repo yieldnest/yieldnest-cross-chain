@@ -1,17 +1,14 @@
-/* solhint-disable no-console */
+/* solhint-disable no-console, gas-custom-errors */
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
 import {BaseScript} from "./BaseScript.s.sol";
 
 import {L1YnOFTAdapterUpgradeable} from "@/L1YnOFTAdapterUpgradeable.sol";
-import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
 
-import {Ownable} from "@openzeppelin/contracts-5/access/Ownable.sol";
-import {
-    ITransparentUpgradeableProxy,
-    TransparentUpgradeableProxy
-} from "@openzeppelin/contracts-5/proxy/transparent/TransparentUpgradeableProxy.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {TransparentUpgradeableProxy} from
+    "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 import {console} from "forge-std/console.sol";
 
@@ -31,7 +28,7 @@ contract DeployL1OFTAdapter is BaseScript {
         bytes32 proxySalt = createL1YnOFTAdapterUpgradeableProxySalt(msg.sender);
         bytes32 implementationSalt = createL1YnOFTAdapterUpgradeableSalt(msg.sender);
 
-        address CURRENT_SIGNER = msg.sender;
+        address deployer = msg.sender;
 
         if (!isContract(currentDeployment.oftAdapter)) {
             vm.broadcast();
@@ -42,7 +39,7 @@ contract DeployL1OFTAdapter is BaseScript {
             );
 
             bytes memory initializeData =
-                abi.encodeWithSelector(L1YnOFTAdapterUpgradeable.initialize.selector, CURRENT_SIGNER);
+                abi.encodeWithSelector(L1YnOFTAdapterUpgradeable.initialize.selector, deployer);
 
             vm.broadcast();
             l1OFTAdapter = L1YnOFTAdapterUpgradeable(
@@ -64,7 +61,7 @@ contract DeployL1OFTAdapter is BaseScript {
 
         require(address(l1OFTAdapter) == predictions.l1OFTAdapter, "Prediction mismatch");
 
-        if (l1OFTAdapter.owner() == CURRENT_SIGNER) {
+        if (l1OFTAdapter.owner() == deployer) {
             vm.broadcast();
             l1OFTAdapter.setRateLimits(_getRateLimitConfigs());
             console.log("Set rate limits");

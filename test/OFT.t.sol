@@ -1,61 +1,50 @@
-/* solhint-disable no-console */
+/* solhint-disable check-send-result, multiple-sends, not-rely-on-time */
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {OptionsBuilder} from "@layerzerolabs/lz-evm-oapp-v2/contracts-upgradeable/oapp/libs/OptionsBuilder.sol";
+import {OptionsBuilder} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/libs/OptionsBuilder.sol";
+import {TransparentUpgradeableProxy} from
+    "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
-import {
-    EnforcedOptionParam,
-    IOAppOptionsType3
-} from "@layerzerolabs/lz-evm-oapp-v2/contracts-upgradeable/oapp/libs/OAppOptionsType3Upgradeable.sol";
+import {ERC20Mock} from "./mocks/ERC20Mock.sol";
+import {OFTComposerMock} from "./mocks/OFTComposerMock.sol";
 import {
     MessagingFee,
     MessagingReceipt
-} from "@layerzerolabs/lz-evm-oapp-v2/contracts-upgradeable/oft/OFTCoreUpgradeable.sol";
-import {ERC20Mock} from "@layerzerolabs/lz-evm-oapp-v2/test/mocks/ERC20Mock.sol";
-import {OFTAdapterUpgradeableMock} from "@layerzerolabs/lz-evm-oapp-v2/test/mocks/OFTAdapterUpgradeableMock.sol";
-import {OFTComposerMock} from "@layerzerolabs/lz-evm-oapp-v2/test/mocks/OFTComposerMock.sol";
-import {IOAppMsgInspector, OFTInspectorMock} from "@layerzerolabs/lz-evm-oapp-v2/test/mocks/OFTInspectorMock.sol";
-import {OFTUpgradeableMock} from "@layerzerolabs/lz-evm-oapp-v2/test/mocks/OFTUpgradeableMock.sol";
+} from "@layerzerolabs/oft-evm-upgradeable/contracts/oft/OFTCoreUpgradeable.sol";
 
-import {OFTComposeMsgCodec} from
-    "@layerzerolabs/lz-evm-oapp-v2/contracts-upgradeable/oft/libs/OFTComposeMsgCodec.sol";
-import {OFTMsgCodec} from "@layerzerolabs/lz-evm-oapp-v2/contracts-upgradeable/oft/libs/OFTMsgCodec.sol";
+import {OFTComposeMsgCodec} from "@layerzerolabs/oft-evm/contracts/libs/OFTComposeMsgCodec.sol";
 
-import {
-    IOFT,
-    OFTReceipt,
-    SendParam
-} from "@layerzerolabs/lz-evm-oapp-v2/contracts-upgradeable/oft/interfaces/IOFT.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {IOFT, OFTReceipt, SendParam} from "@layerzerolabs/oft-evm/contracts/interfaces/IOFT.sol";
 
 import {L1OFTAdapterMock} from "./mocks/L1OFTAdapterMock.sol";
 import {L2OFTAdapterMock} from "./mocks/L2OFTAdapterMock.sol";
-import {Initializable, TestHelper} from "@layerzerolabs/lz-evm-oapp-v2/test/TestHelper.sol";
-import {console} from "forge-std/console.sol";
+import {TestHelperOz5} from "@layerzerolabs/test-devtools-evm-foundry/contracts/TestHelperOz5.sol";
 
 import {L2YnERC20Upgradeable as L2YnERC20} from "@/L2YnERC20Upgradeable.sol";
 
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
 
-contract OFTTest is TestHelper {
+contract OFTTest is TestHelperOz5 {
     using OptionsBuilder for bytes;
 
-    uint32 aEid = 1;
-    uint32 bEid = 2;
-    uint32 cEid = 3;
+    uint32 public aEid = 1;
+    uint32 public bEid = 2;
+    uint32 public cEid = 3;
 
-    L1OFTAdapterMock aOFTAdapter;
-    ERC20Mock aERC20;
-    L2OFTAdapterMock bOFTAdapter;
-    L2YnERC20 bERC20;
-    L2OFTAdapterMock cOFTAdapter;
-    L2YnERC20 cERC20;
+    L1OFTAdapterMock public aOFTAdapter;
+    ERC20Mock public aERC20;
+    L2OFTAdapterMock public bOFTAdapter;
+    L2YnERC20 public bERC20;
+    L2OFTAdapterMock public cOFTAdapter;
+    L2YnERC20 public cERC20;
 
     address public userA = address(0x1);
     address public userB = address(0x2);
     address public userC = address(0x3);
     uint256 public initialBalance = 100 ether;
+
+    address public proxyAdmin = makeAddr("proxyAdmin");
 
     function setUp() public virtual override {
         vm.deal(userA, 1000 ether);
@@ -364,7 +353,7 @@ contract OFTTest is TestHelper {
                 IOFT.SlippageExceeded.selector, aOFTAdapter.removeDust(amountToSendLD), minAmountToCreditLD
             )
         );
-        aOFTAdapter.debit(amountToSendLD, minAmountToCreditLD, dstEid);
+        aOFTAdapter.debit(userA, amountToSendLD, minAmountToCreditLD, dstEid);
     }
 
     function test_debit_slippage_minAmountToCreditLD() public {
@@ -375,7 +364,7 @@ contract OFTTest is TestHelper {
         vm.expectRevert(
             abi.encodeWithSelector(IOFT.SlippageExceeded.selector, amountToSendLD, minAmountToCreditLD)
         );
-        aOFTAdapter.debit(amountToSendLD, minAmountToCreditLD, dstEid);
+        aOFTAdapter.debit(userA, amountToSendLD, minAmountToCreditLD, dstEid);
     }
 
     function test_L1OFTAdapter_debit() public {
@@ -397,7 +386,7 @@ contract OFTTest is TestHelper {
         vm.startPrank(userC);
         aERC20.approve(address(aOFTAdapter), amountToSendLD);
         (uint256 amountDebitedLD, uint256 amountToCreditLD) =
-            aOFTAdapter.debit(amountToSendLD, minAmountToCreditLD, dstEid);
+            aOFTAdapter.debit(userC, amountToSendLD, minAmountToCreditLD, dstEid);
         vm.stopPrank();
 
         assertEq(amountDebitedLD, amountToSendLD);
@@ -456,7 +445,7 @@ contract OFTTest is TestHelper {
         vm.startPrank(userC);
         // cERC20.approve(address(cOFTAdapter), amountToSendLD);
         (uint256 amountDebitedLD, uint256 amountToCreditLD) =
-            cOFTAdapter.debit(amountToSendLD, minAmountToCreditLD, dstEid);
+            cOFTAdapter.debit(userC, amountToSendLD, minAmountToCreditLD, dstEid);
         vm.stopPrank();
 
         assertEq(amountDebitedLD, amountToSendLD);
@@ -481,5 +470,23 @@ contract OFTTest is TestHelper {
         assertEq(cERC20.balanceOf(address(userB)), amountReceived, "incorrect userB final balance");
         assertEq(cERC20.balanceOf(address(this)), 0, "incorrect contract final balance");
         assertEq(cERC20.balanceOf(address(cOFTAdapter)), 0, "incorrect adapter final balance");
+    }
+
+    function _deployContractAndProxy(
+        bytes memory _oappBytecode,
+        bytes memory _constructorArgs,
+        bytes memory _initializeArgs
+    )
+        internal
+        returns (address addr)
+    {
+        bytes memory bytecode = bytes.concat(abi.encodePacked(_oappBytecode), _constructorArgs);
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            addr := create(0, add(bytecode, 0x20), mload(bytecode))
+            if iszero(extcodesize(addr)) { revert(0, 0) }
+        }
+
+        return address(new TransparentUpgradeableProxy(addr, proxyAdmin, _initializeArgs));
     }
 }

@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import "src/external/AccessControlUpgradeable.sol";
-import "src/external/ERC20Upgradeable.sol";
-
 import {IMintableBurnableERC20} from "@/interfaces/IMintableBurnableERC20.sol";
+
+import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import {ERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 
 /// @title L2YnERC20Upgradeable
 /// @notice This contract implements an upgradeable ERC20 token with minting and burning capabilities, controlled

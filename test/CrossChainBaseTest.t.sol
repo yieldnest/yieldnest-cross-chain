@@ -1,20 +1,18 @@
-/* solhint-disable no-console */
+/* solhint-disable max-states-count */
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
+import {ERC20Mock} from "./mocks/ERC20Mock.sol";
 import {L1YnOFTAdapterUpgradeable} from "@/L1YnOFTAdapterUpgradeable.sol";
 import {L2YnERC20Upgradeable} from "@/L2YnERC20Upgradeable.sol";
 import {L2YnOFTAdapterUpgradeable} from "@/L2YnOFTAdapterUpgradeable.sol";
 import {ImmutableMultiChainDeployer} from "@/factory/ImmutableMultiChainDeployer.sol";
-import {IMintableBurnableERC20} from "@/interfaces/IMintableBurnableERC20.sol";
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
-import {ERC20Mock} from "@layerzerolabs/lz-evm-oapp-v2/test/mocks/ERC20Mock.sol";
-import {EndpointV2} from "@layerzerolabs/lz-evm-protocol-v2/contracts/EndpointV2.sol";
+import {ILayerZeroEndpointV2} from
+    "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroEndpointV2.sol";
 import {TransparentUpgradeableProxy} from
-    "@openzeppelin/contracts-5/proxy/transparent/TransparentUpgradeableProxy.sol";
+    "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {Test} from "forge-std/Test.sol";
-
-import {console} from "forge-std/console.sol";
 
 contract CrossChainBaseTest is Test {
     ImmutableMultiChainDeployer public mainnetDeployer;
@@ -29,9 +27,12 @@ contract CrossChainBaseTest is Test {
     address public _owner = makeAddr("owner");
     address public _controller = makeAddr("controller");
 
-    EndpointV2 public arbitrumLzEndpoint = EndpointV2(0x1a44076050125825900e736c501f859c50fE728c);
-    EndpointV2 public optimismLzEndpoint = EndpointV2(0x1a44076050125825900e736c501f859c50fE728c);
-    EndpointV2 public mainnetLzEndpoint = EndpointV2(0x1a44076050125825900e736c501f859c50fE728c);
+    ILayerZeroEndpointV2 public arbitrumLzEndpoint =
+        ILayerZeroEndpointV2(0x1a44076050125825900e736c501f859c50fE728c);
+    ILayerZeroEndpointV2 public optimismLzEndpoint =
+        ILayerZeroEndpointV2(0x1a44076050125825900e736c501f859c50fE728c);
+    ILayerZeroEndpointV2 public mainnetLzEndpoint =
+        ILayerZeroEndpointV2(0x1a44076050125825900e736c501f859c50fE728c);
 
     ERC20Mock public mainnetERC20;
     L2YnERC20Upgradeable public optimismERC20;
@@ -41,15 +42,15 @@ contract CrossChainBaseTest is Test {
     bytes public l1YnOFTAdapterByteCode = type(L1YnOFTAdapterUpgradeable).creationCode;
     bytes public l2YnERC20ByteCode = type(L2YnERC20Upgradeable).creationCode;
 
-    address mainnetOFTAdapterImpl;
+    address public mainnetOFTAdapterImpl;
 
-    uint256 optimismFork;
-    uint256 arbitrumFork;
-    uint256 mainnetFork;
+    uint256 public optimismFork;
+    uint256 public arbitrumFork;
+    uint256 public mainnetFork;
 
-    uint32 mainnetEid;
-    uint32 optimismEid;
-    uint32 arbitrumEid;
+    uint32 public mainnetEid;
+    uint32 public optimismEid;
+    uint32 public arbitrumEid;
 
     function setUp() public virtual {
         // create forks

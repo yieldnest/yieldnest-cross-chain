@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {OFTAdapterUpgradeable} from
-    "@layerzerolabs/lz-evm-oapp-v2/contracts-upgradeable/oft/OFTAdapterUpgradeable.sol";
-import {OFTUpgradeable} from "@layerzerolabs/lz-evm-oapp-v2/contracts-upgradeable/oft/OFTUpgradeable.sol";
+import {OFTAdapterUpgradeable} from "@layerzerolabs/oft-evm-upgradeable/contracts/oft/OFTAdapterUpgradeable.sol";
 
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
 
@@ -25,8 +23,7 @@ contract L2YnOFTAdapterUpgradeable is OFTAdapterUpgradeable, RateLimiter {
      */
     function initialize(address _owner) external virtual initializer {
         __OFTAdapter_init(_owner);
-        __Ownable_init();
-        _transferOwnership(_owner);
+        __Ownable_init(_owner);
     }
 
     /**
@@ -50,14 +47,18 @@ contract L2YnOFTAdapterUpgradeable is OFTAdapterUpgradeable, RateLimiter {
     }
 
     /**
-     * @dev Burns tokens from the sender's specified balance.
+     * @dev Burns tokens from the sender's specified balance, ie. pull method.
+     * @param _from The address to debit from.
      * @param _amountLD The amount of tokens to send in local decimals.
      * @param _minAmountLD The minimum amount to send in local decimals.
      * @param _dstEid The destination chain ID.
      * @return amountSentLD The amount sent in local decimals.
      * @return amountReceivedLD The amount received in local decimals on the remote.
+     *
+     * @dev msg.sender will need to approve this _amountLD of tokens to be locked inside of the contract.
      */
     function _debit(
+        address _from,
         uint256 _amountLD,
         uint256 _minAmountLD,
         uint32 _dstEid
@@ -77,7 +78,7 @@ contract L2YnOFTAdapterUpgradeable is OFTAdapterUpgradeable, RateLimiter {
         // therefore amountSentLD CAN differ from amountReceivedLD.
 
         // @dev OFT burns on src
-        IMintableBurnableERC20(address(innerToken)).burn(_msgSender(), amountSentLD);
+        IMintableBurnableERC20(address(innerToken)).burn(_from, amountSentLD);
     }
 
     /**

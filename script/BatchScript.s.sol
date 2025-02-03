@@ -1,6 +1,6 @@
-/* solhint-disable no-console, max-line-length */
+/* solhint-disable no-console, max-line-length, gas-custom-errors, quotes, avoid-low-level-calls */
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.6.2 <0.9.0;
+pragma solidity ^0.8.24;
 
 // 💬 ABOUT
 // Gnosis Safe transaction batching script
@@ -9,16 +9,7 @@ pragma solidity >=0.6.2 <0.9.0;
 // @dev modified to work with our script setup
 
 // 🧩 MODULES
-import {
-    Script,
-    StdChains,
-    StdStorage,
-    VmSafe,
-    console2,
-    stdJson,
-    stdMath,
-    stdStorageSafe
-} from "forge-std/Script.sol";
+import {Script, console, stdJson} from "forge-std/Script.sol";
 
 import {Surl} from "surl/Surl.sol";
 
@@ -67,12 +58,14 @@ abstract contract BatchScript is Script {
     bytes32 private constant SAFE_TX_TYPEHASH = 0xbb8310d486368db6bd6f849402fdd73ad53d316b5a4b2644ad6efe0f941286d8;
 
     // Deterministic deployment address of the Gnosis Safe Multisend contract, configured by chain.
+    // solhint-disable-next-line var-name-mixedcase
     address private SAFE_MULTISEND_ADDRESS;
 
     // Chain ID, configured by chain.
     uint256 private chainId;
 
     // Safe API base URL, configured by chain.
+    // solhint-disable-next-line var-name-mixedcase
     string private SAFE_API_BASE_URL = "";
     string private constant SAFE_API_MULTISIG_SEND = "/multisig-transactions/";
 
@@ -238,14 +231,14 @@ abstract contract BatchScript is Script {
         }
         bytes memory txData = abi.encodeWithSignature("multiSend(bytes)", data);
 
-        console2.log("");
-        console2.log("Safe Batch Transaction:");
-        console2.log("To: ", to);
-        console2.log("Operation: %d (%s)", uint256(operation), "DELEGATECALL");
-        console2.log("Value: ", value);
-        console2.log("Data: ");
-        console2.logBytes(txData);
-        console2.log("");
+        console.log("");
+        console.log("Safe Batch Transaction:");
+        console.log("To: ", to);
+        console.log("Operation: %d (%s)", uint256(operation), "DELEGATECALL");
+        console.log("Value: ", value);
+        console.log("Data: ");
+        console.logBytes(txData);
+        console.log("");
     }
 
     // Simulate then send the batch to the Safe API. If `send_` is `false`, the
@@ -338,9 +331,9 @@ abstract contract BatchScript is Script {
         (uint256 status, bytes memory data) = endpoint.post(_getHeaders(), payload);
 
         if (status == 201) {
-            console2.log("Batch sent successfully");
+            console.log("Batch sent successfully");
         } else {
-            console2.log(string(data));
+            console.log(string(data));
             revert("Send batch failed!");
         }
     }
