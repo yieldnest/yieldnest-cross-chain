@@ -1,4 +1,4 @@
-/* solhint-disable no-console */
+/* solhint-disable no-console, gas-custom-errors, var-name-mixedcase */
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 

@@ -2,9 +2,6 @@
 pragma solidity ^0.8.24;
 
 import {L1YnOFTAdapterUpgradeable} from "@/L1YnOFTAdapterUpgradeable.sol";
-import {OFTAdapterUpgradeable} from
-    "@layerzerolabs/lz-evm-oapp-v2/contracts-upgradeable/oft/OFTAdapterUpgradeable.sol";
-import {OFTUpgradeable} from "@layerzerolabs/lz-evm-oapp-v2/contracts-upgradeable/oft/OFTUpgradeable.sol";
 
 contract L1OFTAdapterMock is L1YnOFTAdapterUpgradeable {
     constructor(address _token, address _lzEndpoint) L1YnOFTAdapterUpgradeable(_token, _lzEndpoint) {
@@ -13,12 +10,12 @@ contract L1OFTAdapterMock is L1YnOFTAdapterUpgradeable {
 
     function initialize(address _owner) external virtual override initializer {
         super.__OFTAdapter_init(_owner);
-        super.__Ownable_init();
-        super._transferOwnership(_owner);
+        super.__Ownable_init(_owner);
     }
     // @dev expose internal functions for testing purposes
 
     function debit(
+        address _from,
         uint256 _amountToSendLD,
         uint256 _minAmountToCreditLD,
         uint32 _dstEid
@@ -26,7 +23,7 @@ contract L1OFTAdapterMock is L1YnOFTAdapterUpgradeable {
         public
         returns (uint256 amountDebitedLD, uint256 amountToCreditLD)
     {
-        return _debit(_amountToSendLD, _minAmountToCreditLD, _dstEid);
+        return _debit(_from, _amountToSendLD, _minAmountToCreditLD, _dstEid);
     }
 
     function debitView(

@@ -1,4 +1,4 @@
-/* solhint-disable no-console */
+/* solhint-disable no-console, gas-custom-errors */
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
@@ -7,9 +7,8 @@ import {BaseData} from "./BaseData.s.sol";
 import {L1YnOFTAdapterUpgradeable} from "@/L1YnOFTAdapterUpgradeable.sol";
 import {ImmutableMultiChainDeployer} from "@/factory/ImmutableMultiChainDeployer.sol";
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
-import {EndpointV2} from "@layerzerolabs/lz-evm-protocol-v2/contracts/EndpointV2.sol";
 import {TransparentUpgradeableProxy} from
-    "@openzeppelin/contracts-5/proxy/transparent/TransparentUpgradeableProxy.sol";
+    "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {IERC20Metadata as IERC20} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {Utils} from "script/Utils.sol";
 
@@ -66,7 +65,7 @@ contract BaseScript is BaseData, Utils {
     Deployment public deployment;
     ChainDeployment public currentDeployment;
     PredictedAddresses public predictions;
-    string private constant _version = "v0.0.1";
+    string private constant _VERSION = "v0.0.1";
 
     function _getRateLimitConfigs() internal view returns (RateLimiter.RateLimitConfig[] memory) {
         RateLimiter.RateLimitConfig[] memory rateLimitConfigs =
@@ -121,11 +120,11 @@ contract BaseScript is BaseData, Utils {
     }
 
     function _computeCreate3Address(bytes32 _salt, address _deployer) internal pure returns (address) {
-        bytes memory PROXY_BYTECODE = hex"67363d3d37363d34f03d5260086018f3";
+        bytes memory proxyByteCode = hex"67363d3d37363d34f03d5260086018f3";
 
-        bytes32 PROXY_BYTECODE_HASH = keccak256(PROXY_BYTECODE);
+        bytes32 proxyByteCodeHash = keccak256(proxyByteCode);
         address proxy =
-            keccak256(abi.encodePacked(bytes1(0xFF), _deployer, _salt, PROXY_BYTECODE_HASH)).fromLast20Bytes();
+            keccak256(abi.encodePacked(bytes1(0xFF), _deployer, _salt, proxyByteCodeHash)).fromLast20Bytes();
 
         return keccak256(abi.encodePacked(hex"d694", proxy, hex"01")).fromLast20Bytes();
     }
@@ -219,7 +218,7 @@ contract BaseScript is BaseData, Utils {
                 "-",
                 vm.toString(baseInput.l1ChainId),
                 "-",
-                _version,
+                _VERSION,
                 ".json"
             )
         );
@@ -364,7 +363,7 @@ contract BaseScript is BaseData, Utils {
 
     function createSalt(address _deployerAddress, string memory _label) internal pure returns (bytes32 _salt) {
         _salt = bytes32(
-            abi.encodePacked(bytes20(_deployerAddress), bytes12(bytes32(keccak256(abi.encode(_label, _version)))))
+            abi.encodePacked(bytes20(_deployerAddress), bytes12(bytes32(keccak256(abi.encode(_label, _VERSION)))))
         );
     }
 
@@ -374,6 +373,7 @@ contract BaseScript is BaseData, Utils {
 
     function isContract(address _addr) public view returns (bool _isContract) {
         uint32 size;
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             size := extcodesize(_addr)
         }

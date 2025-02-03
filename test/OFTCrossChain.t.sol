@@ -1,26 +1,14 @@
+/* solhint-disable check-send-result */
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
 import {CrossChainBaseTest} from "./CrossChainBaseTest.t.sol";
 
-import {L1YnOFTAdapterUpgradeable} from "@/L1YnOFTAdapterUpgradeable.sol";
-import {L2YnERC20Upgradeable} from "@/L2YnERC20Upgradeable.sol";
-import {L2YnOFTAdapterUpgradeable} from "@/L2YnOFTAdapterUpgradeable.sol";
-import {ImmutableMultiChainDeployer} from "@/factory/ImmutableMultiChainDeployer.sol";
-import {IMintableBurnableERC20} from "@/interfaces/IMintableBurnableERC20.sol";
+import {OptionsBuilder} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/libs/OptionsBuilder.sol";
 
-import {OptionsBuilder} from "@layerzerolabs/lz-evm-oapp-v2/contracts-upgradeable/oapp/libs/OptionsBuilder.sol";
-import {
-    MessagingFee,
-    MessagingReceipt
-} from "@layerzerolabs/lz-evm-oapp-v2/contracts-upgradeable/oft/OFTCoreUpgradeable.sol";
-import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
+import {MessagingFee} from "@layerzerolabs/oft-evm-upgradeable/contracts/oft/OFTCoreUpgradeable.sol";
 
-import {
-    IOFT,
-    OFTReceipt,
-    SendParam
-} from "@layerzerolabs/lz-evm-oapp-v2/contracts-upgradeable/oft/interfaces/IOFT.sol";
+import {SendParam} from "@layerzerolabs/oft-evm/contracts/interfaces/IOFT.sol";
 
 contract OFTCrossChainTest is CrossChainBaseTest {
     using OptionsBuilder for bytes;

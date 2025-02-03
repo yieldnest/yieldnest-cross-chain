@@ -1,4 +1,4 @@
-/* solhint-disable no-console */
+/* solhint-disable no-console, gas-custom-errors */
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
@@ -7,13 +7,8 @@ import {BaseScript} from "./BaseScript.s.sol";
 import {L2YnERC20Upgradeable} from "@/L2YnERC20Upgradeable.sol";
 import {L2YnOFTAdapterUpgradeable} from "@/L2YnOFTAdapterUpgradeable.sol";
 import {ImmutableMultiChainDeployer} from "@/factory/ImmutableMultiChainDeployer.sol";
-import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
 
-import {Ownable} from "@openzeppelin/contracts-5/access/Ownable.sol";
-import {
-    ITransparentUpgradeableProxy,
-    TransparentUpgradeableProxy
-} from "@openzeppelin/contracts-5/proxy/transparent/TransparentUpgradeableProxy.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 import {console} from "forge-std/console.sol";
 
@@ -51,7 +46,7 @@ contract DeployL2OFTAdapter is BaseScript {
         bytes32 proxySalt = createL2YnERC20UpgradeableProxySalt(msg.sender);
         bytes32 implementationSalt = createL2YnERC20UpgradeableSalt(msg.sender);
 
-        address CURRENT_SIGNER = msg.sender;
+        address deployer = msg.sender;
 
         address predictedERC20 = multiChainDeployer.getDeployed(proxySalt);
         require(predictedERC20 == predictions.l2ERC20, "Prediction mismatch");
@@ -64,8 +59,8 @@ contract DeployL2OFTAdapter is BaseScript {
                     proxySalt,
                     baseInput.erc20Name,
                     baseInput.erc20Symbol,
-                    CURRENT_SIGNER,
-                    CURRENT_SIGNER,
+                    deployer,
+                    deployer,
                     type(L2YnERC20Upgradeable).creationCode
                 )
             );
@@ -98,8 +93,8 @@ contract DeployL2OFTAdapter is BaseScript {
                     proxySalt,
                     address(l2ERC20),
                     getData(block.chainid).LZ_ENDPOINT,
-                    CURRENT_SIGNER,
-                    CURRENT_SIGNER,
+                    deployer,
+                    deployer,
                     type(L2YnOFTAdapterUpgradeable).creationCode
                 )
             );
@@ -118,7 +113,7 @@ contract DeployL2OFTAdapter is BaseScript {
 
         require(predictedOFTAdapter == address(l2OFTAdapter), "Prediction mismatch");
 
-        if (l2OFTAdapter.owner() == CURRENT_SIGNER) {
+        if (l2OFTAdapter.owner() == deployer) {
             vm.broadcast();
             l2OFTAdapter.setRateLimits(_getRateLimitConfigs());
             console.log("Set rate limits");
@@ -152,11 +147,11 @@ contract DeployL2OFTAdapter is BaseScript {
             l2OFTAdapter.transferOwnership(getData(block.chainid).OFT_OWNER);
         }
 
-        if (l2ERC20.hasRole(l2ERC20.DEFAULT_ADMIN_ROLE(), CURRENT_SIGNER)) {
+        if (l2ERC20.hasRole(l2ERC20.DEFAULT_ADMIN_ROLE(), deployer)) {
             vm.startBroadcast();
             l2ERC20.grantRole(l2ERC20.MINTER_ROLE(), address(l2OFTAdapter));
             l2ERC20.grantRole(l2ERC20.DEFAULT_ADMIN_ROLE(), getData(block.chainid).TOKEN_ADMIN);
-            l2ERC20.renounceRole(l2ERC20.DEFAULT_ADMIN_ROLE(), CURRENT_SIGNER);
+            l2ERC20.renounceRole(l2ERC20.DEFAULT_ADMIN_ROLE(), deployer);
             vm.stopBroadcast();
         }
 
