@@ -54,8 +54,6 @@ contract L1YnOFTAdapterUpgradeable is OFTAdapterUpgradeable, RateLimiter {
         override
         returns (uint256 amountSentLD, uint256 amountReceivedLD)
     {
-        (amountSentLD, amountReceivedLD) = _debitView(_amountLD, _minAmountLD, _dstEid);
-
         // @dev Check and update rate limit.
         _checkAndUpdateRateLimit(_dstEid, _amountLD);
 
