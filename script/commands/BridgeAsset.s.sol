@@ -18,7 +18,7 @@ contract BridgeAsset is Script {
     uint32 constant DST_EID = 40255;
 
     // Amount to bridge (0.1 ETH worth)
-    uint256 constant BRIDGE_AMOUNT = 0.1 ether;
+    uint256 constant BRIDGE_AMOUNT = 0.11 ether;
 
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
@@ -30,7 +30,7 @@ contract BridgeAsset is Script {
         console.log("Sender: %s", sender);
 
         // Source chain ID
-        uint256 sourceChainId = 17000;
+        uint256 sourceChainId = block.chainid;
 
         // Load deployment config
         string memory json =
