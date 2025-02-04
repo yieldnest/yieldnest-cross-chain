@@ -42,12 +42,12 @@ contract BridgeAsset is Script {
 
         vm.startBroadcast(deployerPrivateKey);
 
+        // Get the ynETHx contract address
+        address ynETHx = abi.decode(
+            vm.parseJson(json, string.concat(".chains.", vm.toString(sourceChainId), ".erc20Address")), (address)
+        );
+
         {
-            // Get the ynETHx contract address
-            address ynETHx = abi.decode(
-                vm.parseJson(json, string.concat(".chains.", vm.toString(sourceChainId), ".erc20Address")),
-                (address)
-            );
             // Get the WETH contract address from ynETHx
             address weth = IERC4626(ynETHx).asset();
 
@@ -72,6 +72,9 @@ contract BridgeAsset is Script {
 
         // Get messaging fee
         MessagingFee memory fee = IOFT(oftAdapter).quoteSend(sendParam, false);
+
+        // Approve ynETHx spending on OFT adapter
+        IERC20(ynETHx).approve(oftAdapter, BRIDGE_AMOUNT);
 
         // Bridge tokens
         IOFT(oftAdapter).send{value: fee.nativeFee}(sendParam, fee, payable(refundAddress));
