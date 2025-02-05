@@ -65,7 +65,7 @@ contract BaseData is Script {
 
         // mainnets
         __chainIdToData[__chainIds.mainnet] = Data({
-            OFT_OWNER: TEMP_YN_SECURITY_COUNCIL,
+            OFT_OWNER: 0xfcad670592a3b24869C0b51a6c6FDED4F95D6975,
             TOKEN_ADMIN: 0xfcad670592a3b24869C0b51a6c6FDED4F95D6975,
             PROXY_ADMIN: 0xfcad670592a3b24869C0b51a6c6FDED4F95D6975,
             LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c,
@@ -211,5 +211,12 @@ contract BaseData is Script {
     function isTestnetChainId(uint256 chainId) internal view returns (bool isTestnet) {
         isTestnet = chainId == __chainIds.holesky || chainId == __chainIds.fraxtalTestnet
             || chainId == __chainIds.sepolia || chainId == __chainIds.morphTestnet;
+    }
+
+    function getMinDelay(uint256 chainId) internal view returns (uint256 minDelay) {
+        if (isTestnetChainId(chainId)) {
+            return 10 minutes;
+        }
+        return 1 days;
     }
 }

@@ -6,9 +6,10 @@ import {BaseScript} from "./BaseScript.s.sol";
 
 import {L1YnOFTAdapterUpgradeable} from "@/L1YnOFTAdapterUpgradeable.sol";
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {TransparentUpgradeableProxy} from
-    "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+import {
+    ProxyAdmin,
+    TransparentUpgradeableProxy
+} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 import {console} from "forge-std/console.sol";
 
@@ -27,6 +28,7 @@ contract DeployL1OFTAdapter is BaseScript {
 
         bytes32 proxySalt = createL1YnOFTAdapterUpgradeableProxySalt(msg.sender);
         bytes32 implementationSalt = createL1YnOFTAdapterUpgradeableSalt(msg.sender);
+        bytes32 timelockSalt = createL1YnOFTAdapterTimelockSalt(msg.sender);
 
         address deployer = msg.sender;
 
@@ -41,18 +43,15 @@ contract DeployL1OFTAdapter is BaseScript {
             bytes memory initializeData =
                 abi.encodeWithSelector(L1YnOFTAdapterUpgradeable.initialize.selector, deployer);
 
-            vm.broadcast();
+            vm.startBroadcast();
+            address timelock = _deployTimelockController(timelockSalt);
             l1OFTAdapter = L1YnOFTAdapterUpgradeable(
                 address(
-                    new TransparentUpgradeableProxy{salt: proxySalt}(l1OFTAdapterImpl, msg.sender, initializeData)
+                    new TransparentUpgradeableProxy{salt: proxySalt}(l1OFTAdapterImpl, timelock, initializeData)
                 )
             );
+            vm.stopBroadcast();
 
-            vm.broadcast();
-
-            address newOwner = getData(block.chainid).PROXY_ADMIN;
-            console.log("Changing owner for L1OFTAdapter to: %s", newOwner);
-            Ownable(getTransparentUpgradeableProxyAdminAddress(address(l1OFTAdapter))).transferOwnership(newOwner);
             console.log("Deployed L1OFTAdapter at: %s", address(l1OFTAdapter));
         } else {
             l1OFTAdapter = L1YnOFTAdapterUpgradeable(currentDeployment.oftAdapter);
@@ -85,6 +84,8 @@ contract DeployL1OFTAdapter is BaseScript {
             l1OFTAdapter.transferOwnership(getData(block.chainid).OFT_OWNER);
         }
 
+        currentDeployment.oftAdapterProxyAdmin = getTransparentUpgradeableProxyAdminAddress(address(l1OFTAdapter));
+        currentDeployment.oftAdapterTimelock = ProxyAdmin(currentDeployment.oftAdapterProxyAdmin).owner();
         currentDeployment.oftAdapter = address(l1OFTAdapter);
 
         _saveDeployment();

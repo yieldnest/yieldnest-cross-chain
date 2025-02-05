@@ -9,7 +9,9 @@ import {L1YnOFTAdapterUpgradeable} from "@/L1YnOFTAdapterUpgradeable.sol";
 
 import {IOAppCore} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/interfaces/IOAppCore.sol";
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
-import {ProxyAdmin} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+
+import {TimelockController} from "@openzeppelin/contracts/governance/TimelockController.sol";
+import {ProxyAdmin} from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 import {console} from "forge-std/console.sol";
 
 // forge script script/VerifyL1OFTAdapter.s.sol:DeployL1OFTAdapter \
@@ -40,9 +42,16 @@ contract VerifyL1OFTAdapter is BaseScript, BatchScript {
         }
 
         address proxyAdmin = getTransparentUpgradeableProxyAdminAddress(address(l1OFTAdapter));
-        address proxyAdminOwner = ProxyAdmin(proxyAdmin).owner();
-        if (proxyAdminOwner != getData(block.chainid).PROXY_ADMIN) {
+        if (proxyAdmin != currentDeployment.oftAdapterProxyAdmin) {
             revert("L1 OFT Adapter proxy admin is not correct");
+        }
+        address proxyAdminOwner = ProxyAdmin(proxyAdmin).owner();
+        if (proxyAdminOwner != currentDeployment.oftAdapterTimelock) {
+            revert("L1 OFT Adapter timelock is not correct");
+        }
+        TimelockController timelock = TimelockController(payable(currentDeployment.oftAdapterTimelock));
+        if (!timelock.hasRole(timelock.DEFAULT_ADMIN_ROLE(), getData(block.chainid).PROXY_ADMIN)) {
+            revert("L1 OFT Adapter timelock admin is not correct");
         }
 
         uint256[] memory chainIds = new uint256[](baseInput.l2ChainIds.length + 1);
