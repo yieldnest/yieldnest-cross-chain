@@ -5,13 +5,12 @@ import {OptionsBuilder} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/libs/
 import {MessagingFee} from "@layerzerolabs/oapp-evm/contracts/oapp/OAppSender.sol";
 import {IOFT, SendParam} from "@layerzerolabs/oft-evm/contracts/interfaces/IOFT.sol";
 
+import {BaseData} from "../BaseData.s.sol";
 import {IERC20} from "@openzeppelin/contracts/interfaces/IERC20.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
-import {Script} from "forge-std/Script.sol";
-
 import {console} from "forge-std/console.sol";
 
-contract BridgeAsset is Script {
+contract BridgeAsset is BaseData {
     using OptionsBuilder for bytes;
 
     // Amount to bridge (0.1 ETH worth)
