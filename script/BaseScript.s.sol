@@ -71,7 +71,7 @@ contract BaseScript is BaseData, Utils {
     Deployment public deployment;
     ChainDeployment public currentDeployment;
     PredictedAddresses public predictions;
-    string private constant _VERSION = "v0.0.1";
+    string private constant _VERSION = "v0.0.2";
 
     function _getRateLimitConfigs() internal view returns (RateLimiter.RateLimitConfig[] memory) {
         RateLimiter.RateLimitConfig[] memory rateLimitConfigs =
@@ -260,7 +260,13 @@ contract BaseScript is BaseData, Utils {
             chainJson =
                 vm.serializeAddress(chainKey, "multiChainDeployer", deployment.chains[i].multiChainDeployer);
             chainJson = vm.serializeAddress(chainKey, "erc20Address", deployment.chains[i].erc20Address);
+            chainJson = vm.serializeAddress(chainKey, "erc20ProxyAdmin", deployment.chains[i].erc20ProxyAdmin);
+            chainJson = vm.serializeAddress(chainKey, "erc20Timelock", deployment.chains[i].erc20Timelock);
             chainJson = vm.serializeAddress(chainKey, "oftAdapter", deployment.chains[i].oftAdapter);
+            chainJson =
+                vm.serializeAddress(chainKey, "oftAdapterProxyAdmin", deployment.chains[i].oftAdapterProxyAdmin);
+            chainJson =
+                vm.serializeAddress(chainKey, "oftAdapterTimelock", deployment.chains[i].oftAdapterTimelock);
 
             chainsJson = vm.serializeString("chains", vm.toString(deployment.chains[i].chainId), chainJson);
         }
@@ -301,7 +307,15 @@ contract BaseScript is BaseData, Utils {
             chains[i].multiChainDeployer =
                 vm.parseJsonAddress(json, string(abi.encodePacked(chainKey, ".multiChainDeployer")));
             chains[i].erc20Address = vm.parseJsonAddress(json, string(abi.encodePacked(chainKey, ".erc20Address")));
+            chains[i].erc20ProxyAdmin =
+                vm.parseJsonAddress(json, string(abi.encodePacked(chainKey, ".erc20ProxyAdmin")));
+            chains[i].erc20Timelock =
+                vm.parseJsonAddress(json, string(abi.encodePacked(chainKey, ".erc20Timelock")));
             chains[i].oftAdapter = vm.parseJsonAddress(json, string(abi.encodePacked(chainKey, ".oftAdapter")));
+            chains[i].oftAdapterProxyAdmin =
+                vm.parseJsonAddress(json, string(abi.encodePacked(chainKey, ".oftAdapterProxyAdmin")));
+            chains[i].oftAdapterTimelock =
+                vm.parseJsonAddress(json, string(abi.encodePacked(chainKey, ".oftAdapterTimelock")));
 
             // Add the chain to the deployment
             deployment.chains.push(chains[i]);
@@ -431,12 +445,6 @@ contract BaseScript is BaseData, Utils {
 
         uint256 minDelay = getMinDelay(block.chainid);
 
-        address predictedTimelock = _predictTimelockController(timelockSalt);
-
         timelock = address(new TimelockController{salt: timelockSalt}(minDelay, proposers, executors, admin));
-
-        if (predictedTimelock != timelock) {
-            revert("Timelock mismatch");
-        }
     }
 }
