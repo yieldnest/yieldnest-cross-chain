@@ -17,8 +17,10 @@ contract BridgeAsset is BaseData {
     uint256 constant BRIDGE_AMOUNT = 0.12 ether;
 
     function run() external {
-        uint32 destinationEid =
-            uint32(vm.parseUint(vm.prompt("Enter destination EID (e.g. 40255 for Fraxtal testnet):")));
+        uint256 destinationChainId =
+            vm.parseUint(vm.prompt("Enter destination chain ID (e.g. 2522 for Fraxtal testnet):"));
+        require(isSupportedChainId(destinationChainId), "Unsupported destination chain ID");
+        uint32 destinationEid = getEID(destinationChainId);
 
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
 
@@ -27,6 +29,8 @@ contract BridgeAsset is BaseData {
 
         console.log("Chain ID: %s", block.chainid);
         console.log("Sender: %s", sender);
+        console.log("Destination Chain ID: %s", destinationChainId);
+        console.log("Destination EID: %s", destinationEid);
 
         // Source chain ID
         // If we're on Fraxtal testnet (2522), Morph testnet (2810), or Holesky (17000),
