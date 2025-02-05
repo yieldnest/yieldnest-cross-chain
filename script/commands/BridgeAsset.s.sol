@@ -30,12 +30,16 @@ contract BridgeAsset is Script {
         console.log("Sender: %s", sender);
 
         // Source chain ID
+        // If we're on Fraxtal testnet (2522), Morph testnet (2810), or Holesky (17000),
+        // use Holesky (17000) as the source chain since it's the L1 testnet.
+        // Otherwise default to Ethereum mainnet (1)
         uint256 sourceChainId = block.chainid;
+        uint256 baseChainId = sourceChainId == 2522 || sourceChainId == 2810 || sourceChainId == 17000 ? 17000 : 1;
 
         // Load deployment config
         string memory json =
-            vm.readFile(string.concat("deployments/ynETHx-", vm.toString(sourceChainId), "-v0.0.1.json"));
-        bytes memory holesky = vm.parseJson(json, string.concat(".chains.", vm.toString(sourceChainId)));
+            vm.readFile(string.concat("deployments/ynETHx-", vm.toString(baseChainId), "-v0.0.1.json"));
+
         address oftAdapter = abi.decode(
             vm.parseJson(json, string.concat(".chains.", vm.toString(sourceChainId), ".oftAdapter")), (address)
         );
