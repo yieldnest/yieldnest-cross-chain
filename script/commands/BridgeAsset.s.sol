@@ -14,13 +14,13 @@ import {console} from "forge-std/console.sol";
 contract BridgeAsset is Script {
     using OptionsBuilder for bytes;
 
-    // Fraxtal testnet EID
-    uint32 constant DST_EID = 40255;
-
     // Amount to bridge (0.1 ETH worth)
-    uint256 constant BRIDGE_AMOUNT = 0.11 ether;
+    uint256 constant BRIDGE_AMOUNT = 0.12 ether;
 
     function run() external {
+        uint32 destinationEid =
+            uint32(vm.parseUint(vm.prompt("Enter destination EID (e.g. 40255 for Fraxtal testnet):")));
+
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
 
         address sender = vm.addr(deployerPrivateKey);
@@ -68,7 +68,7 @@ contract BridgeAsset is Script {
         // Prepare bridge params
         bytes memory options = OptionsBuilder.newOptions().addExecutorLzReceiveOption(200000, 0);
         SendParam memory sendParam =
-            SendParam(DST_EID, addressToBytes32(sender), BRIDGE_AMOUNT, BRIDGE_AMOUNT, options, "", "");
+            SendParam(destinationEid, addressToBytes32(sender), BRIDGE_AMOUNT, BRIDGE_AMOUNT, options, "", "");
 
         // Get messaging fee
         MessagingFee memory fee = IOFT(oftAdapter).quoteSend(sendParam, false);
