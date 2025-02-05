@@ -10,6 +10,20 @@ import {IERC20} from "@openzeppelin/contracts/interfaces/IERC20.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {console} from "forge-std/console.sol";
 
+/**
+ * @notice This script bridges ynETHx tokens between chains using LayerZero OFT protocol
+ *
+ * @dev How it works:
+ * 1. User provides destination chain ID via prompt
+ * 2. If on base chain (L1):
+ *    - Wraps ETH to WETH by sending ETH to WETH contract
+ * 3. Bridges tokens via OFT adapter's sendFrom()
+ *
+ * Usage:
+ * ```
+ * forge script script/commands/BridgeAsset.s.sol:BridgeAsset --rpc-url <RPC_URL> --broadcast
+ * ```
+ */
 contract BridgeAsset is BaseData {
     using OptionsBuilder for bytes;
 
