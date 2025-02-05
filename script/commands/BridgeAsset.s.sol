@@ -54,7 +54,7 @@ contract BridgeAsset is BaseData {
             vm.parseJson(json, string.concat(".chains.", vm.toString(sourceChainId), ".erc20Address")), (address)
         );
 
-        {
+        if (sourceChainId == baseChainId) {
             // Get the WETH contract address from ynETHx
             address weth = IERC4626(ynETHx).asset();
 
