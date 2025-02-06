@@ -8,7 +8,7 @@ import {L2YnERC20Upgradeable} from "@/L2YnERC20Upgradeable.sol";
 import {L2YnOFTAdapterUpgradeable} from "@/L2YnOFTAdapterUpgradeable.sol";
 import {ImmutableMultiChainDeployer} from "@/factory/ImmutableMultiChainDeployer.sol";
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {ProxyAdmin} from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
 import {console} from "forge-std/console.sol";
 
@@ -46,13 +46,17 @@ contract DeployL2OFTAdapter is BaseScript {
         bytes32 proxySalt = createL2YnERC20UpgradeableProxySalt(msg.sender);
         bytes32 implementationSalt = createL2YnERC20UpgradeableSalt(msg.sender);
 
+        bytes32 timelockSalt = createL2YnOFTAdapterTimelockSalt(msg.sender);
+        address timelock = _deployTimelockController(timelockSalt);
+
         address deployer = msg.sender;
 
         address predictedERC20 = multiChainDeployer.getDeployed(proxySalt);
         require(predictedERC20 == predictions.l2ERC20, "Prediction mismatch");
 
         if (!isContract(currentDeployment.erc20Address)) {
-            vm.broadcast();
+            vm.startBroadcast();
+
             l2ERC20 = L2YnERC20Upgradeable(
                 multiChainDeployer.deployL2YnERC20(
                     implementationSalt,
@@ -60,16 +64,11 @@ contract DeployL2OFTAdapter is BaseScript {
                     baseInput.erc20Name,
                     baseInput.erc20Symbol,
                     deployer,
-                    deployer,
+                    timelock,
                     type(L2YnERC20Upgradeable).creationCode
                 )
             );
-
-            vm.broadcast();
-
-            address newOwner = getData(block.chainid).PROXY_ADMIN;
-            console.log("Changing owner for L2ERC20 to: %s", newOwner);
-            Ownable(getTransparentUpgradeableProxyAdminAddress(address(l2ERC20))).transferOwnership(newOwner);
+            vm.stopBroadcast();
 
             console.log("Deployed L2ERC20 at: %s", address(l2ERC20));
         } else {
@@ -86,7 +85,8 @@ contract DeployL2OFTAdapter is BaseScript {
         require(predictedOFTAdapter == predictions.l2OFTAdapter, "Prediction mismatch");
 
         if (!isContract(currentDeployment.oftAdapter)) {
-            vm.broadcast();
+            vm.startBroadcast();
+
             l2OFTAdapter = L2YnOFTAdapterUpgradeable(
                 multiChainDeployer.deployL2YnOFTAdapter(
                     implementationSalt,
@@ -94,16 +94,11 @@ contract DeployL2OFTAdapter is BaseScript {
                     address(l2ERC20),
                     getData(block.chainid).LZ_ENDPOINT,
                     deployer,
-                    deployer,
+                    timelock,
                     type(L2YnOFTAdapterUpgradeable).creationCode
                 )
             );
-
-            vm.broadcast();
-
-            address newOwner = getData(block.chainid).PROXY_ADMIN;
-            console.log("Changing owner for L2OFTAdapter to: %s", newOwner);
-            Ownable(getTransparentUpgradeableProxyAdminAddress(address(l2OFTAdapter))).transferOwnership(newOwner);
+            vm.stopBroadcast();
 
             console.log("Deployed L2OFTAdapter at: %s", address(l2OFTAdapter));
         } else {
@@ -155,8 +150,12 @@ contract DeployL2OFTAdapter is BaseScript {
             vm.stopBroadcast();
         }
 
-        currentDeployment.erc20Address = address(l2ERC20);
+        currentDeployment.oftAdapterProxyAdmin = getTransparentUpgradeableProxyAdminAddress(address(l2OFTAdapter));
+        currentDeployment.oftAdapterTimelock = ProxyAdmin(currentDeployment.oftAdapterProxyAdmin).owner();
         currentDeployment.oftAdapter = address(l2OFTAdapter);
+
+        currentDeployment.erc20ProxyAdmin = getTransparentUpgradeableProxyAdminAddress(address(l2ERC20));
+        currentDeployment.erc20Address = address(l2ERC20);
 
         _saveDeployment();
     }

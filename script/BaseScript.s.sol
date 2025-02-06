@@ -7,6 +7,8 @@ import {BaseData} from "./BaseData.s.sol";
 import {L1YnOFTAdapterUpgradeable} from "@/L1YnOFTAdapterUpgradeable.sol";
 import {ImmutableMultiChainDeployer} from "@/factory/ImmutableMultiChainDeployer.sol";
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
+
+import {TimelockController} from "@openzeppelin/contracts/governance/TimelockController.sol";
 import {TransparentUpgradeableProxy} from
     "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {IERC20Metadata as IERC20} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
@@ -39,11 +41,14 @@ struct Deployment {
 struct ChainDeployment {
     uint256 chainId;
     address erc20Address;
+    address erc20ProxyAdmin;
     bool isL1;
     address lzEndpoint;
     uint32 lzEID;
     address multiChainDeployer;
     address oftAdapter;
+    address oftAdapterProxyAdmin;
+    address oftAdapterTimelock;
 }
 
 struct PredictedAddresses {
@@ -65,7 +70,7 @@ contract BaseScript is BaseData, Utils {
     Deployment public deployment;
     ChainDeployment public currentDeployment;
     PredictedAddresses public predictions;
-    string private constant _VERSION = "v0.0.1";
+    string private constant _VERSION = "v0.0.2";
 
     function _getRateLimitConfigs() internal view returns (RateLimiter.RateLimitConfig[] memory) {
         RateLimiter.RateLimitConfig[] memory rateLimitConfigs =
@@ -147,14 +152,17 @@ contract BaseScript is BaseData, Utils {
                 abi.encode(baseInput.l1ERC20Address, getData(block.chainid).LZ_ENDPOINT)
             );
 
-            address implPredictedAddress = vm.computeCreate2Address(implementationSalt, keccak256(implBytecode));
+            address predictedImplementation = vm.computeCreate2Address(implementationSalt, keccak256(implBytecode));
 
             bytes memory initializeData =
                 abi.encodeWithSelector(L1YnOFTAdapterUpgradeable.initialize.selector, msg.sender);
 
+            bytes32 timelockSalt = createL1YnOFTAdapterTimelockSalt(msg.sender);
+            address predictedTimelock = _predictTimelockController(timelockSalt);
+
             bytes memory proxyBytecode = bytes.concat(
                 type(TransparentUpgradeableProxy).creationCode,
-                abi.encode(implPredictedAddress, msg.sender, initializeData)
+                abi.encode(predictedImplementation, predictedTimelock, initializeData)
             );
 
             address predictedAddress = vm.computeCreate2Address(proxySalt, keccak256(proxyBytecode));
@@ -251,7 +259,12 @@ contract BaseScript is BaseData, Utils {
             chainJson =
                 vm.serializeAddress(chainKey, "multiChainDeployer", deployment.chains[i].multiChainDeployer);
             chainJson = vm.serializeAddress(chainKey, "erc20Address", deployment.chains[i].erc20Address);
+            chainJson = vm.serializeAddress(chainKey, "erc20ProxyAdmin", deployment.chains[i].erc20ProxyAdmin);
             chainJson = vm.serializeAddress(chainKey, "oftAdapter", deployment.chains[i].oftAdapter);
+            chainJson =
+                vm.serializeAddress(chainKey, "oftAdapterProxyAdmin", deployment.chains[i].oftAdapterProxyAdmin);
+            chainJson =
+                vm.serializeAddress(chainKey, "oftAdapterTimelock", deployment.chains[i].oftAdapterTimelock);
 
             chainsJson = vm.serializeString("chains", vm.toString(deployment.chains[i].chainId), chainJson);
         }
@@ -292,7 +305,13 @@ contract BaseScript is BaseData, Utils {
             chains[i].multiChainDeployer =
                 vm.parseJsonAddress(json, string(abi.encodePacked(chainKey, ".multiChainDeployer")));
             chains[i].erc20Address = vm.parseJsonAddress(json, string(abi.encodePacked(chainKey, ".erc20Address")));
+            chains[i].erc20ProxyAdmin =
+                vm.parseJsonAddress(json, string(abi.encodePacked(chainKey, ".erc20ProxyAdmin")));
             chains[i].oftAdapter = vm.parseJsonAddress(json, string(abi.encodePacked(chainKey, ".oftAdapter")));
+            chains[i].oftAdapterProxyAdmin =
+                vm.parseJsonAddress(json, string(abi.encodePacked(chainKey, ".oftAdapterProxyAdmin")));
+            chains[i].oftAdapterTimelock =
+                vm.parseJsonAddress(json, string(abi.encodePacked(chainKey, ".oftAdapterTimelock")));
 
             // Add the chain to the deployment
             deployment.chains.push(chains[i]);
@@ -361,6 +380,18 @@ contract BaseScript is BaseData, Utils {
         _salt = createSalt(_deployerAddress, "L2YnERC20Upgradeable");
     }
 
+    function createL1YnOFTAdapterTimelockSalt(address _deployerAddress) internal pure returns (bytes32 _salt) {
+        _salt = createSalt(_deployerAddress, "L1YnOFTAdapterTimelock");
+    }
+
+    function createL2YnOFTAdapterTimelockSalt(address _deployerAddress) internal pure returns (bytes32 _salt) {
+        _salt = createSalt(_deployerAddress, "L2YnOFTAdapterTimelock");
+    }
+
+    // function createL2YnERC20TimelockSalt(address _deployerAddress) internal pure returns (bytes32 _salt) {
+    //     _salt = createSalt(_deployerAddress, "L2YnERC20Timelock");
+    // }
+
     function createSalt(address _deployerAddress, string memory _label) internal pure returns (bytes32 _salt) {
         _salt = bytes32(
             abi.encodePacked(bytes20(_deployerAddress), bytes12(bytes32(keccak256(abi.encode(_label, _VERSION)))))
@@ -378,5 +409,38 @@ contract BaseScript is BaseData, Utils {
             size := extcodesize(_addr)
         }
         return (size > 0);
+    }
+
+    function _predictTimelockController(bytes32 timelockSalt) internal virtual returns (address) {
+        address admin = getData(block.chainid).PROXY_ADMIN;
+
+        address[] memory proposers = new address[](1);
+        proposers[0] = admin;
+
+        address[] memory executors = new address[](1);
+        executors[0] = admin;
+
+        uint256 minDelay = getMinDelay(block.chainid);
+
+        bytes memory timelockBytecode =
+            bytes.concat(type(TimelockController).creationCode, abi.encode(minDelay, proposers, executors, admin));
+
+        address predictedTimelock = vm.computeCreate2Address(timelockSalt, keccak256(timelockBytecode));
+
+        return predictedTimelock;
+    }
+
+    function _deployTimelockController(bytes32 timelockSalt) internal virtual returns (address timelock) {
+        address admin = getData(block.chainid).PROXY_ADMIN;
+
+        address[] memory proposers = new address[](1);
+        proposers[0] = admin;
+
+        address[] memory executors = new address[](1);
+        executors[0] = admin;
+
+        uint256 minDelay = getMinDelay(block.chainid);
+
+        timelock = address(new TimelockController{salt: timelockSalt}(minDelay, proposers, executors, admin));
     }
 }
