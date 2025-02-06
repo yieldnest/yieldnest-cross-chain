@@ -8,7 +8,7 @@
   ],
   "l1ERC20Address": "0xfd930060e51C10CCBc36F512676B4FD3E7026a1E",
   "rateLimitConfig": {
-    "limit": "100000000000000000000",
-    "window": "86400"
+    "limit": "3000000000000000000000",
+    "window": "3600"
   }
 }
