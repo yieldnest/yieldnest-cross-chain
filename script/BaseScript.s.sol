@@ -42,7 +42,6 @@ struct ChainDeployment {
     uint256 chainId;
     address erc20Address;
     address erc20ProxyAdmin;
-    address erc20Timelock;
     bool isL1;
     address lzEndpoint;
     uint32 lzEID;
@@ -261,7 +260,6 @@ contract BaseScript is BaseData, Utils {
                 vm.serializeAddress(chainKey, "multiChainDeployer", deployment.chains[i].multiChainDeployer);
             chainJson = vm.serializeAddress(chainKey, "erc20Address", deployment.chains[i].erc20Address);
             chainJson = vm.serializeAddress(chainKey, "erc20ProxyAdmin", deployment.chains[i].erc20ProxyAdmin);
-            chainJson = vm.serializeAddress(chainKey, "erc20Timelock", deployment.chains[i].erc20Timelock);
             chainJson = vm.serializeAddress(chainKey, "oftAdapter", deployment.chains[i].oftAdapter);
             chainJson =
                 vm.serializeAddress(chainKey, "oftAdapterProxyAdmin", deployment.chains[i].oftAdapterProxyAdmin);
@@ -309,8 +307,6 @@ contract BaseScript is BaseData, Utils {
             chains[i].erc20Address = vm.parseJsonAddress(json, string(abi.encodePacked(chainKey, ".erc20Address")));
             chains[i].erc20ProxyAdmin =
                 vm.parseJsonAddress(json, string(abi.encodePacked(chainKey, ".erc20ProxyAdmin")));
-            chains[i].erc20Timelock =
-                vm.parseJsonAddress(json, string(abi.encodePacked(chainKey, ".erc20Timelock")));
             chains[i].oftAdapter = vm.parseJsonAddress(json, string(abi.encodePacked(chainKey, ".oftAdapter")));
             chains[i].oftAdapterProxyAdmin =
                 vm.parseJsonAddress(json, string(abi.encodePacked(chainKey, ".oftAdapterProxyAdmin")));
@@ -392,9 +388,9 @@ contract BaseScript is BaseData, Utils {
         _salt = createSalt(_deployerAddress, "L2YnOFTAdapterTimelock");
     }
 
-    function createL2YnERC20TimelockSalt(address _deployerAddress) internal pure returns (bytes32 _salt) {
-        _salt = createSalt(_deployerAddress, "L2YnERC20Timelock");
-    }
+    // function createL2YnERC20TimelockSalt(address _deployerAddress) internal pure returns (bytes32 _salt) {
+    //     _salt = createSalt(_deployerAddress, "L2YnERC20Timelock");
+    // }
 
     function createSalt(address _deployerAddress, string memory _label) internal pure returns (bytes32 _salt) {
         _salt = bytes32(
@@ -421,7 +417,7 @@ contract BaseScript is BaseData, Utils {
         address[] memory proposers = new address[](1);
         proposers[0] = admin;
 
-        address[] memory executors = new address[](2);
+        address[] memory executors = new address[](1);
         executors[0] = admin;
 
         uint256 minDelay = getMinDelay(block.chainid);
@@ -440,7 +436,7 @@ contract BaseScript is BaseData, Utils {
         address[] memory proposers = new address[](1);
         proposers[0] = admin;
 
-        address[] memory executors = new address[](2);
+        address[] memory executors = new address[](1);
         executors[0] = admin;
 
         uint256 minDelay = getMinDelay(block.chainid);

@@ -45,7 +45,9 @@ contract DeployL2OFTAdapter is BaseScript {
 
         bytes32 proxySalt = createL2YnERC20UpgradeableProxySalt(msg.sender);
         bytes32 implementationSalt = createL2YnERC20UpgradeableSalt(msg.sender);
-        bytes32 timelockSalt = createL2YnERC20TimelockSalt(msg.sender);
+
+        bytes32 timelockSalt = createL2YnOFTAdapterTimelockSalt(msg.sender);
+        address timelock = _deployTimelockController(timelockSalt);
 
         address deployer = msg.sender;
 
@@ -54,7 +56,7 @@ contract DeployL2OFTAdapter is BaseScript {
 
         if (!isContract(currentDeployment.erc20Address)) {
             vm.startBroadcast();
-            address timelock = _deployTimelockController(timelockSalt);
+
             l2ERC20 = L2YnERC20Upgradeable(
                 multiChainDeployer.deployL2YnERC20(
                     implementationSalt,
@@ -78,14 +80,13 @@ contract DeployL2OFTAdapter is BaseScript {
 
         proxySalt = createL2YnOFTAdapterUpgradeableProxySalt(msg.sender);
         implementationSalt = createL2YnOFTAdapterUpgradeableSalt(msg.sender);
-        timelockSalt = createL2YnOFTAdapterTimelockSalt(msg.sender);
 
         address predictedOFTAdapter = multiChainDeployer.getDeployed(proxySalt);
         require(predictedOFTAdapter == predictions.l2OFTAdapter, "Prediction mismatch");
 
         if (!isContract(currentDeployment.oftAdapter)) {
             vm.startBroadcast();
-            address timelock = _deployTimelockController(timelockSalt);
+
             l2OFTAdapter = L2YnOFTAdapterUpgradeable(
                 multiChainDeployer.deployL2YnOFTAdapter(
                     implementationSalt,
@@ -154,7 +155,6 @@ contract DeployL2OFTAdapter is BaseScript {
         currentDeployment.oftAdapter = address(l2OFTAdapter);
 
         currentDeployment.erc20ProxyAdmin = getTransparentUpgradeableProxyAdminAddress(address(l2ERC20));
-        currentDeployment.erc20Timelock = ProxyAdmin(currentDeployment.erc20ProxyAdmin).owner();
         currentDeployment.erc20Address = address(l2ERC20);
 
         _saveDeployment();

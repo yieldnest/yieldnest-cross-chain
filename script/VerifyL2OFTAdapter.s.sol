@@ -93,10 +93,10 @@ contract VerifyL2OFTAdapter is BaseScript, BatchScript {
             revert("L2 ERC20 proxy admin is not correct");
         }
         proxyAdminOwner = ProxyAdmin(proxyAdmin).owner();
-        if (proxyAdminOwner != currentDeployment.erc20Timelock) {
+        if (proxyAdminOwner != currentDeployment.oftAdapterTimelock) {
             revert("L2 ERC20 timelock is not correct");
         }
-        timelock = TimelockController(payable(currentDeployment.erc20Timelock));
+        timelock = TimelockController(payable(currentDeployment.oftAdapterTimelock));
         if (!timelock.hasRole(timelock.DEFAULT_ADMIN_ROLE(), getData(block.chainid).PROXY_ADMIN)) {
             revert("L2 ERC20 timelock admin is not correct");
         }
