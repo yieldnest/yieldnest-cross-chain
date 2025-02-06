@@ -151,9 +151,9 @@ contract BaseData is Script {
             LZ_EID: 30183
         });
         __chainIdToData[__chainIds.bera] = Data({
-            OFT_OWNER: TEMP_YN_SECURITY_COUNCIL,
-            TOKEN_ADMIN: TEMP_YN_SECURITY_COUNCIL,
-            PROXY_ADMIN: TEMP_YN_SECURITY_COUNCIL,
+            OFT_OWNER: 0xae495b70D00C724e5a9E23F4613d5e8139677503,
+            TOKEN_ADMIN: 0xae495b70D00C724e5a9E23F4613d5e8139677503,
+            PROXY_ADMIN: 0xae495b70D00C724e5a9E23F4613d5e8139677503,
             LZ_ENDPOINT: 0x6F475642a6e85809B1c36Fa62763669b1b48DD5B,
             LZ_EID: 30362
         });
