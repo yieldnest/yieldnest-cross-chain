@@ -25,7 +25,8 @@ function display_help() {
     echo "  -h, --help            Display this help and exit"
     echo "  -a, --account         Set the deployer account name"
     echo "  -s, --sender          Set the deployer address"
-    echo "  -b, --broadcast       Broadcast and verify the deployment"
+    echo "  -b, --broadcast       Deploy & verify contracts on etherscan"
+    echo "  -v, --verify-only     Run verify scripts for the deployment"
 
     delimiter
 }
@@ -133,9 +134,11 @@ function getRPC() {
     2522)
         echo "fraxtal_testnet"
         ;;
+    80094)
+        echo "bera"
+        ;;
     *)
-        echo "Chain RPC not found for $2"
-        exit 1
+        echo ""
         ;;
     esac
 }
@@ -147,21 +150,56 @@ function getEtherscanAPIKey() {
     1)
         echo "$ETHERSCAN_API_KEY"
         ;;
-    2522)
-        echo "$FRAXSCAN_API_KEY"
+    8453)
+        echo "$BASESCAN_API_KEY"
+        ;;
+    10)
+        echo "$OPTIMISTIC_ETHERSCAN_API_KEY"
+        ;;
+    42161)
+        echo "$ARBISCAN_API_KEY"
         ;;
     252)
         echo "$FRAXSCAN_API_KEY"
         ;;
-    2810)
-        echo "$MORPHSCAN_API_KEY"
+    169)
+        echo "$MANTASCAN_API_KEY"
+        ;;
+    167000)
+        echo "$TAIKOSCAN_API_KEY"
+        ;;
+    534352)
+        echo "$SCROLLSCAN_API_KEY"
+        ;;
+    250)
+        echo "$FANTOMSCAN_API_KEY"
+        ;;
+    5000)
+        echo "$MANTLESCAN_API_KEY"
+        ;;
+    81457)
+        echo "$BLASTSCAN_API_KEY"
+        ;;
+    59144)
+        echo "$LINEASCAN_API_KEY"
         ;;
     17000)
         echo "$ETHERSCAN_API_KEY"
         ;;
+    11155111)
+        echo "$ETHERSCAN_API_KEY"
+        ;;
+    2810)
+        echo "$MORPHSCAN_API_KEY"
+        ;;
+    2522)
+        echo "$FRAXSCAN_API_KEY"
+        ;;
+    80094)
+        echo "$BERASCAN_API_KEY"
+        ;;
     *)
-        echo "Etherscan API key not found for $1"
-        exit 1
+        echo ""
         ;;
     esac
 }
@@ -174,6 +212,7 @@ function error_exit() {
 }
 
 BROADCAST=false
+VERIFY_ONLY=false
 
 function runScript() {
     local SCRIPT=$1
@@ -237,6 +276,10 @@ while [[ $# -gt 0 ]]; do
         BROADCAST=true
         shift
         ;;
+    --verify-only | -v)
+        VERIFY_ONLY=true
+        shift
+        ;;
     *)
         echo "Error, unrecognized flag" >&2
         display_help
@@ -248,6 +291,16 @@ done
 L1_RPC=$(getRPC $L1_CHAIN_ID)
 L2_RPCS_ARRAY=$(< <(getRPCs $L2_CHAIN_IDS_ARRAY))
 L1_ETHERSCAN_API_KEY=$(getEtherscanAPIKey $L1_CHAIN_ID)
+
+if [[ -z $L1_RPC ]]; then
+    echo "No RPC found for $L1_CHAIN_ID"
+    exit 1
+fi
+
+if [[ -z $L1_ETHERSCAN_API_KEY ]]; then
+    echo "No Etherscan API key found for $L1_CHAIN_ID"
+    exit 1
+fi
 
 delimiter
 
@@ -261,19 +314,31 @@ delimiter
 
 CALLDATA=$(cast calldata "run(string)" "/$INPUT_PATH")
 
-echo "Deploying L1 Adapter for $L1_RPC"
-runScript script/DeployL1OFTAdapter.s.sol:DeployL1OFTAdapter $CALLDATA $L1_RPC $L1_ETHERSCAN_API_KEY
+if [[ $VERIFY_ONLY == false ]]; then
 
-delimiter
-
-for l2 in $L2_CHAIN_IDS_ARRAY; do
-    L2_RPC=$(getRPC $l2)
-    L2_ETHERSCAN_API_KEY=$(getEtherscanAPIKey $l2)
-    echo "Deploying L2 Adapter for $L2_RPC"
-    runScript script/DeployL2OFTAdapter.s.sol:DeployL2OFTAdapter $CALLDATA $L2_RPC $L2_ETHERSCAN_API_KEY
-
+    echo "Deploying L1 Adapter for $L1_RPC"
+    runScript script/DeployL1OFTAdapter.s.sol:DeployL1OFTAdapter $CALLDATA $L1_RPC $L1_ETHERSCAN_API_KEY
+    
     delimiter
-done
+    
+    for l2 in $L2_CHAIN_IDS_ARRAY; do
+        L2_RPC=$(getRPC $l2)
+        if [[ -z $L2_RPC ]]; then
+            echo "No RPC found for $l2"
+            exit 1
+        fi
+        L2_ETHERSCAN_API_KEY=$(getEtherscanAPIKey $l2)
+        if [[ -z $L2_ETHERSCAN_API_KEY ]]; then
+            echo "No Etherscan API key found for $l2"
+            exit 1
+        fi
+        echo "Deploying L2 Adapter for $L2_RPC"
+        runScript script/DeployL2OFTAdapter.s.sol:DeployL2OFTAdapter $CALLDATA $L2_RPC $L2_ETHERSCAN_API_KEY
+    
+        delimiter
+    done
+
+fi
 
 echo "Verifying L1 Adapter for $L1_RPC"
 simulate script/VerifyL1OFTAdapter.s.sol:VerifyL1OFTAdapter $CALLDATA $L1_RPC $L1_ETHERSCAN_API_KEY

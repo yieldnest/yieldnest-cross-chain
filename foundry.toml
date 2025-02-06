@@ -34,6 +34,7 @@ fantom = "${FANTOM_RPC_URL}"
 mantle = "${MANTLE_RPC_URL}"
 blast = "${BLAST_RPC_URL}"
 linea = "${LINEA_RPC_URL}"
+bera = "${BERA_RPC_URL}"
 
 holesky = "${HOLESKY_RPC_URL}"
 sepolia = "${SEPOLIA_RPC_URL}"
@@ -56,4 +57,5 @@ taiko = { key = "${TAIKOSCAN_API_KEY}", url = "https://api.taikoscan.io/api" }
 mantle = { key = "${MANTLESCAN_API_KEY}", url = "https://explorer.mantle.xyz/api/" }
 blast = { key = "${BLASTSCAN_API_KEY}", url = "https://api.blastscan.io/api/" }
 linea = { key = "${LINEASCAN_API_KEY}", url = "https://api.lineascan.build/api/" }
+bera = { key = "${BERASCAN_API_KEY}", url = "https://api.berascan.com/api/" }
 
