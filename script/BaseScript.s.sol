@@ -1,4 +1,4 @@
-/* solhint-disable no-console, gas-custom-errors */
+/* solhint-disable gas-custom-errors */
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
@@ -14,7 +14,6 @@ import {TransparentUpgradeableProxy} from
 import {IERC20Metadata as IERC20} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {Utils} from "script/Utils.sol";
 
-import {console} from "forge-std/console.sol";
 import {Bytes32AddressLib} from "solmate/utils/Bytes32AddressLib.sol";
 
 struct RateLimitConfig {
@@ -181,11 +180,6 @@ contract BaseScript is BaseData, Utils {
             address predictedAddress = _computeCreate3Address(salt, predictions.l2MultiChainDeployer);
             predictions.l2ERC20 = predictedAddress;
         }
-
-        // console.log("Predicted MultiChainDeployer: %s", predictions.l2MultiChainDeployer);
-        // console.log("Predicted L1OFTAdapter: %s", predictions.l1OFTAdapter);
-        // console.log("Predicted L2OFTAdapter: %s", predictions.l2OFTAdapter);
-        // console.log("Predicted L2ERC20: %s", predictions.l2ERC20);
     }
 
     function _validateInput() internal view {
@@ -211,7 +205,6 @@ contract BaseScript is BaseData, Utils {
             }
         }
         if (isL1 == isL2) {
-            console.log("isL1: %s, isL2: %s, Got chainid: %d", isL1, isL2, block.chainid);
             revert("Invalid ChainId");
         }
         return isL1;

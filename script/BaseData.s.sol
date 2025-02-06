@@ -26,6 +26,7 @@ contract BaseData is Script {
         uint256 mantle;
         uint256 blast;
         uint256 linea;
+        uint256 bera;
         // testnets
         uint256 holesky;
         uint256 sepolia;
@@ -48,6 +49,7 @@ contract BaseData is Script {
         mantle: 5000,
         blast: 81457,
         linea: 59144,
+        bera: 80094,
         // testnets
         holesky: 17000,
         sepolia: 11155111,
@@ -148,6 +150,13 @@ contract BaseData is Script {
             LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c,
             LZ_EID: 30183
         });
+        __chainIdToData[__chainIds.bera] = Data({
+            OFT_OWNER: TEMP_YN_SECURITY_COUNCIL,
+            TOKEN_ADMIN: TEMP_YN_SECURITY_COUNCIL,
+            PROXY_ADMIN: TEMP_YN_SECURITY_COUNCIL,
+            LZ_ENDPOINT: 0x6F475642a6e85809B1c36Fa62763669b1b48DD5B,
+            LZ_EID: 30362
+        });
 
         // testnets
         __chainIdToData[__chainIds.holesky] = Data({
@@ -203,6 +212,7 @@ contract BaseData is Script {
             || chainId == __chainIds.optimism || chainId == __chainIds.arbitrum || chainId == __chainIds.manta
             || chainId == __chainIds.taiko || chainId == __chainIds.scroll || chainId == __chainIds.fantom
             || chainId == __chainIds.mantle || chainId == __chainIds.blast || chainId == __chainIds.linea
+            || chainId == __chainIds.bera
         // testnets
         || chainId == __chainIds.holesky || chainId == __chainIds.fraxtalTestnet || chainId == __chainIds.sepolia
             || chainId == __chainIds.morphTestnet;
