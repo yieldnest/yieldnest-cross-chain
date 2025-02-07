@@ -51,10 +51,10 @@ sepolia = { key = "${ETHERSCAN_API_KEY}" }
 fraxtal = { key = "${FRAXSCAN_API_KEY}", url = "https://api.fraxscan.com/api/" }
 fraxtal_testnet = { key = "${FRAXSCAN_API_KEY}", url = "https://api-holesky.fraxscan.com/api/" }
 morph_testnet = { key = "${MORPHSCAN_API_KEY}", url = "https://explorer-api-holesky.morphl2.io/api/" }
-scroll = { key = "${SCROLLSCAN_API_KEY}", url = "https://api.scrollscan.com/" }
+scroll = { key = "${SCROLLSCAN_API_KEY}", url = "https://api.scrollscan.com/api/" }
 fantom = { key = "${FANTOMSCAN_API_KEY}", url = "https://api.ftmscan.com/api/" }
-taiko = { key = "${TAIKOSCAN_API_KEY}", url = "https://api.taikoscan.io/api" }
-mantle = { key = "${MANTLESCAN_API_KEY}", url = "https://explorer.mantle.xyz/api/" }
+taiko = { key = "${TAIKOSCAN_API_KEY}", url = "https://api.taikoscan.io/api/" }
+mantle = { key = "${MANTLESCAN_API_KEY}", url = "https://api.mantlescan.xyz/api/" }
 blast = { key = "${BLASTSCAN_API_KEY}", url = "https://api.blastscan.io/api/" }
 linea = { key = "${LINEASCAN_API_KEY}", url = "https://api.lineascan.build/api/" }
 bera = { key = "${BERASCAN_API_KEY}", url = "https://api.berascan.com/api/" }

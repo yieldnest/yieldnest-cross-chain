@@ -84,18 +84,6 @@
       "oftAdapterProxyAdmin": "0x5b0928945624B4D2FDFd237E6aDd1a97dE669034",
       "oftAdapterTimelock": "0x46A8C71392875a2E94FE1987D13c1664388a6c0F"
     },
-    "59144": {
-      "chainId": 59144,
-      "erc20Address": "0xD6d9b84411165A0c5791FAB55371ede2668Dde12",
-      "erc20ProxyAdmin": "0xea98a9afd4018C38d835feB257BE650DFC9B31c6",
-      "isL1": false,
-      "lzEID": 30183,
-      "lzEndpoint": "0x1a44076050125825900e736c501f859c50fE728c",
-      "multiChainDeployer": "0x2D704D349f55DE63edDeBE9A50d8100A7fd170d7",
-      "oftAdapter": "0xe1C5094c5621BCf07E58e5B5058a92B1edc279Db",
-      "oftAdapterProxyAdmin": "0x5b0928945624B4D2FDFd237E6aDd1a97dE669034",
-      "oftAdapterTimelock": "0x46A8C71392875a2E94FE1987D13c1664388a6c0F"
-    },
     "80094": {
       "chainId": 80094,
       "erc20Address": "0xD6d9b84411165A0c5791FAB55371ede2668Dde12",
