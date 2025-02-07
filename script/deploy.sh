@@ -315,6 +315,11 @@ delimiter
 CALLDATA=$(cast calldata "run(string)" "/$INPUT_PATH")
 
 if [[ $VERIFY_ONLY == false ]]; then
+
+    echo "Deploying L1 Adapter for $L1_RPC"
+    runScript script/DeployL1OFTAdapter.s.sol:DeployL1OFTAdapter $CALLDATA $L1_RPC $L1_ETHERSCAN_API_KEY
+    
+    delimiter
     
     for l2 in $L2_CHAIN_IDS_ARRAY; do
         L2_RPC=$(getRPC $l2)
@@ -332,11 +337,6 @@ if [[ $VERIFY_ONLY == false ]]; then
     
         delimiter
     done
-
-    echo "Deploying L1 Adapter for $L1_RPC"
-    runScript script/DeployL1OFTAdapter.s.sol:DeployL1OFTAdapter $CALLDATA $L1_RPC $L1_ETHERSCAN_API_KEY
-    
-    delimiter
 
 fi
 
