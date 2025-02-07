@@ -28,7 +28,7 @@ contract BridgeAsset is BaseData {
     using OptionsBuilder for bytes;
 
     // Amount to bridge (0.1 ETH worth)
-    uint256 constant BRIDGE_AMOUNT = 0.12 ether;
+    uint256 constant BRIDGE_AMOUNT = 0.0001 ether;
 
     function run() external {
         uint256 destinationChainId =
@@ -55,7 +55,7 @@ contract BridgeAsset is BaseData {
 
         // Load deployment config
         string memory json =
-            vm.readFile(string.concat("deployments/ynETHx-", vm.toString(baseChainId), "-v0.0.1.json"));
+            vm.readFile(string.concat("deployments/ynETHx-", vm.toString(baseChainId), "-v0.0.2.json"));
 
         address oftAdapter = abi.decode(
             vm.parseJson(json, string.concat(".chains.", vm.toString(sourceChainId), ".oftAdapter")), (address)
@@ -91,7 +91,7 @@ contract BridgeAsset is BaseData {
 
             // Get final ynETHx balance and calculate extra amount received
             uint256 finalYnETHxBalance = IERC20(ynETHx).balanceOf(sender);
-            extraYnETHx = finalYnETHxBalance - initialYnETHxBalance - BRIDGE_AMOUNT;
+            extraYnETHx = finalYnETHxBalance - initialYnETHxBalance;
 
             console.log("Initial ynETHx balance: %s", initialYnETHxBalance);
             console.log("Final ynETHx balance: %s", finalYnETHxBalance);
