@@ -68,9 +68,13 @@ contract BridgeAsset is BaseData {
             vm.parseJson(json, string.concat(".chains.", vm.toString(sourceChainId), ".erc20Address")), (address)
         );
 
+        uint256 extraYnETHx;
         if (sourceChainId == baseChainId) {
             // Get the WETH contract address from ynETHx
             address weth = IERC4626(ynETHx).asset();
+
+            // Get initial ynETHx balance
+            uint256 initialYnETHxBalance = IERC20(ynETHx).balanceOf(sender);
 
             // Deposit ETH to get WETH
             (bool success,) = weth.call{value: BRIDGE_AMOUNT}("");
@@ -84,6 +88,16 @@ contract BridgeAsset is BaseData {
 
             // Deposit WETH to mint ynETHx using ERC4626 interface
             IERC4626(ynETHx).deposit(wethAmount, sender);
+
+            // Get final ynETHx balance and calculate extra amount received
+            uint256 finalYnETHxBalance = IERC20(ynETHx).balanceOf(sender);
+            extraYnETHx = finalYnETHxBalance - initialYnETHxBalance - BRIDGE_AMOUNT;
+
+            console.log("Initial ynETHx balance: %s", initialYnETHxBalance);
+            console.log("Final ynETHx balance: %s", finalYnETHxBalance);
+            console.log("Extra ynETHx received: %s", extraYnETHx);
+        } else {
+            extraYnETHx = BRIDGE_AMOUNT;
         }
 
         // Prepare bridge params
