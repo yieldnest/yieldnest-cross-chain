@@ -45,14 +45,16 @@ contract DeployL2OFTAdapter is BaseScript {
 
         bytes32 proxySalt = createL2YnERC20UpgradeableProxySalt(msg.sender);
         bytes32 implementationSalt = createL2YnERC20UpgradeableSalt(msg.sender);
-
         bytes32 timelockSalt = createL2YnOFTAdapterTimelockSalt(msg.sender);
-        address timelock = _deployTimelockController(timelockSalt);
 
         address deployer = msg.sender;
 
         address predictedERC20 = multiChainDeployer.getDeployed(proxySalt);
         require(predictedERC20 == predictions.l2ERC20, "Prediction mismatch");
+
+        vm.startBroadcast();
+        address timelock = _deployTimelockController(timelockSalt);
+        vm.stopBroadcast();
 
         if (!isContract(currentDeployment.erc20Address)) {
             vm.startBroadcast();

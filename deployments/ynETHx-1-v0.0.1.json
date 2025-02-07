@@ -1,0 +1,137 @@
+{
+  "chains": {
+    "1": {
+      "chainId": 1,
+      "erc20Address": "0x657d9ABA1DBb59e53f9F3eCAA878447dCfC96dCb",
+      "erc20ProxyAdmin": "0x0000000000000000000000000000000000000000",
+      "isL1": true,
+      "lzEID": 30101,
+      "lzEndpoint": "0x1a44076050125825900e736c501f859c50fE728c",
+      "multiChainDeployer": "0x0000000000000000000000000000000000000000",
+      "oftAdapter": "0x8c016A9Ee53e6723420A74ba2BbF705a31187eBe",
+      "oftAdapterProxyAdmin": "0xE99d26C4A66f79e4f5c48F3249808cfFC5214b01",
+      "oftAdapterTimelock": "0x0b759e861F937d4e4e75778D077Ef93Ad6A15Ac1"
+    },
+    "10": {
+      "chainId": 10,
+      "erc20Address": "0xe07C779187aE5ae7cF3E5FB2F58305A353B56fa1",
+      "erc20ProxyAdmin": "0x34139e2f3F81A35347bFfa6E53B656fcee45718C",
+      "isL1": false,
+      "lzEID": 30111,
+      "lzEndpoint": "0x1a44076050125825900e736c501f859c50fE728c",
+      "multiChainDeployer": "0xb03407A50f5C9B4FBbca484f9A005F46FE14bB53",
+      "oftAdapter": "0x10eE5CfBFa42124cBBA94fE2397Fd1745081268a",
+      "oftAdapterProxyAdmin": "0x7BEe552abd27e8a92B7212698F9250b954d4DFaA",
+      "oftAdapterTimelock": "0xBb5daA1CF4c55200A956Ac15595b12d7D60175b2"
+    },
+    "167000": {
+      "chainId": 167000,
+      "erc20Address": "0xe07C779187aE5ae7cF3E5FB2F58305A353B56fa1",
+      "erc20ProxyAdmin": "0x34139e2f3F81A35347bFfa6E53B656fcee45718C",
+      "isL1": false,
+      "lzEID": 30290,
+      "lzEndpoint": "0x1a44076050125825900e736c501f859c50fE728c",
+      "multiChainDeployer": "0xb03407A50f5C9B4FBbca484f9A005F46FE14bB53",
+      "oftAdapter": "0x10eE5CfBFa42124cBBA94fE2397Fd1745081268a",
+      "oftAdapterProxyAdmin": "0x7BEe552abd27e8a92B7212698F9250b954d4DFaA",
+      "oftAdapterTimelock": "0x1f435E9353C1319B9684481b873b086fa7d1e1Ef"
+    },
+    "252": {
+      "chainId": 252,
+      "erc20Address": "0xe07C779187aE5ae7cF3E5FB2F58305A353B56fa1",
+      "erc20ProxyAdmin": "0x34139e2f3F81A35347bFfa6E53B656fcee45718C",
+      "isL1": false,
+      "lzEID": 30255,
+      "lzEndpoint": "0x1a44076050125825900e736c501f859c50fE728c",
+      "multiChainDeployer": "0xb03407A50f5C9B4FBbca484f9A005F46FE14bB53",
+      "oftAdapter": "0x10eE5CfBFa42124cBBA94fE2397Fd1745081268a",
+      "oftAdapterProxyAdmin": "0x7BEe552abd27e8a92B7212698F9250b954d4DFaA",
+      "oftAdapterTimelock": "0x1f435E9353C1319B9684481b873b086fa7d1e1Ef"
+    },
+    "42161": {
+      "chainId": 42161,
+      "erc20Address": "0xe07C779187aE5ae7cF3E5FB2F58305A353B56fa1",
+      "erc20ProxyAdmin": "0x34139e2f3F81A35347bFfa6E53B656fcee45718C",
+      "isL1": false,
+      "lzEID": 30110,
+      "lzEndpoint": "0x1a44076050125825900e736c501f859c50fE728c",
+      "multiChainDeployer": "0xb03407A50f5C9B4FBbca484f9A005F46FE14bB53",
+      "oftAdapter": "0x10eE5CfBFa42124cBBA94fE2397Fd1745081268a",
+      "oftAdapterProxyAdmin": "0x7BEe552abd27e8a92B7212698F9250b954d4DFaA",
+      "oftAdapterTimelock": "0xBb5daA1CF4c55200A956Ac15595b12d7D60175b2"
+    },
+    "5000": {
+      "chainId": 5000,
+      "erc20Address": "0xe07C779187aE5ae7cF3E5FB2F58305A353B56fa1",
+      "erc20ProxyAdmin": "0x34139e2f3F81A35347bFfa6E53B656fcee45718C",
+      "isL1": false,
+      "lzEID": 30181,
+      "lzEndpoint": "0x1a44076050125825900e736c501f859c50fE728c",
+      "multiChainDeployer": "0xb03407A50f5C9B4FBbca484f9A005F46FE14bB53",
+      "oftAdapter": "0x10eE5CfBFa42124cBBA94fE2397Fd1745081268a",
+      "oftAdapterProxyAdmin": "0x7BEe552abd27e8a92B7212698F9250b954d4DFaA",
+      "oftAdapterTimelock": "0xBb5daA1CF4c55200A956Ac15595b12d7D60175b2"
+    },
+    "534352": {
+      "chainId": 534352,
+      "erc20Address": "0xe07C779187aE5ae7cF3E5FB2F58305A353B56fa1",
+      "erc20ProxyAdmin": "0x34139e2f3F81A35347bFfa6E53B656fcee45718C",
+      "isL1": false,
+      "lzEID": 30214,
+      "lzEndpoint": "0x1a44076050125825900e736c501f859c50fE728c",
+      "multiChainDeployer": "0xb03407A50f5C9B4FBbca484f9A005F46FE14bB53",
+      "oftAdapter": "0x10eE5CfBFa42124cBBA94fE2397Fd1745081268a",
+      "oftAdapterProxyAdmin": "0x7BEe552abd27e8a92B7212698F9250b954d4DFaA",
+      "oftAdapterTimelock": "0xBb5daA1CF4c55200A956Ac15595b12d7D60175b2"
+    },
+    "59144": {
+      "chainId": 59144,
+      "erc20Address": "0xe07C779187aE5ae7cF3E5FB2F58305A353B56fa1",
+      "erc20ProxyAdmin": "0x34139e2f3F81A35347bFfa6E53B656fcee45718C",
+      "isL1": false,
+      "lzEID": 30183,
+      "lzEndpoint": "0x1a44076050125825900e736c501f859c50fE728c",
+      "multiChainDeployer": "0xb03407A50f5C9B4FBbca484f9A005F46FE14bB53",
+      "oftAdapter": "0x10eE5CfBFa42124cBBA94fE2397Fd1745081268a",
+      "oftAdapterProxyAdmin": "0x7BEe552abd27e8a92B7212698F9250b954d4DFaA",
+      "oftAdapterTimelock": "0xBb5daA1CF4c55200A956Ac15595b12d7D60175b2"
+    },
+    "80094": {
+      "chainId": 80094,
+      "erc20Address": "0xe07C779187aE5ae7cF3E5FB2F58305A353B56fa1",
+      "erc20ProxyAdmin": "0x34139e2f3F81A35347bFfa6E53B656fcee45718C",
+      "isL1": false,
+      "lzEID": 30362,
+      "lzEndpoint": "0x6F475642a6e85809B1c36Fa62763669b1b48DD5B",
+      "multiChainDeployer": "0xb03407A50f5C9B4FBbca484f9A005F46FE14bB53",
+      "oftAdapter": "0x10eE5CfBFa42124cBBA94fE2397Fd1745081268a",
+      "oftAdapterProxyAdmin": "0x7BEe552abd27e8a92B7212698F9250b954d4DFaA",
+      "oftAdapterTimelock": "0xE14eDf5cd42633AE13C096bEf2df36183b1D4b79"
+    },
+    "81457": {
+      "chainId": 81457,
+      "erc20Address": "0xe07C779187aE5ae7cF3E5FB2F58305A353B56fa1",
+      "erc20ProxyAdmin": "0x34139e2f3F81A35347bFfa6E53B656fcee45718C",
+      "isL1": false,
+      "lzEID": 30243,
+      "lzEndpoint": "0x1a44076050125825900e736c501f859c50fE728c",
+      "multiChainDeployer": "0xb03407A50f5C9B4FBbca484f9A005F46FE14bB53",
+      "oftAdapter": "0x10eE5CfBFa42124cBBA94fE2397Fd1745081268a",
+      "oftAdapterProxyAdmin": "0x7BEe552abd27e8a92B7212698F9250b954d4DFaA",
+      "oftAdapterTimelock": "0xBb5daA1CF4c55200A956Ac15595b12d7D60175b2"
+    },
+    "8453": {
+      "chainId": 8453,
+      "erc20Address": "0xe07C779187aE5ae7cF3E5FB2F58305A353B56fa1",
+      "erc20ProxyAdmin": "0x34139e2f3F81A35347bFfa6E53B656fcee45718C",
+      "isL1": false,
+      "lzEID": 30184,
+      "lzEndpoint": "0x1a44076050125825900e736c501f859c50fE728c",
+      "multiChainDeployer": "0xb03407A50f5C9B4FBbca484f9A005F46FE14bB53",
+      "oftAdapter": "0x10eE5CfBFa42124cBBA94fE2397Fd1745081268a",
+      "oftAdapterProxyAdmin": "0x7BEe552abd27e8a92B7212698F9250b954d4DFaA",
+      "oftAdapterTimelock": "0xBb5daA1CF4c55200A956Ac15595b12d7D60175b2"
+    }
+  },
+  "deployerAddress": "0x4C51Ce7B2546e18449fbE16738A8D55bc195a4dd"
+}
