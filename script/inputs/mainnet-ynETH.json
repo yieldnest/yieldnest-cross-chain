@@ -3,15 +3,15 @@
   "erc20Symbol": "ynETHx",
   "l1ChainId": 1,
   "l2ChainIds": [
+    5000,
+    81457,
+    534352,
     80094,
     8453,
     10,
     42161,
     252,
     167000,
-    534352,
-    5000,
-    81457,
     59144
   ],
   "l1ERC20Address": "0x657d9ABA1DBb59e53f9F3eCAA878447dCfC96dCb",

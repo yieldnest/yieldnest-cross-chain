@@ -52,9 +52,16 @@ contract DeployL2OFTAdapter is BaseScript {
         address predictedERC20 = multiChainDeployer.getDeployed(proxySalt);
         require(predictedERC20 == predictions.l2ERC20, "Prediction mismatch");
 
-        vm.startBroadcast();
-        address timelock = _deployTimelockController(timelockSalt);
-        vm.stopBroadcast();
+        address timelock = _predictTimelockController(timelockSalt);
+
+        if (!isContract(timelock)) {
+            vm.startBroadcast();
+            timelock = _deployTimelockController(timelockSalt);
+            vm.stopBroadcast();
+            console.log("Timelock deployed at: ", timelock);
+        } else {
+            console.log("Already deployed Timelock at: ", timelock);
+        }
 
         if (!isContract(currentDeployment.erc20Address)) {
             vm.startBroadcast();

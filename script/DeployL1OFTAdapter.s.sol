@@ -32,6 +32,17 @@ contract DeployL1OFTAdapter is BaseScript {
 
         address deployer = msg.sender;
 
+        address timelock = _predictTimelockController(timelockSalt);
+
+        if (!isContract(timelock)) {
+            vm.startBroadcast();
+            timelock = _deployTimelockController(timelockSalt);
+            vm.stopBroadcast();
+            console.log("Timelock deployed at: ", timelock);
+        } else {
+            console.log("Already deployed Timelock at: ", timelock);
+        }
+
         if (!isContract(currentDeployment.oftAdapter)) {
             vm.broadcast();
             address l1OFTAdapterImpl = address(
@@ -44,7 +55,6 @@ contract DeployL1OFTAdapter is BaseScript {
                 abi.encodeWithSelector(L1YnOFTAdapterUpgradeable.initialize.selector, deployer);
 
             vm.startBroadcast();
-            address timelock = _deployTimelockController(timelockSalt);
             l1OFTAdapter = L1YnOFTAdapterUpgradeable(
                 address(
                     new TransparentUpgradeableProxy{salt: proxySalt}(l1OFTAdapterImpl, timelock, initializeData)
