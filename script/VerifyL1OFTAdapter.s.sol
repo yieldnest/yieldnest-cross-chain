@@ -33,6 +33,11 @@ contract VerifyL1OFTAdapter is BaseScript, BatchScript {
             revert("L1 OFT Adapter not deployed");
         }
 
+        console.log("l1OFTAdapter", predictions.l1OFTAdapter);
+        console.log("l2MultiChainDeployer", predictions.l2MultiChainDeployer);
+        console.log("l2ERC20", predictions.l2ERC20);
+        console.log("l2OFTAdapter", predictions.l2OFTAdapter);
+
         require(address(currentDeployment.oftAdapter) == predictions.l1OFTAdapter, "Predicted address mismatch");
 
         l1OFTAdapter = L1YnOFTAdapterUpgradeable(currentDeployment.oftAdapter);

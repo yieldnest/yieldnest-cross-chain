@@ -75,12 +75,17 @@ function simulate() {
 }
 
 function broadcast() {
-    if [[ $3 == "morph_testnet" ]]; then
-        forge script $1 --sig $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS --broadcast --verify --verifier blockscout --slow --with-gas-price 3gwei --priority-gas-price 3gwei --verifier-url "https://explorer-api-holesky.morphl2.io/api?" --chain 2810
+    if [[ $3 == "arbitrum" || $3 == "scroll" ]]; then
+        forge script $1 --sig $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS --broadcast --verify --slow --verifier-url https://$3.blockscout.com/api/ --verifier blockscout
+    elif [[ $3 == "bera" ]]; then
+        forge script $1 --sig $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS --broadcast --verify --slow --verifier custom --verifier-url https://api.routescan.io/v2/network/mainnet/evm/80094/etherscan/api
+    elif [[ $3 == "morph_testnet" ]]; then
+        forge script $1 --sig $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS --broadcast --verify --verifier blockscout --slow --with-gas-price 0.03gwei --priority-gas-price 0.03gwei --verifier-url "https://explorer-api-holesky.morphl2.io/api?" --chain 2810
     else
         forge script $1 --sig $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS --broadcast --verify --etherscan-api-key $4 --slow
     fi
 }
+
 
 function getRPC() {
     local INPUT_ID=$1
@@ -347,9 +352,12 @@ delimiter
 
 for l2 in $L2_CHAIN_IDS_ARRAY; do
     L2_RPC=$(getRPC $l2)
-    L2_ETHERSCAN_API_KEY=$(getEtherscanAPIKey $l2)
+    if [[ -z $L2_RPC ]]; then
+        echo "No RPC found for $l2"
+        exit 1
+    fi
     echo "Verifying L2 Adapter for $L2_RPC"
-    simulate script/VerifyL2OFTAdapter.s.sol:VerifyL2OFTAdapter $CALLDATA $L2_RPC $L2_ETHERSCAN_API_KEY
+    simulate script/VerifyL2OFTAdapter.s.sol:VerifyL2OFTAdapter $CALLDATA $L2_RPC
 
     delimiter
 done

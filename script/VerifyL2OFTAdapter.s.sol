@@ -36,6 +36,11 @@ contract VerifyL2OFTAdapter is BaseScript, BatchScript {
             revert("ImmutableMultiChainDeployer not deployed");
         }
 
+        console.log("l1OFTAdapter", predictions.l1OFTAdapter);
+        console.log("l2MultiChainDeployer", predictions.l2MultiChainDeployer);
+        console.log("l2ERC20", predictions.l2ERC20);
+        console.log("l2OFTAdapter", predictions.l2OFTAdapter);
+
         require(
             address(currentDeployment.multiChainDeployer) == predictions.l2MultiChainDeployer,
             "Predicted ImmutableMultiChainDeployer address mismatch"
