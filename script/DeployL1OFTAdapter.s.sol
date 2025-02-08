@@ -32,11 +32,11 @@ contract DeployL1OFTAdapter is BaseScript {
 
         address deployer = msg.sender;
 
-        address timelock = _predictTimelockController(timelockSalt);
+        address timelock = _predictTimelockController(timelockSalt, block.chainid);
 
         if (!isContract(timelock)) {
             vm.startBroadcast();
-            timelock = _deployTimelockController(timelockSalt);
+            timelock = _deployTimelockController(timelockSalt, block.chainid);
             vm.stopBroadcast();
             console.log("Timelock deployed at: ", timelock);
         } else {

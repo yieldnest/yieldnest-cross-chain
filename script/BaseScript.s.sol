@@ -157,7 +157,8 @@ contract BaseScript is BaseData, Utils {
                 abi.encodeWithSelector(L1YnOFTAdapterUpgradeable.initialize.selector, msg.sender);
 
             bytes32 timelockSalt = createL1YnOFTAdapterTimelockSalt(msg.sender);
-            address predictedTimelock = _predictTimelockController(timelockSalt);
+
+            address predictedTimelock = _predictTimelockController(timelockSalt, baseInput.l1ChainId);
 
             bytes memory proxyBytecode = bytes.concat(
                 type(TransparentUpgradeableProxy).creationCode,
@@ -404,8 +405,15 @@ contract BaseScript is BaseData, Utils {
         return (size > 0);
     }
 
-    function _predictTimelockController(bytes32 timelockSalt) internal virtual returns (address) {
-        address admin = getData(block.chainid).PROXY_ADMIN;
+    function _predictTimelockController(
+        bytes32 timelockSalt,
+        uint256 chainId
+    )
+        internal
+        virtual
+        returns (address)
+    {
+        address admin = getData(chainId).PROXY_ADMIN;
 
         address[] memory proposers = new address[](1);
         proposers[0] = admin;
@@ -413,7 +421,7 @@ contract BaseScript is BaseData, Utils {
         address[] memory executors = new address[](1);
         executors[0] = admin;
 
-        uint256 minDelay = getMinDelay(block.chainid);
+        uint256 minDelay = getMinDelay(chainId);
 
         bytes memory timelockBytecode =
             bytes.concat(type(TimelockController).creationCode, abi.encode(minDelay, proposers, executors, admin));
@@ -423,8 +431,15 @@ contract BaseScript is BaseData, Utils {
         return predictedTimelock;
     }
 
-    function _deployTimelockController(bytes32 timelockSalt) internal virtual returns (address timelock) {
-        address admin = getData(block.chainid).PROXY_ADMIN;
+    function _deployTimelockController(
+        bytes32 timelockSalt,
+        uint256 chainId
+    )
+        internal
+        virtual
+        returns (address timelock)
+    {
+        address admin = getData(chainId).PROXY_ADMIN;
 
         address[] memory proposers = new address[](1);
         proposers[0] = admin;
@@ -432,7 +447,7 @@ contract BaseScript is BaseData, Utils {
         address[] memory executors = new address[](1);
         executors[0] = admin;
 
-        uint256 minDelay = getMinDelay(block.chainid);
+        uint256 minDelay = getMinDelay(chainId);
 
         timelock = address(new TimelockController{salt: timelockSalt}(minDelay, proposers, executors, admin));
     }
