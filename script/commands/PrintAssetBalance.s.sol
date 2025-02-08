@@ -27,7 +27,7 @@ contract PrintAssetBalance is BaseData {
 
         // Load deployment config
         string memory json =
-            vm.readFile(string.concat("deployments/ynETHx-", vm.toString(baseChainId), "-v0.0.4.json"));
+            vm.readFile(string.concat("deployments/ynETHx-", vm.toString(baseChainId), "-v0.0.5.json"));
 
         // Get the ynETHx contract address
         address ynETHx = abi.decode(

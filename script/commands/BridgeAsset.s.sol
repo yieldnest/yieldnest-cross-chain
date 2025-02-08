@@ -55,7 +55,7 @@ contract BridgeAsset is BaseData {
 
         // Load deployment config
         string memory json =
-            vm.readFile(string.concat("deployments/ynETHx-", vm.toString(baseChainId), "-v0.0.4.json"));
+            vm.readFile(string.concat("deployments/ynETHx-", vm.toString(baseChainId), "-v0.0.5.json"));
 
         address oftAdapter = abi.decode(
             vm.parseJson(json, string.concat(".chains.", vm.toString(sourceChainId), ".oftAdapter")), (address)
@@ -103,13 +103,13 @@ contract BridgeAsset is BaseData {
         // Prepare bridge params
         bytes memory options = OptionsBuilder.newOptions().addExecutorLzReceiveOption(200000, 0);
         SendParam memory sendParam =
-            SendParam(destinationEid, addressToBytes32(sender), BRIDGE_AMOUNT, BRIDGE_AMOUNT, options, "", "");
+            SendParam(destinationEid, addressToBytes32(sender), extraYnETHx, extraYnETHx, options, "", "");
 
         // Get messaging fee
         MessagingFee memory fee = IOFT(oftAdapter).quoteSend(sendParam, false);
 
         // Approve ynETHx spending on OFT adapter
-        IERC20(ynETHx).approve(oftAdapter, BRIDGE_AMOUNT);
+        IERC20(ynETHx).approve(oftAdapter, extraYnETHx);
 
         // Bridge tokens
         IOFT(oftAdapter).send{value: fee.nativeFee}(sendParam, fee, payable(refundAddress));
