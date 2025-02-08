@@ -7,6 +7,8 @@ import {BaseScript} from "./BaseScript.s.sol";
 import {L2YnERC20Upgradeable} from "@/L2YnERC20Upgradeable.sol";
 import {L2YnOFTAdapterUpgradeable} from "@/L2YnOFTAdapterUpgradeable.sol";
 import {ImmutableMultiChainDeployer} from "@/factory/ImmutableMultiChainDeployer.sol";
+import {ILayerZeroEndpointV2} from
+    "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroEndpointV2.sol";
 
 import {ProxyAdmin} from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
@@ -117,6 +119,8 @@ contract DeployL2OFTAdapter is BaseScript {
 
         require(predictedOFTAdapter == address(l2OFTAdapter), "Prediction mismatch");
 
+        ILayerZeroEndpointV2 lzEndpoint = ILayerZeroEndpointV2(getData(block.chainid).LZ_ENDPOINT);
+
         if (l2OFTAdapter.owner() == deployer) {
             vm.broadcast();
             l2OFTAdapter.setRateLimits(_getRateLimitConfigs());
@@ -142,9 +146,16 @@ contract DeployL2OFTAdapter is BaseScript {
                     continue;
                 }
 
-                vm.broadcast();
+                vm.startBroadcast();
                 l2OFTAdapter.setPeer(eid, adapterBytes32);
                 console.log("Set peer for chainid %d", chainId);
+
+                lzEndpoint.setSendLibrary(address(l2OFTAdapter), eid, getData(block.chainid).LZ_SEND_LIB);
+                console.log("Set send library for chainid %d", chainId);
+
+                lzEndpoint.setReceiveLibrary(address(l2OFTAdapter), eid, getData(block.chainid).LZ_RECEIVE_LIB, 0);
+                console.log("Set receive library for chainid %d", chainId);
+                vm.stopBroadcast();
             }
 
             vm.broadcast();

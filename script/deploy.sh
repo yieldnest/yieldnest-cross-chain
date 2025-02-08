@@ -25,6 +25,7 @@ function display_help() {
     echo "  -h, --help            Display this help and exit"
     echo "  -a, --account         Set the deployer account name"
     echo "  -s, --sender          Set the deployer address"
+    echo "  -b, --simulate-only   Simulate the deployment"
     echo "  -b, --broadcast       Deploy & verify contracts on etherscan"
     echo "  -v, --verify-only     Run verify scripts for the deployment"
 
@@ -56,6 +57,7 @@ PRIVATE_KEY=""
 DEPLOYER_ACCOUNT_NAME=${DEPLOYER_ACCOUNT_NAME:-"yieldnestDeployerKey"}
 L1_CHAIN_ID=$(jq -r ".l1ChainId" "$INPUT_PATH")
 ERC20_NAME=$(jq -r ".erc20Name" "$INPUT_PATH")
+ERC20_SYMBOL=$(jq -r ".erc20Symbol" "$INPUT_PATH")
 L2_CHAIN_IDS_ARRAY=$(jq -r ".l2ChainIds" "$INPUT_PATH" | jq -r ".[]")
 
 OUTPUT_PATH="deployments/ynETH-$L1_CHAIN_ID.json"
@@ -221,6 +223,7 @@ function error_exit() {
 
 BROADCAST=false
 VERIFY_ONLY=false
+SIMULATE_ONLY=false
 
 function runScript() {
     local SCRIPT=$1
@@ -234,6 +237,11 @@ function runScript() {
     fi
 
     simulate $SCRIPT $CALLDATA $RPC
+
+    if [[ $SIMULATE_ONLY == true ]]; then
+        return 0
+    fi
+
     read -p "Simulation complete, would you like to broadcast the deployment? (y/N) " yn
     case $yn in
     [Yy]*)
@@ -288,6 +296,10 @@ while [[ $# -gt 0 ]]; do
         VERIFY_ONLY=true
         shift
         ;;
+    --simulate-only | -s)
+        SIMULATE_ONLY=true
+        shift
+        ;;
     *)
         echo "Error, unrecognized flag" >&2
         display_help
@@ -312,11 +324,22 @@ fi
 
 delimiter
 
-echo "Deployer Account Name:" $DEPLOYER_ACCOUNT_NAME
-echo "Deployer Address: " $DEPLOYER_ADDRESS
-echo "ERC20 Symbol: " $ERC20_NAME
-echo "L1 Chain: " $L1_RPC
-echo "L2 Chains: " ${L2_RPCS_ARRAY[@]}
+echo "Deployer Account Name: $DEPLOYER_ACCOUNT_NAME"
+echo "Deployer Address: $DEPLOYER_ADDRESS"
+echo "ERC20 Name: $ERC20_NAME"
+echo "ERC20 Symbol: $ERC20_SYMBOL"
+echo "L1 Chain: $L1_RPC ($L1_CHAIN_ID)"
+
+output="L2 Chains: "
+for L2_CHAIN_ID in $L2_CHAIN_IDS_ARRAY; do
+    L2_RPC=$(getRPC $L2_CHAIN_ID)
+    output+="${L2_RPC} (${L2_CHAIN_ID}), "
+done
+
+# Remove trailing comma and space
+output=${output%, }
+
+echo "$output"
 
 delimiter
 
@@ -324,23 +347,23 @@ CALLDATA=$(cast calldata "run(string)" "/$INPUT_PATH")
 
 if [[ $VERIFY_ONLY == false ]]; then
 
-    echo "Deploying L1 Adapter for $L1_RPC"
+    echo "Deploying L1 Adapter for $L1_RPC ($L1_CHAIN_ID)"
     runScript script/DeployL1OFTAdapter.s.sol:DeployL1OFTAdapter $CALLDATA $L1_RPC $L1_ETHERSCAN_API_KEY
     
     delimiter
     
-    for l2 in $L2_CHAIN_IDS_ARRAY; do
-        L2_RPC=$(getRPC $l2)
+    for L2_CHAIN_ID in $L2_CHAIN_IDS_ARRAY; do
+        L2_RPC=$(getRPC $L2_CHAIN_ID)
         if [[ -z $L2_RPC ]]; then
-            echo "No RPC found for $l2"
+            echo "No RPC found for $L2_CHAIN_ID"
             exit 1
         fi
-        L2_ETHERSCAN_API_KEY=$(getEtherscanAPIKey $l2)
+        L2_ETHERSCAN_API_KEY=$(getEtherscanAPIKey $L2_CHAIN_ID)
         if [[ -z $L2_ETHERSCAN_API_KEY ]]; then
-            echo "No Etherscan API key found for $l2"
+            echo "No Etherscan API key found for $L2_CHAIN_ID"
             exit 1
         fi
-        echo "Deploying L2 Adapter for $L2_RPC"
+        echo "Deploying L2 Adapter for $L2_RPC ($L2_CHAIN_ID)"
         runScript script/DeployL2OFTAdapter.s.sol:DeployL2OFTAdapter $CALLDATA $L2_RPC $L2_ETHERSCAN_API_KEY
     
         delimiter
@@ -348,18 +371,22 @@ if [[ $VERIFY_ONLY == false ]]; then
 
 fi
 
-echo "Verifying L1 Adapter for $L1_RPC"
+if [[ $SIMULATE_ONLY == true ]]; then
+    exit 0
+fi
+
+echo "Verifying L1 Adapter for $L1_RPC ($L1_CHAIN_ID)"
 simulate script/VerifyL1OFTAdapter.s.sol:VerifyL1OFTAdapter $CALLDATA $L1_RPC $L1_ETHERSCAN_API_KEY
 
 delimiter
 
-for l2 in $L2_CHAIN_IDS_ARRAY; do
-    L2_RPC=$(getRPC $l2)
+for L2_CHAIN_ID in $L2_CHAIN_IDS_ARRAY; do
+    L2_RPC=$(getRPC $L2_CHAIN_ID)
     if [[ -z $L2_RPC ]]; then
-        echo "No RPC found for $l2"
+        echo "No RPC found for $L2_CHAIN_ID"
         exit 1
     fi
-    echo "Verifying L2 Adapter for $L2_RPC"
+    echo "Verifying L2 Adapter for $L2_RPC ($L2_CHAIN_ID)"
     simulate script/VerifyL2OFTAdapter.s.sol:VerifyL2OFTAdapter $CALLDATA $L2_RPC
 
     delimiter

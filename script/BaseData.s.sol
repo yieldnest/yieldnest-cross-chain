@@ -10,6 +10,8 @@ contract BaseData is Script {
         address TOKEN_ADMIN;
         address PROXY_ADMIN;
         address LZ_ENDPOINT;
+        address LZ_SEND_LIB;
+        address LZ_RECEIVE_LIB;
         uint32 LZ_EID;
     }
 
@@ -57,11 +59,7 @@ contract BaseData is Script {
         morphTestnet: 2810
     });
 
-    address private TEMP_YN_SECURITY_COUNCIL;
-
     function setUp() public virtual {
-        TEMP_YN_SECURITY_COUNCIL = makeAddr("temp-yn-security-council");
-
         // NOTE: All the LZ Endpoints and EIDs are picked up from their docs
         // at https://docs.layerzero.network/v2/developers/evm/technical-reference/deployed-contracts
 
@@ -71,6 +69,8 @@ contract BaseData is Script {
             TOKEN_ADMIN: 0xfcad670592a3b24869C0b51a6c6FDED4F95D6975,
             PROXY_ADMIN: 0xfcad670592a3b24869C0b51a6c6FDED4F95D6975,
             LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c,
+            LZ_SEND_LIB: 0xbB2Ea70C9E858123480642Cf96acbcCE1372dCe1,
+            LZ_RECEIVE_LIB: 0xc02Ab410f0734EFa3F14628780e6e695156024C2,
             LZ_EID: 30101
         });
         __chainIdToData[__chainIds.base] = Data({
@@ -78,6 +78,8 @@ contract BaseData is Script {
             TOKEN_ADMIN: 0xCb343bF07E72548349f506593336b6CB698Ad6dA,
             PROXY_ADMIN: 0xCb343bF07E72548349f506593336b6CB698Ad6dA,
             LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c,
+            LZ_SEND_LIB: 0xB5320B0B3a13cC860893E2Bd79FCd7e13484Dda2,
+            LZ_RECEIVE_LIB: 0xc70AB6f32772f59fBfc23889Caf4Ba3376C84bAf,
             LZ_EID: 30184
         });
         __chainIdToData[__chainIds.optimism] = Data({
@@ -85,6 +87,8 @@ contract BaseData is Script {
             TOKEN_ADMIN: 0xCb343bF07E72548349f506593336b6CB698Ad6dA,
             PROXY_ADMIN: 0xCb343bF07E72548349f506593336b6CB698Ad6dA,
             LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c,
+            LZ_SEND_LIB: 0x1322871e4ab09Bc7f5717189434f97bBD9546e95,
+            LZ_RECEIVE_LIB: 0x3c4962Ff6258dcfCafD23a814237B7d6Eb712063,
             LZ_EID: 30111
         });
         __chainIdToData[__chainIds.arbitrum] = Data({
@@ -92,6 +96,8 @@ contract BaseData is Script {
             TOKEN_ADMIN: 0xCb343bF07E72548349f506593336b6CB698Ad6dA,
             PROXY_ADMIN: 0xCb343bF07E72548349f506593336b6CB698Ad6dA,
             LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c,
+            LZ_SEND_LIB: 0x975bcD720be66659e3EB3C0e4F1866a3020E493A,
+            LZ_RECEIVE_LIB: 0x7B9E184e07a6EE1aC23eAe0fe8D6Be2f663f05e6,
             LZ_EID: 30110
         });
         __chainIdToData[__chainIds.fraxtal] = Data({
@@ -99,13 +105,17 @@ contract BaseData is Script {
             TOKEN_ADMIN: 0x3F95ce491748a3E04755332c8d52Ec4F02deE096,
             PROXY_ADMIN: 0x3F95ce491748a3E04755332c8d52Ec4F02deE096,
             LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c,
+            LZ_SEND_LIB: 0x377530cdA84DFb2673bF4d145DCF0C4D7fdcB5b6,
+            LZ_RECEIVE_LIB: 0x8bC1e36F015b9902B54b1387A4d733cebc2f5A4e,
             LZ_EID: 30255
         });
         __chainIdToData[__chainIds.manta] = Data({
-            OFT_OWNER: TEMP_YN_SECURITY_COUNCIL,
-            TOKEN_ADMIN: TEMP_YN_SECURITY_COUNCIL,
-            PROXY_ADMIN: TEMP_YN_SECURITY_COUNCIL,
+            OFT_OWNER: address(0),
+            TOKEN_ADMIN: address(0),
+            PROXY_ADMIN: address(0),
             LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c,
+            LZ_SEND_LIB: 0xD1654C656455E40E2905E96b6B91088AC2B362a2,
+            LZ_RECEIVE_LIB: 0xC1EC25A9e8a8DE5Aa346f635B33e5B74c4c081aF,
             LZ_EID: 30217
         });
         __chainIdToData[__chainIds.taiko] = Data({
@@ -113,6 +123,8 @@ contract BaseData is Script {
             TOKEN_ADMIN: 0x3F95ce491748a3E04755332c8d52Ec4F02deE096,
             PROXY_ADMIN: 0x3F95ce491748a3E04755332c8d52Ec4F02deE096,
             LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c,
+            LZ_SEND_LIB: 0xc1B621b18187F74c8F6D52a6F709Dd2780C09821,
+            LZ_RECEIVE_LIB: 0x377530cdA84DFb2673bF4d145DCF0C4D7fdcB5b6,
             LZ_EID: 30290
         });
         __chainIdToData[__chainIds.scroll] = Data({
@@ -120,13 +132,17 @@ contract BaseData is Script {
             TOKEN_ADMIN: 0xCb343bF07E72548349f506593336b6CB698Ad6dA,
             PROXY_ADMIN: 0xCb343bF07E72548349f506593336b6CB698Ad6dA,
             LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c,
+            LZ_SEND_LIB: 0x9BbEb2B2184B9313Cf5ed4a4DDFEa2ef62a2a03B,
+            LZ_RECEIVE_LIB: 0x8363302080e711E0CAb978C081b9e69308d49808,
             LZ_EID: 30214
         });
         __chainIdToData[__chainIds.fantom] = Data({
-            OFT_OWNER: TEMP_YN_SECURITY_COUNCIL,
-            TOKEN_ADMIN: TEMP_YN_SECURITY_COUNCIL,
-            PROXY_ADMIN: TEMP_YN_SECURITY_COUNCIL,
+            OFT_OWNER: address(0),
+            TOKEN_ADMIN: address(0),
+            PROXY_ADMIN: address(0),
             LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c,
+            LZ_SEND_LIB: 0xC17BaBeF02a937093363220b0FB57De04A535D5E,
+            LZ_RECEIVE_LIB: 0xe1Dd69A2D08dF4eA6a30a91cC061ac70F98aAbe3,
             LZ_EID: 30112
         });
         __chainIdToData[__chainIds.mantle] = Data({
@@ -134,6 +150,8 @@ contract BaseData is Script {
             TOKEN_ADMIN: 0xCb343bF07E72548349f506593336b6CB698Ad6dA,
             PROXY_ADMIN: 0xCb343bF07E72548349f506593336b6CB698Ad6dA,
             LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c,
+            LZ_SEND_LIB: 0xde19274c009A22921E3966a1Ec868cEba40A5DaC,
+            LZ_RECEIVE_LIB: 0x8da6512De9379fBF4F09BF520Caf7a85435ed93e,
             LZ_EID: 30181
         });
         __chainIdToData[__chainIds.blast] = Data({
@@ -141,6 +159,8 @@ contract BaseData is Script {
             TOKEN_ADMIN: 0xCb343bF07E72548349f506593336b6CB698Ad6dA,
             PROXY_ADMIN: 0xCb343bF07E72548349f506593336b6CB698Ad6dA,
             LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c,
+            LZ_SEND_LIB: 0xc1B621b18187F74c8F6D52a6F709Dd2780C09821,
+            LZ_RECEIVE_LIB: 0x377530cdA84DFb2673bF4d145DCF0C4D7fdcB5b6,
             LZ_EID: 30243
         });
         __chainIdToData[__chainIds.linea] = Data({
@@ -148,6 +168,8 @@ contract BaseData is Script {
             TOKEN_ADMIN: 0xCb343bF07E72548349f506593336b6CB698Ad6dA,
             PROXY_ADMIN: 0xCb343bF07E72548349f506593336b6CB698Ad6dA,
             LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c,
+            LZ_SEND_LIB: 0x32042142DD551b4EbE17B6FEd53131dd4b4eEa06,
+            LZ_RECEIVE_LIB: 0xE22ED54177CE1148C557de74E4873619e6c6b205,
             LZ_EID: 30183
         });
         __chainIdToData[__chainIds.bera] = Data({
@@ -155,6 +177,8 @@ contract BaseData is Script {
             TOKEN_ADMIN: 0xae495b70D00C724e5a9E23F4613d5e8139677503,
             PROXY_ADMIN: 0xae495b70D00C724e5a9E23F4613d5e8139677503,
             LZ_ENDPOINT: 0x6F475642a6e85809B1c36Fa62763669b1b48DD5B,
+            LZ_SEND_LIB: 0xC39161c743D0307EB9BCc9FEF03eeb9Dc4802de7,
+            LZ_RECEIVE_LIB: 0xe1844c5D63a9543023008D332Bd3d2e6f1FE1043,
             LZ_EID: 30362
         });
 
@@ -164,6 +188,8 @@ contract BaseData is Script {
             TOKEN_ADMIN: 0x72fdBD51085bDa5eEEd3b55D1a46E2e92f0837a5,
             PROXY_ADMIN: 0x72fdBD51085bDa5eEEd3b55D1a46E2e92f0837a5,
             LZ_ENDPOINT: 0x6EDCE65403992e310A62460808c4b910D972f10f,
+            LZ_SEND_LIB: 0x21F33EcF7F65D61f77e554B4B4380829908cD076,
+            LZ_RECEIVE_LIB: 0xbAe52D605770aD2f0D17533ce56D146c7C964A0d,
             LZ_EID: 40217
         });
         __chainIdToData[__chainIds.sepolia] = Data({
@@ -171,6 +197,8 @@ contract BaseData is Script {
             TOKEN_ADMIN: 0x72fdBD51085bDa5eEEd3b55D1a46E2e92f0837a5,
             PROXY_ADMIN: 0x72fdBD51085bDa5eEEd3b55D1a46E2e92f0837a5,
             LZ_ENDPOINT: 0x6EDCE65403992e310A62460808c4b910D972f10f,
+            LZ_SEND_LIB: 0xcc1ae8Cf5D3904Cef3360A9532B477529b177cCE,
+            LZ_RECEIVE_LIB: 0xdAf00F5eE2158dD58E0d3857851c432E34A3A851,
             LZ_EID: 40161
         });
         __chainIdToData[__chainIds.fraxtalTestnet] = Data({
@@ -178,6 +206,8 @@ contract BaseData is Script {
             TOKEN_ADMIN: 0x72fdBD51085bDa5eEEd3b55D1a46E2e92f0837a5,
             PROXY_ADMIN: 0x72fdBD51085bDa5eEEd3b55D1a46E2e92f0837a5,
             LZ_ENDPOINT: 0x6EDCE65403992e310A62460808c4b910D972f10f,
+            LZ_SEND_LIB: 0xd682ECF100f6F4284138AA925348633B0611Ae21,
+            LZ_RECEIVE_LIB: 0xcF1B0F4106B0324F96fEfcC31bA9498caa80701C,
             LZ_EID: 40255
         });
         __chainIdToData[__chainIds.morphTestnet] = Data({
@@ -185,6 +215,8 @@ contract BaseData is Script {
             TOKEN_ADMIN: 0x72fdBD51085bDa5eEEd3b55D1a46E2e92f0837a5,
             PROXY_ADMIN: 0x72fdBD51085bDa5eEEd3b55D1a46E2e92f0837a5,
             LZ_ENDPOINT: 0x6C7Ab2202C98C4227C5c46f1417D81144DA716Ff,
+            LZ_SEND_LIB: 0xd682ECF100f6F4284138AA925348633B0611Ae21,
+            LZ_RECEIVE_LIB: 0xcF1B0F4106B0324F96fEfcC31bA9498caa80701C,
             LZ_EID: 40322
         });
     }
@@ -194,12 +226,11 @@ contract BaseData is Script {
 
         _data = __chainIdToData[chainId];
         require(_data.OFT_OWNER != address(0), "BaseData: OFT OWNER not set");
-        require(_data.OFT_OWNER != TEMP_YN_SECURITY_COUNCIL, "BaseData: OFT OWNER not updated");
         require(_data.TOKEN_ADMIN != address(0), "BaseData: TOKEN ADMIN not set");
-        require(_data.TOKEN_ADMIN != TEMP_YN_SECURITY_COUNCIL, "BaseData: TOKEN ADMIN not updated");
         require(_data.PROXY_ADMIN != address(0), "BaseData: PROXY ADMIN not set");
-        require(_data.PROXY_ADMIN != TEMP_YN_SECURITY_COUNCIL, "BaseData: PROXY ADMIN not updated");
         require(_data.LZ_ENDPOINT != address(0), "BaseData: LZ ENDPOINT not set");
+        require(_data.LZ_SEND_LIB != address(0), "BaseData: LZ_SEND_LIB not set");
+        require(_data.LZ_RECEIVE_LIB != address(0), "BaseData: LZ_RECEIVE_LIB not set");
         require(_data.LZ_EID != 0, "BaseData: LZ EID not set");
     }
 

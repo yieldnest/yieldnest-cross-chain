@@ -5,6 +5,8 @@ pragma solidity ^0.8.24;
 import {BaseScript} from "./BaseScript.s.sol";
 
 import {L1YnOFTAdapterUpgradeable} from "@/L1YnOFTAdapterUpgradeable.sol";
+import {ILayerZeroEndpointV2} from
+    "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroEndpointV2.sol";
 
 import {
     ProxyAdmin,
@@ -70,6 +72,8 @@ contract DeployL1OFTAdapter is BaseScript {
 
         require(address(l1OFTAdapter) == predictions.l1OFTAdapter, "Prediction mismatch");
 
+        ILayerZeroEndpointV2 lzEndpoint = ILayerZeroEndpointV2(getData(block.chainid).LZ_ENDPOINT);
+
         if (l1OFTAdapter.owner() == deployer) {
             vm.broadcast();
             l1OFTAdapter.setRateLimits(_getRateLimitConfigs());
@@ -85,9 +89,16 @@ contract DeployL1OFTAdapter is BaseScript {
                     continue;
                 }
 
-                vm.broadcast();
+                vm.startBroadcast();
                 l1OFTAdapter.setPeer(eid, adapterBytes32);
                 console.log("Set peer for chainid %d", chainId);
+
+                lzEndpoint.setSendLibrary(address(l1OFTAdapter), eid, getData(block.chainid).LZ_SEND_LIB);
+                console.log("Set send library for chainid %d", chainId);
+
+                lzEndpoint.setReceiveLibrary(address(l1OFTAdapter), eid, getData(block.chainid).LZ_RECEIVE_LIB, 0);
+                console.log("Set receive library for chainid %d", chainId);
+                vm.stopBroadcast();
             }
 
             vm.broadcast();

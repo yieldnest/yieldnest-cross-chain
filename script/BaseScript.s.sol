@@ -62,6 +62,16 @@ struct PeerConfig {
     address peer;
 }
 
+struct SendLibConfig {
+    uint32 eid;
+    address lib;
+}
+
+struct ReceiveLibConfig {
+    uint32 eid;
+    address lib;
+}
+
 contract BaseScript is BaseData, Utils {
     using Bytes32AddressLib for bytes32;
 
@@ -69,7 +79,7 @@ contract BaseScript is BaseData, Utils {
     Deployment public deployment;
     ChainDeployment public currentDeployment;
     PredictedAddresses public predictions;
-    string private constant _VERSION = "v0.0.4";
+    string private constant _VERSION = "v0.0.5";
 
     function _getRateLimitConfigs() internal view returns (RateLimiter.RateLimitConfig[] memory) {
         RateLimiter.RateLimitConfig[] memory rateLimitConfigs =
