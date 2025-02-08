@@ -14,7 +14,7 @@ import {console} from "forge-std/console.sol";
  * ```
  */
 contract PrintAssetBalance is BaseData {
-    function run() external {
+    function run() external view {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address sender = vm.addr(deployerPrivateKey);
 
@@ -27,7 +27,7 @@ contract PrintAssetBalance is BaseData {
 
         // Load deployment config
         string memory json =
-            vm.readFile(string.concat("deployments/ynETHx-", vm.toString(baseChainId), "-v0.0.2.json"));
+            vm.readFile(string.concat("deployments/ynETHx-", vm.toString(baseChainId), "-v0.0.4.json"));
 
         // Get the ynETHx contract address
         address ynETHx = abi.decode(

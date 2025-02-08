@@ -75,17 +75,20 @@ function simulate() {
 }
 
 function broadcast() {
+    defaultArgs=("--sig" "$2" "--rpc-url" "$3" "--account" "$DEPLOYER_ACCOUNT_NAME" "--sender" "$DEPLOYER_ADDRESS" "--broadcast" "--verify" "--slow" "--password" "")
+    
     if [[ $3 == "arbitrum" || $3 == "scroll" ]]; then
-        forge script $1 --sig $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS --broadcast --verify --slow --verifier-url https://$3.blockscout.com/api/ --verifier blockscout
+        forge script "$1" "${defaultArgs[@]}" --verifier blockscout --verifier-url "https://$3.blockscout.com/api/"
     elif [[ $3 == "bera" ]]; then
-        forge script $1 --sig $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS --broadcast --verify --slow --verifier custom --verifier-url https://api.routescan.io/v2/network/mainnet/evm/80094/etherscan/api
+        forge script "$1" "${defaultArgs[@]}" --verifier custom --verifier-url "https://api.routescan.io/v2/network/mainnet/evm/80094/etherscan/api"
     elif [[ $3 == "morph_testnet" ]]; then
-        forge script $1 --sig $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS --broadcast --verify --verifier blockscout --slow --with-gas-price 0.03gwei --priority-gas-price 0.03gwei --verifier-url "https://explorer-api-holesky.morphl2.io/api?" --chain 2810
+        forge script "$1" "${defaultArgs[@]}" --verifier blockscout --with-gas-price 0.03gwei --priority-gas-price 0.03gwei --verifier-url "https://explorer-api-holesky.morphl2.io/api?" --chain 2810
+    elif [[ $3 == "fraxtal_testnet" ]]; then
+        forge script "$1" "${defaultArgs[@]}" --etherscan-api-key "$4" --resume
     else
-        forge script $1 --sig $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS --broadcast --verify --etherscan-api-key $4 --slow
+        forge script "$1" "${defaultArgs[@]}" --etherscan-api-key "$4"
     fi
 }
-
 
 function getRPC() {
     local INPUT_ID=$1
