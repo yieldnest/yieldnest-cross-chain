@@ -1,3 +1,4 @@
+/* solhint-disable gas-custom-errors, check-send-result */
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
@@ -27,8 +28,8 @@ import {console} from "forge-std/console.sol";
 contract BridgeAsset is BaseData {
     using OptionsBuilder for bytes;
 
-    // Amount to bridge (0.1 ETH worth)
-    uint256 constant BRIDGE_AMOUNT = 0.0001 ether;
+    // Amount to bridge
+    uint256 public constant BRIDGE_AMOUNT = 0.0001 ether;
 
     function run() external {
         uint256 destinationChainId =
@@ -55,7 +56,7 @@ contract BridgeAsset is BaseData {
 
         // Load deployment config
         string memory json =
-            vm.readFile(string.concat("deployments/ynETHx-", vm.toString(baseChainId), "-v0.0.5.json"));
+            vm.readFile(string.concat("deployments/ynETHx-", vm.toString(baseChainId), "-v0.0.1.json"));
 
         address oftAdapter = abi.decode(
             vm.parseJson(json, string.concat(".chains.", vm.toString(sourceChainId), ".oftAdapter")), (address)
@@ -100,8 +101,12 @@ contract BridgeAsset is BaseData {
             extraYnETHx = BRIDGE_AMOUNT;
         }
 
+        if (extraYnETHx > IERC20(ynETHx).balanceOf(sender)) {
+            extraYnETHx = IERC20(ynETHx).balanceOf(sender);
+        }
+
         // Prepare bridge params
-        bytes memory options = OptionsBuilder.newOptions().addExecutorLzReceiveOption(200000, 0);
+        bytes memory options = OptionsBuilder.newOptions().addExecutorLzReceiveOption(170000, 0);
         SendParam memory sendParam =
             SendParam(destinationEid, addressToBytes32(sender), extraYnETHx, extraYnETHx, options, "", "");
 

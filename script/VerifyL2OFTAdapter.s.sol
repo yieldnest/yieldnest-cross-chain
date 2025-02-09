@@ -4,6 +4,10 @@ pragma solidity ^0.8.24;
 
 import {BaseScript, PeerConfig, ReceiveLibConfig, SendLibConfig} from "./BaseScript.s.sol";
 import {BatchScript} from "./BatchScript.s.sol";
+import {
+    ILayerZeroEndpointV2,
+    IMessageLibManager
+} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroEndpointV2.sol";
 
 import {L2YnERC20Upgradeable} from "@/L2YnERC20Upgradeable.sol";
 import {L2YnOFTAdapterUpgradeable} from "@/L2YnOFTAdapterUpgradeable.sol";
@@ -61,10 +65,6 @@ contract VerifyL2OFTAdapter is BaseScript, BatchScript {
             "Predicted L2 OFT Adapter address mismatch"
         );
         l2OFTAdapter = L2YnOFTAdapterUpgradeable(predictions.l2OFTAdapter);
-
-        if (l2OFTAdapter.owner() != getData(block.chainid).OFT_OWNER) {
-            revert("L2 OFT Adapter ownership not transferred");
-        }
 
         address proxyAdmin = getTransparentUpgradeableProxyAdminAddress(address(l2OFTAdapter));
         if (proxyAdmin != currentDeployment.oftAdapterProxyAdmin) {
@@ -139,9 +139,18 @@ contract VerifyL2OFTAdapter is BaseScript, BatchScript {
                 newSendLibs.push(SendLibConfig(eid, getData(block.chainid).LZ_SEND_LIB));
             }
             (address lib, bool isDefault) = lzEndpoint.getReceiveLibrary(address(l2OFTAdapter), eid);
-            if (lib != getData(block.chainid).LZ_RECEIVE_LIB || isDefault == false) {
+            if (lib != getData(block.chainid).LZ_RECEIVE_LIB && isDefault != false) {
                 needsUpdate = true;
                 newReceiveLibs.push(ReceiveLibConfig(eid, getData(block.chainid).LZ_RECEIVE_LIB));
+            }
+        }
+
+        if (l2OFTAdapter.owner() != getData(block.chainid).OFT_OWNER) {
+            console.log("L2 OFT Adapter ownership: %s", l2OFTAdapter.owner());
+            console.log("Expected ownership: %s", getData(block.chainid).OFT_OWNER);
+
+            if (needsUpdate) {
+                revert("L2 OFT Adapter ownership is not correct & config needs to be updated");
             }
         }
 
@@ -200,20 +209,20 @@ contract VerifyL2OFTAdapter is BaseScript, BatchScript {
                         newSendLibs[i].eid,
                         newSendLibs[i].lib
                     );
-                }
-                console.log("");
-                console.log("Method: setSendLibrary");
-                bytes memory data = abi.encodeWithSelector(
-                    ILayerZeroEndpointV2.setSendLibrary.selector,
-                    address(l2OFTAdapter),
-                    newSendLibs[i].eid,
-                    newSendLibs[i].lib
-                );
-                console.log("Encoded Tx Data: ");
-                console.logBytes(data);
+                    console.log("");
+                    console.log("Method: setSendLibrary");
+                    bytes memory data = abi.encodeWithSelector(
+                        IMessageLibManager.setSendLibrary.selector,
+                        address(l2OFTAdapter),
+                        newSendLibs[i].eid,
+                        newSendLibs[i].lib
+                    );
+                    console.log("Encoded Tx Data: ");
+                    console.logBytes(data);
 
-                addToBatch(address(lzEndpoint), data);
-                console.log("");
+                    addToBatch(address(lzEndpoint), data);
+                    console.log("");
+                }
             }
 
             if (newReceiveLibs.length > 0) {
@@ -226,21 +235,21 @@ contract VerifyL2OFTAdapter is BaseScript, BatchScript {
                         newReceiveLibs[i].eid,
                         newReceiveLibs[i].lib
                     );
-                }
-                console.log("");
-                console.log("Method: setReceiveLibrary");
-                bytes memory data = abi.encodeWithSelector(
-                    ILayerZeroEndpointV2.setReceiveLibrary.selector,
-                    address(l2OFTAdapter),
-                    newReceiveLibs[i].eid,
-                    newReceiveLibs[i].lib,
-                    0
-                );
-                console.log("Encoded Tx Data: ");
-                console.logBytes(data);
+                    console.log("");
+                    console.log("Method: setReceiveLibrary");
+                    bytes memory data = abi.encodeWithSelector(
+                        IMessageLibManager.setReceiveLibrary.selector,
+                        address(l2OFTAdapter),
+                        newReceiveLibs[i].eid,
+                        newReceiveLibs[i].lib,
+                        0
+                    );
+                    console.log("Encoded Tx Data: ");
+                    console.logBytes(data);
 
-                addToBatch(address(lzEndpoint), data);
-                console.log("");
+                    addToBatch(address(lzEndpoint), data);
+                    console.log("");
+                }
             }
 
             displayBatch();

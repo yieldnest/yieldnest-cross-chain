@@ -5,8 +5,6 @@ pragma solidity ^0.8.24;
 import {BaseScript} from "./BaseScript.s.sol";
 
 import {L1YnOFTAdapterUpgradeable} from "@/L1YnOFTAdapterUpgradeable.sol";
-import {ILayerZeroEndpointV2} from
-    "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroEndpointV2.sol";
 
 import {
     ProxyAdmin,
@@ -72,42 +70,21 @@ contract DeployL1OFTAdapter is BaseScript {
 
         require(address(l1OFTAdapter) == predictions.l1OFTAdapter, "Prediction mismatch");
 
-        ILayerZeroEndpointV2 lzEndpoint = ILayerZeroEndpointV2(getData(block.chainid).LZ_ENDPOINT);
-
-        if (l1OFTAdapter.owner() == deployer) {
-            vm.broadcast();
-            l1OFTAdapter.setRateLimits(_getRateLimitConfigs());
-            console.log("Set rate limits");
-
-            for (uint256 i = 0; i < baseInput.l2ChainIds.length; i++) {
-                uint256 chainId = baseInput.l2ChainIds[i];
-                uint32 eid = getEID(chainId);
-                address adapter = predictions.l2OFTAdapter;
-                bytes32 adapterBytes32 = addressToBytes32(adapter);
-                if (l1OFTAdapter.peers(eid) == adapterBytes32) {
-                    console.log("Already set peer for chainid %d", chainId);
-                    continue;
-                }
-
-                vm.startBroadcast();
-                l1OFTAdapter.setPeer(eid, adapterBytes32);
-                console.log("Set peer for chainid %d", chainId);
-
-                lzEndpoint.setSendLibrary(address(l1OFTAdapter), eid, getData(block.chainid).LZ_SEND_LIB);
-                console.log("Set send library for chainid %d", chainId);
-
-                lzEndpoint.setReceiveLibrary(address(l1OFTAdapter), eid, getData(block.chainid).LZ_RECEIVE_LIB, 0);
-                console.log("Set receive library for chainid %d", chainId);
-                vm.stopBroadcast();
-            }
-
-            vm.broadcast();
-            l1OFTAdapter.transferOwnership(getData(block.chainid).OFT_OWNER);
-        }
-
         currentDeployment.oftAdapterProxyAdmin = getTransparentUpgradeableProxyAdminAddress(address(l1OFTAdapter));
         currentDeployment.oftAdapterTimelock = ProxyAdmin(currentDeployment.oftAdapterProxyAdmin).owner();
         currentDeployment.oftAdapter = address(l1OFTAdapter);
+
+        if (l1OFTAdapter.owner() == deployer) {
+            uint256[] memory dstChainIds = baseInput.l2ChainIds;
+
+            configureRateLimits();
+            configurePeers(dstChainIds);
+            configureSendLibs(dstChainIds);
+            configureReceiveLibs(dstChainIds);
+            configureEnforcedOptions(dstChainIds);
+            configureDVNs(dstChainIds);
+            configureExecutor(dstChainIds);
+        }
 
         _saveDeployment();
     }

@@ -225,7 +225,7 @@ contract OFTTest is TestHelperOz5 {
 
     function test_send_oft_and_receive() public {
         uint256 tokensToSend = 1 ether;
-        bytes memory options = OptionsBuilder.newOptions().addExecutorLzReceiveOption(200000, 0);
+        bytes memory options = OptionsBuilder.newOptions().addExecutorLzReceiveOption(170000, 0);
         SendParam memory sendParam =
             SendParam(bEid, addressToBytes32(userB), tokensToSend, tokensToSend, options, "", "");
         MessagingFee memory fee = aOFTAdapter.quoteSend(sendParam, false);

@@ -1,3 +1,4 @@
+/* solhint-disable gas-custom-errors */
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
@@ -27,7 +28,7 @@ contract PrintAssetBalance is BaseData {
 
         // Load deployment config
         string memory json =
-            vm.readFile(string.concat("deployments/ynETHx-", vm.toString(baseChainId), "-v0.0.5.json"));
+            vm.readFile(string.concat("deployments/ynETHx-", vm.toString(baseChainId), "-v0.0.1.json"));
 
         // Get the ynETHx contract address
         address ynETHx = abi.decode(
