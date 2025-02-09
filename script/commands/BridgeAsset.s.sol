@@ -108,7 +108,7 @@ contract BridgeAsset is BaseData {
         // Prepare bridge params
         bytes memory options = OptionsBuilder.newOptions().addExecutorLzReceiveOption(170000, 0);
         SendParam memory sendParam =
-            SendParam(destinationEid, addressToBytes32(sender), extraYnETHx, extraYnETHx, options, "", "");
+            SendParam(destinationEid, addressToBytes32(sender), extraYnETHx, extraYnETHx / 2, options, "", "");
 
         // Get messaging fee
         MessagingFee memory fee = IOFT(oftAdapter).quoteSend(sendParam, false);

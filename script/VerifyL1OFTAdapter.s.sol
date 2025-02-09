@@ -35,6 +35,11 @@ contract VerifyL1OFTAdapter is BaseScript, BatchScript {
 
         require(currentDeployment.isL1 == true, "Must be L1 deployment");
 
+        console.log("Predicted L1OFTAdapter:", predictions.l1OFTAdapter);
+        console.log("Predicted L2MultiChainDeployer:", predictions.l2MultiChainDeployer);
+        console.log("Predicted L2ERC20:", predictions.l2ERC20);
+        console.log("Predicted L2OFTAdapter:", predictions.l2OFTAdapter);
+
         if (!isContract(currentDeployment.oftAdapter)) {
             revert("L1 OFT Adapter not deployed");
         }

@@ -186,7 +186,7 @@ contract BaseScript is BaseData, Utils {
 
             bytes memory implBytecode = bytes.concat(
                 type(L1YnOFTAdapterUpgradeable).creationCode,
-                abi.encode(baseInput.l1ERC20Address, getData(block.chainid).LZ_ENDPOINT)
+                abi.encode(baseInput.l1ERC20Address, getData(baseInput.l1ChainId).LZ_ENDPOINT)
             );
 
             address predictedImplementation = vm.computeCreate2Address(implementationSalt, keccak256(implBytecode));
@@ -581,7 +581,9 @@ contract BaseScript is BaseData, Utils {
             enforcedOptions[2 * i + 1] = EnforcedOptionParam({
                 eid: dstEid,
                 msgType: 2,
-                options: OptionsBuilder.newOptions().addExecutorLzReceiveOption(170_000, 0)
+                options: OptionsBuilder.newOptions().addExecutorLzReceiveOption(170_000, 0).addExecutorLzComposeOption(
+                    0, 170_000, 0
+                )
             });
         }
 

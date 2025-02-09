@@ -38,6 +38,11 @@ contract VerifyL2OFTAdapter is BaseScript, BatchScript {
 
         require(currentDeployment.isL1 != true, "Must be L2 deployment");
 
+        console.log("Predicted L1OFTAdapter:", predictions.l1OFTAdapter);
+        console.log("Predicted L2MultiChainDeployer:", predictions.l2MultiChainDeployer);
+        console.log("Predicted L2ERC20:", predictions.l2ERC20);
+        console.log("Predicted L2OFTAdapter:", predictions.l2OFTAdapter);
+
         if (!isContract(currentDeployment.multiChainDeployer)) {
             revert("ImmutableMultiChainDeployer not deployed");
         }
