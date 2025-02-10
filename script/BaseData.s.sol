@@ -32,6 +32,7 @@ contract BaseData is Script {
         uint256 blast;
         uint256 linea;
         uint256 bera;
+        uint256 binance;
         // testnets
         uint256 holesky;
         uint256 sepolia;
@@ -55,6 +56,7 @@ contract BaseData is Script {
         blast: 81457,
         linea: 59144,
         bera: 80094,
+        binance: 56,
         // testnets
         holesky: 17000,
         sepolia: 11155111,
@@ -223,6 +225,18 @@ contract BaseData is Script {
             LZ_EXECUTOR: 0x4208D6E27538189bB48E603D6123A94b8Abe0A0b,
             LZ_EID: 30362
         });
+        __chainIdToData[__chainIds.binance] = Data({
+            OFT_OWNER: 0x721688652DEa9Cabec70BD99411EAEAB9485d436,
+            TOKEN_ADMIN: 0x721688652DEa9Cabec70BD99411EAEAB9485d436,
+            PROXY_ADMIN: 0x721688652DEa9Cabec70BD99411EAEAB9485d436,
+            LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c,
+            LZ_SEND_LIB: 0x9F8C645f2D0b2159767Bd6E0839DE4BE49e823DE,
+            LZ_RECEIVE_LIB: 0xB217266c3A98C8B2709Ee26836C98cf12f6cCEC1,
+            LZ_DVN: 0xfD6865c841c2d64565562fCc7e05e619A30615f0,
+            NETHERMIND_DVN: 0x31F748a368a893Bdb5aBB67ec95F232507601A73,
+            LZ_EXECUTOR: 0x3ebD570ed38B1b3b4BC886999fcF507e9D584859,
+            LZ_EID: 30102
+        });
 
         // testnets
         __chainIdToData[__chainIds.holesky] = Data({
@@ -302,7 +316,7 @@ contract BaseData is Script {
             || chainId == __chainIds.optimism || chainId == __chainIds.arbitrum || chainId == __chainIds.manta
             || chainId == __chainIds.taiko || chainId == __chainIds.scroll || chainId == __chainIds.fantom
             || chainId == __chainIds.mantle || chainId == __chainIds.blast || chainId == __chainIds.linea
-            || chainId == __chainIds.bera
+            || chainId == __chainIds.bera || chainId == __chainIds.binance
         // testnets
         || chainId == __chainIds.holesky || chainId == __chainIds.fraxtalTestnet || chainId == __chainIds.sepolia
             || chainId == __chainIds.morphTestnet;

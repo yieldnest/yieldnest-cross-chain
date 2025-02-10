@@ -145,6 +145,9 @@ function getRPC() {
     80094)
         echo "bera"
         ;;
+    56)
+        echo "binance"
+        ;;
     *)
         echo ""
         ;;
@@ -205,6 +208,9 @@ function getEtherscanAPIKey() {
         ;;
     80094)
         echo "$BERASCAN_API_KEY"
+        ;;
+    56)
+        echo "$BSCSCAN_API_KEY"
         ;;
     *)
         echo ""
