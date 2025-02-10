@@ -6,20 +6,20 @@ import {OptionsBuilder} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/libs/
 import {TransparentUpgradeableProxy} from
     "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
-import {ERC20Mock} from "./mocks/ERC20Mock.sol";
-import {OFTComposerMock} from "./mocks/OFTComposerMock.sol";
 import {
     MessagingFee,
     MessagingReceipt
 } from "@layerzerolabs/oft-evm-upgradeable/contracts/oft/OFTCoreUpgradeable.sol";
+import {ERC20Mock} from "test/mocks/ERC20Mock.sol";
+import {OFTComposerMock} from "test/mocks/OFTComposerMock.sol";
 
 import {OFTComposeMsgCodec} from "@layerzerolabs/oft-evm/contracts/libs/OFTComposeMsgCodec.sol";
 
 import {IOFT, OFTReceipt, SendParam} from "@layerzerolabs/oft-evm/contracts/interfaces/IOFT.sol";
 
-import {L1OFTAdapterMock} from "./mocks/L1OFTAdapterMock.sol";
-import {L2OFTAdapterMock} from "./mocks/L2OFTAdapterMock.sol";
 import {TestHelperOz5} from "@layerzerolabs/test-devtools-evm-foundry/contracts/TestHelperOz5.sol";
+import {L1OFTAdapterMock} from "test/mocks/L1OFTAdapterMock.sol";
+import {L2OFTAdapterMock} from "test/mocks/L2OFTAdapterMock.sol";
 
 import {L2YnERC20Upgradeable as L2YnERC20} from "@/L2YnERC20Upgradeable.sol";
 

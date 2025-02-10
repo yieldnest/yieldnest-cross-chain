@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {ERC20Mock} from "./mocks/ERC20Mock.sol";
 import {L1YnOFTAdapterUpgradeable} from "@/L1YnOFTAdapterUpgradeable.sol";
 import {L2YnERC20Upgradeable} from "@/L2YnERC20Upgradeable.sol";
 import {L2YnOFTAdapterUpgradeable} from "@/L2YnOFTAdapterUpgradeable.sol";
@@ -13,6 +12,7 @@ import {ILayerZeroEndpointV2} from
 import {TransparentUpgradeableProxy} from
     "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {Test} from "forge-std/Test.sol";
+import {ERC20Mock} from "test/mocks/ERC20Mock.sol";
 
 contract CrossChainBaseTest is Test {
     ImmutableMultiChainDeployer public mainnetDeployer;
