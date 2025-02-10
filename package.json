@@ -39,5 +39,8 @@
     "prepare": "husky",
     "deploy": "bash ./script/deploy.sh",
     "test": "forge test -vvv"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7"
   }
 }
