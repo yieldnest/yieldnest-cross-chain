@@ -5,6 +5,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 
+// TODO: Fill in the correct addresses for the implementation contracts for each new deployment
 const ERC20_IMPLEMENTATION_ADDRESS = '0x01029eE5670dd5cc1294410588cacC43a49f8fF1';
 const OFT_ADAPTER_IMPLEMENTATION_ADDRESS = '0xa6d3F9E893604Dd77c773e8cdb4040c060aE5884';
 
