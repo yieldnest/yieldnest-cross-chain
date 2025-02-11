@@ -133,11 +133,6 @@ async function main() {
             console.error(error.message);
         }
 
-        // Break if not chain ID 1
-        if (chainId !== '1') {
-            console.log('Skipping non-mainnet chain');
-            break;
-        }
     }
 }
 
