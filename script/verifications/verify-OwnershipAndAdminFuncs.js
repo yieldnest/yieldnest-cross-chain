@@ -40,12 +40,6 @@ async function verifyRolesAndOwnership(deployment) {
     const chainId = deployment.chainId;
     const networkName = getNetworkName(chainId);
     
-    // FIXME: Remove this once fraxtal is verified - what's goig on here, why does it fail?
-    if (networkName === 'fraxtal') {
-        console.log('Skipping verification for fraxtal network');
-        return;
-    }
-
     const rpc = getRpcUrl(chainId);
     const provider = new ethers.providers.JsonRpcProvider(rpc);
 
