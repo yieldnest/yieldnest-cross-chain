@@ -15,7 +15,8 @@ const chainMultisigs = {
     "arbitrum": "0xCb343bF07E72548349f506593336b6CB698Ad6dA",
     "mantle": "0xCb343bF07E72548349f506593336b6CB698Ad6dA",
     "optimism": "0xCb343bF07E72548349f506593336b6CB698Ad6dA",
-    "bera": "0xae495b70D00C724e5a9E23F4613d5e8139677503"
+    "bera": "0xae495b70D00C724e5a9E23F4613d5e8139677503",
+    "mainnet": "0xfcad670592a3b24869C0b51a6c6FDED4F95D6975"
 };
 
 
@@ -49,7 +50,7 @@ async function verifyRolesAndOwnership(deployment) {
 
     // Get the timelock contract
     const timelock = new ethers.Contract(
-        deployment.timelock,
+        deployment.oftAdapterTimelock,
         [
             'function hasRole(bytes32 role, address account) view returns (bool)',
             'function EXECUTOR_ROLE() view returns (bytes32)',
@@ -59,6 +60,8 @@ async function verifyRolesAndOwnership(deployment) {
         ],
         provider
     );
+
+    console.log(`\nNetwork: ${networkName}`);
 
     // Get the multisig contract
     const multisig = new ethers.Contract(
@@ -90,7 +93,7 @@ async function verifyRolesAndOwnership(deployment) {
 
     // Check multisig owners
     const owners = await multisig.getOwners();
-    const expectedOwners = networkName === 'binance' ? deployNo1Owners : deployNo2Owners;
+    const expectedOwners = networkName === 'bera' || networkName === 'mainnet' ? deployNo2Owners : deployNo1Owners;
     
     console.log(`\nVerifying multisig owners for ${networkName}...`);
     
