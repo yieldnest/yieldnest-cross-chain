@@ -133,6 +133,25 @@ async function verifyRolesAndOwnership(deployment) {
     }
     console.log('✓ OFT proxy admin owned by timelock');
 
+    // Check DEFAULT_ADMIN_ROLE on ERC20 and proxy admin
+    const DEFAULT_ADMIN_ROLE = '0x0000000000000000000000000000000000000000000000000000000000000000';
+    
+    const erc20 = new ethers.Contract(
+        deployment.erc20Address,
+        ['function hasRole(bytes32 role, address account) view returns (bool)'],
+        provider
+    );
+
+    console.log('\nVerifying DEFAULT_ADMIN_ROLE ownership...');
+
+    if (networkName !== 'mainnet') {
+        const erc20HasAdminRole = await erc20.hasRole(DEFAULT_ADMIN_ROLE, chainMultisigs[networkName]);
+        if (!erc20HasAdminRole) {
+            throw new Error('ERC20 DEFAULT_ADMIN_ROLE not owned by Multisig');
+        }
+        console.log('✓ ERC20 DEFAULT_ADMIN_ROLE owned by Multisig');
+    }
+
     console.log(`\n✓ All verifications passed for ${networkName}`);
 }
 
