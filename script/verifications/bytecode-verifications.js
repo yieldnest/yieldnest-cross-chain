@@ -154,13 +154,14 @@ async function verifyL1OFTBytecode(deployment) {
     console.log('Chain ID:', deployment.chainId);
     console.log('L1 OFT Implementation Address:', L1_OFT_IMPLEMENTATION_ADDRESS);
     const rpc = getRpcUrl(deployment.chainId);
-    const bytecode = await getBytecode(rpc, L1_OFT_IMPLEMENTATION_ADDRESS);
-
-    // Get local bytecode for comparison
-    const localBytecode = getLocalL1YnOFTUpgradeableBytecode();
-
-    if (bytecode !== localBytecode) {
-        throw new Error('L1 OFT bytecode does not match local implementation');
+    // Verify bytecode using forge verify-bytecode
+    const { execSync } = require('child_process');
+    const cmd = `forge verify-bytecode ${L1_OFT_IMPLEMENTATION_ADDRESS} L1YnOFTAdapterUpgradeable.sol:L1YnOFTAdapterUpgradeable --rpc-url ${rpc}`;
+    
+    try {
+        execSync(cmd);
+    } catch (error) {
+        throw new Error(`L1 OFT bytecode verification failed: ${error.message}`);
     }
     
     console.log('L1 OFT bytecode verification successful');
