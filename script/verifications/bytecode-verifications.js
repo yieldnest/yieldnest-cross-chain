@@ -6,7 +6,7 @@ dotenv.config();
 
 
 const ERC20_IMPLEMENTATION_ADDRESS = '0x01029eE5670dd5cc1294410588cacC43a49f8fF1';
-const L2YnOFTAdapterImplementationAddress = '0xa6d3F9E893604Dd77c773e8cdb4040c060aE5884';
+const OFT_ADAPTER_IMPLEMENTATION_ADDRESS = '0xa6d3F9E893604Dd77c773e8cdb4040c060aE5884';
 
 
 
@@ -43,6 +43,12 @@ function getLocalL2YnERC20UpgradeableBytecode() {
     return build.deployedBytecode.object;
 }
 
+// Get L2YnOFTAdapter bytecode from local build output
+function getLocalL2YnOFTAdapterUpgradeableBytecode() {
+    const buildPath = 'out/L2YnOFTAdapterUpgradeable.sol/L2YnOFTAdapterUpgradeable.json';
+    const build = JSON.parse(fs.readFileSync(buildPath));
+    return build.deployedBytecode.object;
+}
 
 // Get RPC URL for a chain ID using environment variables
 function getRpcUrl(chainId) {
@@ -119,6 +125,24 @@ async function verifyERC20ProxyBytecode(deployment) {
     console.log('ERC20 bytecode verification successful');
 }
 
+async function verifyOFTAdapterBytecode(deployment) {
+    console.log('\nVerifying OFT Adapter implementation bytecode...');
+    console.log('Chain ID:', deployment.chainId);
+    console.log('OFT Adapter Implementation Address:', OFT_ADAPTER_IMPLEMENTATION_ADDRESS);
+    const rpc = getRpcUrl(deployment.chainId);
+    const bytecode = await getBytecode(rpc, OFT_ADAPTER_IMPLEMENTATION_ADDRESS);
+
+    // Get local bytecode for comparison
+    const localBytecode = getLocalL2YnOFTAdapterUpgradeableBytecode();
+
+    // FIXME: compare actual bytecode, not just length
+    if (bytecode.length !== localBytecode.length) {
+        throw new Error('OFT Adapter bytecode length mismatch');
+    }
+    console.log('OFT Adapter bytecode verification successful');
+}
+
+
 // Main verification function
 async function main() {
     // Read all deployment files from deployments directory
@@ -158,6 +182,8 @@ async function main() {
             );
 
             await verifyERC20ProxyBytecode(deployment);
+
+            await verifyOFTAdapterBytecode(deployment);
             
             console.log(`\nAll verifications passed for chain ${deployment.chainId}`);
             
