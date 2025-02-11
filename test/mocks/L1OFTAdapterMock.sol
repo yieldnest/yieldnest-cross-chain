@@ -12,8 +12,16 @@ contract L1OFTAdapterMock is L1YnOFTAdapterUpgradeable {
         super.__OFTAdapter_init(_owner);
         super.__Ownable_init(_owner);
     }
-    // @dev expose internal functions for testing purposes
 
+    // added a reinitialize function to allow for testing upgrades
+    // solhint-disable-next-line no-empty-blocks
+    function reinitialize() external reinitializer(2) {}
+
+    function mock() external pure returns (uint256) {
+        return 1;
+    }
+
+    // @dev expose internal functions for testing purposes
     function debit(
         address _from,
         uint256 _amountToSendLD,

@@ -37,8 +37,9 @@
     "format": "forge fmt --root .",
     "lint": "solhint \"src/**/*.sol\" && solhint \"test/**/*.sol\" && solhint \"script/**/*.sol\"",
     "prepare": "husky",
-    "deploy": "bash ./script/deploy.sh",
-    "test": "forge test -vvv"
+    "deploy": "bash ./script/bash/deploy.sh",
+    "test": "forge test -vvv",
+    "test:upgrades": "bash ./script/bash/test-upgrades.sh"
   },
   "dependencies": {
     "dotenv": "^16.4.7"
