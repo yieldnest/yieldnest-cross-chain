@@ -40,6 +40,7 @@ async function verifyRolesAndOwnership(deployment) {
     const chainId = deployment.chainId;
     const networkName = getNetworkName(chainId);
     
+    // FIXME: Remove this once fraxtal is verified - what's goig on here, why does it fail?
     if (networkName === 'fraxtal') {
         console.log('Skipping verification for fraxtal network');
         return;
@@ -107,6 +108,36 @@ async function verifyRolesAndOwnership(deployment) {
         }
         console.log(`✓ Found owner ${owner}`);
     }
+
+    // Check proxy admin ownership
+    const erc20ProxyAdmin = new ethers.Contract(
+        deployment.erc20ProxyAdmin,
+        ['function owner() view returns (address)'],
+        provider
+    );
+
+    const oftProxyAdmin = new ethers.Contract(
+        deployment.oftAdapterProxyAdmin,
+        ['function owner() view returns (address)'],
+        provider
+    );
+
+    console.log('\nVerifying proxy admin ownership...');
+
+
+    if (networkName !== 'mainnet') {
+        const erc20ProxyAdminOwner = await erc20ProxyAdmin.owner();
+        if (erc20ProxyAdminOwner.toLowerCase() !== deployment.oftAdapterTimelock.toLowerCase()) {
+            throw new Error(`ERC20 proxy admin not owned by timelock. Owner: ${erc20ProxyAdminOwner}`);
+        }
+        console.log('✓ ERC20 proxy admin owned by timelock');
+    }
+
+    const oftProxyAdminOwner = await oftProxyAdmin.owner();
+    if (oftProxyAdminOwner.toLowerCase() !== deployment.oftAdapterTimelock.toLowerCase()) {
+        throw new Error(`OFT proxy admin not owned by timelock. Owner: ${oftProxyAdminOwner}`);
+    }
+    console.log('✓ OFT proxy admin owned by timelock');
 
     console.log(`\n✓ All verifications passed for ${networkName}`);
 }
