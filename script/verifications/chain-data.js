@@ -23,7 +23,27 @@ function getNetworkName(chainId) {
     return chainIdToNetwork[chainId] || "";
 }
 
+// Get RPC URL for a chain ID using environment variables
+function getRpcUrl(chainId) {
+    const networkName = getNetworkName(chainId);
+    if (!networkName) {
+        throw new Error(`No network name found for chain ID ${chainId}`);
+    }
+    
+    // Convert network name to uppercase and append _RPC for env var name
+    const envVarName = `${networkName.toUpperCase()}_RPC_URL`;
+    const rpcUrl = process.env[envVarName];
+    
+    if (!rpcUrl) {
+        throw new Error(`No RPC URL found in environment variable ${envVarName}`);
+    }
+    
+    return rpcUrl;
+}
+
+
 module.exports = {
-    getNetworkName
+    getNetworkName,
+    getRpcUrl
 };
 

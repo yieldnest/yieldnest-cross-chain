@@ -1,6 +1,6 @@
 const fs = require('fs');
 const { execSync } = require('child_process');
-const { getNetworkName } = require('./chain-data');
+const { getNetworkName, getRpcUrl } = require('./chain-data');
 const dotenv = require('dotenv');
 dotenv.config();
 
@@ -50,25 +50,6 @@ function getLocalL2YnOFTAdapterUpgradeableBytecode() {
     const build = JSON.parse(fs.readFileSync(buildPath));
     return build.deployedBytecode.object;
 }
-
-// Get RPC URL for a chain ID using environment variables
-function getRpcUrl(chainId) {
-    const networkName = getNetworkName(chainId);
-    if (!networkName) {
-        throw new Error(`No network name found for chain ID ${chainId}`);
-    }
-    
-    // Convert network name to uppercase and append _RPC for env var name
-    const envVarName = `${networkName.toUpperCase()}_RPC_URL`;
-    const rpcUrl = process.env[envVarName];
-    
-    if (!rpcUrl) {
-        throw new Error(`No RPC URL found in environment variable ${envVarName}`);
-    }
-    
-    return rpcUrl;
-}
-
 
 // Verify bytecode parts
 async function verifyProxyBytecode(deployment, proxyKey, proxyAdminKey) {
