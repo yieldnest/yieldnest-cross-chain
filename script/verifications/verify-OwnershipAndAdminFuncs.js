@@ -40,8 +40,8 @@ async function verifyRolesAndOwnership(deployment) {
     const chainId = deployment.chainId;
     const networkName = getNetworkName(chainId);
     
-    if (networkName === 'bera') {
-        console.log('Skipping verification for Bera network');
+    if (networkName === 'fraxtal') {
+        console.log('Skipping verification for fraxtal network');
         return;
     }
 
@@ -76,7 +76,7 @@ async function verifyRolesAndOwnership(deployment) {
     const msigAddress = chainMultisigs[networkName];
     const roles = [
         await timelock.DEFAULT_ADMIN_ROLE(),
-        await timelock.EXECUTOR_ROLE(),
+        await timelock.EXECUTOR_ROLE(), 
         await timelock.PROPOSER_ROLE(),
         await timelock.CANCELLER_ROLE()
     ];
