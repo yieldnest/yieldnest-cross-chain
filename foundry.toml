@@ -1,0 +1,78 @@
+[profile.default]
+src = "src"
+out = "out"
+libs = ["lib"]
+test = 'test/unit'
+cache_path = 'cache'
+fs_permissions = [
+  { access = "read-write", path = "./deployments" },
+  { access = "read", path = "./" },
+]
+optimizer = true
+optimizer-runs = 200
+evm_version = "cancun"
+solc_version = "0.8.24"
+prompt_timeout = 120
+
+[profile.fork]
+src = "src"
+out = "out"
+libs = ["lib"]
+test = 'test/fork'
+cache_path = 'cache'
+fs_permissions = [
+  { access = "read-write", path = "./deployments" },
+  { access = "read", path = "./" },
+]
+optimizer = true
+optimizer-runs = 200
+evm_version = "cancun"
+solc_version = "0.8.24"
+prompt_timeout = 120
+
+[fmt]
+single_line_statement_blocks = "multi"
+multiline_func_header = "all"
+sort_imports = true
+line_length = 115
+wrap_comments = true
+
+[rpc_endpoints]
+mainnet = "${MAINNET_RPC_URL}"
+arbitrum = "${ARBITRUM_RPC_URL}"
+optimism = "${OPTIMISM_RPC_URL}"
+base = "${BASE_RPC_URL}"
+fraxtal = "${FRAX_RPC_URL}"
+manta = "${MANTA_RPC_URL}"
+taiko = "${TAIKO_RPC_URL}"
+scroll = "${SCROLL_RPC_URL}"
+fantom = "${FANTOM_RPC_URL}"
+mantle = "${MANTLE_RPC_URL}"
+blast = "${BLAST_RPC_URL}"
+linea = "${LINEA_RPC_URL}"
+bera = "${BERA_RPC_URL}"
+binance = "${BSC_RPC_URL}"
+
+holesky = "${HOLESKY_RPC_URL}"
+sepolia = "${SEPOLIA_RPC_URL}"
+fraxtal_testnet = "${FRAX_TESTNET_RPC_URL}"
+morph_testnet = "${MORPH_TESTNET_RPC_URL}"
+
+[etherscan]
+mainnet = { key = "${ETHERSCAN_API_KEY}" }
+arbitrum = { key = "${ARBISCAN_API_KEY}", url = "https://api.arbiscan.io/api/" }
+optimism = { key = "${OPTIMISTIC_ETHERSCAN_API_KEY}", url = "https://api-optimistic.etherscan.io/api" }
+base = { key = "${BASESCAN_API_KEY}", url = "https://api.basescan.org/api/" }
+holesky = { key = "${ETHERSCAN_API_KEY}" }
+sepolia = { key = "${ETHERSCAN_API_KEY}" }
+fraxtal = { key = "${FRAXSCAN_API_KEY}", url = "https://api.fraxscan.com/api/" }
+fraxtal_testnet = { key = "${FRAXSCAN_API_KEY}", url = "https://api-holesky.fraxscan.com/api/" }
+morph_testnet = { key = "${MORPHSCAN_API_KEY}", url = "https://explorer-api-holesky.morphl2.io/api/" }
+scroll = { key = "${SCROLLSCAN_API_KEY}", url = "https://api.scrollscan.com/api/" }
+fantom = { key = "${FANTOMSCAN_API_KEY}", url = "https://api.ftmscan.com/api/" }
+taiko = { key = "${TAIKOSCAN_API_KEY}", url = "https://api.taikoscan.io/api/" }
+mantle = { key = "${MANTLESCAN_API_KEY}", url = "https://api.mantlescan.xyz/api/" }
+blast = { key = "${BLASTSCAN_API_KEY}", url = "https://api.blastscan.io/api/" }
+linea = { key = "${LINEASCAN_API_KEY}", url = "https://api.lineascan.build/api/" }
+bera = { key = "${BERASCAN_API_KEY}", url = "https://api.berascan.com/api/" }
+binance = { key = "${BSCSCAN_API_KEY}", url = "https://api.bscscan.com/api/" }

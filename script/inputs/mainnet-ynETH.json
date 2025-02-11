@@ -1,0 +1,22 @@
+{
+  "erc20Name": "ynETH MAX",
+  "erc20Symbol": "ynETHx",
+  "l1ChainId": 1,
+  "l2ChainIds": [
+    5000,
+    81457,
+    534352,
+    80094,
+    8453,
+    10,
+    42161,
+    252,
+    167000,
+    56
+  ],
+  "l1ERC20Address": "0x657d9ABA1DBb59e53f9F3eCAA878447dCfC96dCb",
+  "rateLimitConfig": {
+    "limit": "3000000000000000000000",
+    "window": "3600"
+  }
+}

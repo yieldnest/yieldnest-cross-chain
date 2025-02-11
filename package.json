@@ -1,0 +1,47 @@
+{
+  "name": "yieldnest-cross-chain",
+  "description": "Contracts and scripts for deploying cross chain yieldnest tokens using LayerZero.",
+  "version": "0.1.0",
+  "devDependencies": {
+    "@layerzerolabs/lz-evm-messagelib-v2": "3.0.63",
+    "@layerzerolabs/lz-evm-oapp-v2": "3.0.63",
+    "@layerzerolabs/lz-evm-protocol-v2": "3.0.63",
+    "@layerzerolabs/lz-evm-v1-0.7": "3.0.63",
+    "@layerzerolabs/oapp-evm": "0.3.0",
+    "@layerzerolabs/oapp-evm-upgradeable": "0.1.0",
+    "@layerzerolabs/oft-evm": "3.1.0",
+    "@layerzerolabs/oft-evm-upgradeable": "3.0.0",
+    "@layerzerolabs/test-devtools-evm-foundry": "6.0.0",
+    "@openzeppelin/contracts": "5.2.0",
+    "@openzeppelin/contracts-upgradeable": "5.2.0",
+    "hardhat-deploy": "^0.14.0",
+    "husky": "^9.1.5",
+    "lint-staged": "^15.2.10",
+    "solhint": "^5.0.3",
+    "solidity-bytes-utils": "^0.8.2"
+  },
+  "license": "MIT",
+  "lint-staged": {
+    "*.sol": [
+      "forge fmt",
+      "solhint --fix --noPrompt"
+    ]
+  },
+  "main": "index.js",
+  "repository": "https://github.com/yieldnest/yieldnest-cross-chain",
+  "scripts": {
+    "preinstall": "forge install",
+    "build": "forge build",
+    "clean": "forge clean",
+    "compile": "forge compile",
+    "format": "forge fmt --root .",
+    "lint": "solhint \"src/**/*.sol\" && solhint \"test/**/*.sol\" && solhint \"script/**/*.sol\"",
+    "prepare": "husky",
+    "deploy": "bash ./script/bash/deploy.sh",
+    "test": "forge test -vvv",
+    "test:upgrades": "bash ./script/bash/test-upgrades.sh"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7"
+  }
+}
