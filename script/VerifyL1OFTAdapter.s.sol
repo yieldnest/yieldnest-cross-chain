@@ -2,8 +2,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {BaseScript, PeerConfig} from "./BaseScript.s.sol";
+import {BaseScript, PeerConfig, ReceiveLibConfig, SendLibConfig} from "./BaseScript.s.sol";
 import {BatchScript} from "./BatchScript.s.sol";
+import {
+    ILayerZeroEndpointV2,
+    IMessageLibManager
+} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroEndpointV2.sol";
 
 import {L1YnOFTAdapterUpgradeable} from "@/L1YnOFTAdapterUpgradeable.sol";
 
@@ -23,11 +27,18 @@ contract VerifyL1OFTAdapter is BaseScript, BatchScript {
 
     RateLimiter.RateLimitConfig[] public newRateLimitConfigs;
     PeerConfig[] public newPeers;
+    SendLibConfig[] public newSendLibs;
+    ReceiveLibConfig[] public newReceiveLibs;
 
     function run(string calldata _jsonPath) public isBatch(getData(block.chainid).OFT_OWNER) {
         _loadInput(_jsonPath);
 
         require(currentDeployment.isL1 == true, "Must be L1 deployment");
+
+        console.log("Predicted L1OFTAdapter:", predictions.l1OFTAdapter);
+        console.log("Predicted L2MultiChainDeployer:", predictions.l2MultiChainDeployer);
+        console.log("Predicted L2ERC20:", predictions.l2ERC20);
+        console.log("Predicted L2OFTAdapter:", predictions.l2OFTAdapter);
 
         if (!isContract(currentDeployment.oftAdapter)) {
             revert("L1 OFT Adapter not deployed");
@@ -36,10 +47,6 @@ contract VerifyL1OFTAdapter is BaseScript, BatchScript {
         require(address(currentDeployment.oftAdapter) == predictions.l1OFTAdapter, "Predicted address mismatch");
 
         l1OFTAdapter = L1YnOFTAdapterUpgradeable(currentDeployment.oftAdapter);
-
-        if (l1OFTAdapter.owner() != getData(block.chainid).OFT_OWNER) {
-            revert("L1 OFT Adapter ownership not transferred");
-        }
 
         address proxyAdmin = getTransparentUpgradeableProxyAdminAddress(address(l1OFTAdapter));
         if (proxyAdmin != currentDeployment.oftAdapterProxyAdmin) {
@@ -62,6 +69,8 @@ contract VerifyL1OFTAdapter is BaseScript, BatchScript {
 
         bool needsUpdate = false;
 
+        ILayerZeroEndpointV2 lzEndpoint = ILayerZeroEndpointV2(getData(block.chainid).LZ_ENDPOINT);
+
         for (uint256 i = 0; i < chainIds.length; i++) {
             uint256 chainId = chainIds[i];
             uint32 eid = getEID(chainId);
@@ -83,6 +92,24 @@ contract VerifyL1OFTAdapter is BaseScript, BatchScript {
                 needsUpdate = true;
                 newPeers.push(PeerConfig(eid, adapter));
             }
+            if (lzEndpoint.getSendLibrary(address(l1OFTAdapter), eid) != getData(block.chainid).LZ_SEND_LIB) {
+                needsUpdate = true;
+                newSendLibs.push(SendLibConfig(eid, getData(block.chainid).LZ_SEND_LIB));
+            }
+            (address lib, bool isDefault) = lzEndpoint.getReceiveLibrary(address(l1OFTAdapter), eid);
+            if (lib != getData(block.chainid).LZ_RECEIVE_LIB && isDefault != false) {
+                needsUpdate = true;
+                newReceiveLibs.push(ReceiveLibConfig(eid, getData(block.chainid).LZ_RECEIVE_LIB));
+            }
+        }
+
+        if (l1OFTAdapter.owner() != getData(block.chainid).OFT_OWNER) {
+            console.log("L1 OFT Adapter ownership: %s", l1OFTAdapter.owner());
+            console.log("Expected ownership: %s", getData(block.chainid).OFT_OWNER);
+
+            if (needsUpdate) {
+                revert("L1 OFT Adapter ownership is not correct & config needs to be updated");
+            }
         }
 
         if (needsUpdate) {
@@ -98,7 +125,7 @@ contract VerifyL1OFTAdapter is BaseScript, BatchScript {
                 console.log("");
                 for (uint256 i = 0; i < newRateLimitConfigs.length; i++) {
                     console.log(
-                        "EID %d: Limit %d, Window %d",
+                        "EID %s; Limit %d; Window %d",
                         newRateLimitConfigs[i].dstEid,
                         newRateLimitConfigs[i].limit,
                         newRateLimitConfigs[i].window
@@ -119,13 +146,66 @@ contract VerifyL1OFTAdapter is BaseScript, BatchScript {
                 console.log("The following peers need to be set: ");
                 console.log("");
                 for (uint256 i = 0; i < newPeers.length; i++) {
-                    console.log("EID %d: Peer %s", newPeers[i].eid, newPeers[i].peer);
+                    console.log("EID %d; Peer %s", newPeers[i].eid, newPeers[i].peer);
                     console.log("Method: setPeer");
                     bytes memory data =
                         abi.encodeWithSelector(IOAppCore.setPeer.selector, newPeers[i].eid, newPeers[i].peer);
                     console.log("Encoded Tx Data: ");
                     console.logBytes(data);
                     addToBatch(address(l1OFTAdapter), data);
+                    console.log("");
+                }
+            }
+
+            if (newSendLibs.length > 0) {
+                console.log("The following send libraries need to be set: ");
+                console.log("");
+                for (uint256 i = 0; i < newSendLibs.length; i++) {
+                    console.log(
+                        "OFTAdapter %s; EID %d; Send Library %s",
+                        address(l1OFTAdapter),
+                        newSendLibs[i].eid,
+                        newSendLibs[i].lib
+                    );
+                    console.log("");
+                    console.log("Method: setSendLibrary");
+                    bytes memory data = abi.encodeWithSelector(
+                        IMessageLibManager.setSendLibrary.selector,
+                        address(l1OFTAdapter),
+                        newSendLibs[i].eid,
+                        newSendLibs[i].lib
+                    );
+                    console.log("Encoded Tx Data: ");
+                    console.logBytes(data);
+
+                    addToBatch(address(lzEndpoint), data);
+                    console.log("");
+                }
+            }
+
+            if (newReceiveLibs.length > 0) {
+                console.log("The following receive libraries need to be set: ");
+                console.log("");
+                for (uint256 i = 0; i < newReceiveLibs.length; i++) {
+                    console.log(
+                        "OFTAdapter %s; EID %d; Receive Library %s; Expiry 0",
+                        address(l1OFTAdapter),
+                        newReceiveLibs[i].eid,
+                        newReceiveLibs[i].lib
+                    );
+                    console.log("");
+                    console.log("Method: setReceiveLibrary");
+                    bytes memory data = abi.encodeWithSelector(
+                        IMessageLibManager.setReceiveLibrary.selector,
+                        address(l1OFTAdapter),
+                        newReceiveLibs[i].eid,
+                        newReceiveLibs[i].lib,
+                        0
+                    );
+                    console.log("Encoded Tx Data: ");
+                    console.logBytes(data);
+
+                    addToBatch(address(lzEndpoint), data);
                     console.log("");
                 }
             }

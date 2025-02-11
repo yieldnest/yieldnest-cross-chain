@@ -45,14 +45,23 @@ contract DeployL2OFTAdapter is BaseScript {
 
         bytes32 proxySalt = createL2YnERC20UpgradeableProxySalt(msg.sender);
         bytes32 implementationSalt = createL2YnERC20UpgradeableSalt(msg.sender);
-
         bytes32 timelockSalt = createL2YnOFTAdapterTimelockSalt(msg.sender);
-        address timelock = _deployTimelockController(timelockSalt);
 
         address deployer = msg.sender;
 
         address predictedERC20 = multiChainDeployer.getDeployed(proxySalt);
         require(predictedERC20 == predictions.l2ERC20, "Prediction mismatch");
+
+        address timelock = _predictTimelockController(timelockSalt, block.chainid);
+
+        if (!isContract(timelock)) {
+            vm.startBroadcast();
+            timelock = _deployTimelockController(timelockSalt, block.chainid);
+            vm.stopBroadcast();
+            console.log("Timelock deployed at: ", timelock);
+        } else {
+            console.log("Already deployed Timelock at: ", timelock);
+        }
 
         if (!isContract(currentDeployment.erc20Address)) {
             vm.startBroadcast();
@@ -77,6 +86,9 @@ contract DeployL2OFTAdapter is BaseScript {
         }
 
         require(predictedERC20 == address(l2ERC20), "Prediction mismatch");
+
+        currentDeployment.erc20ProxyAdmin = getTransparentUpgradeableProxyAdminAddress(address(l2ERC20));
+        currentDeployment.erc20Address = address(l2ERC20);
 
         proxySalt = createL2YnOFTAdapterUpgradeableProxySalt(msg.sender);
         implementationSalt = createL2YnOFTAdapterUpgradeableSalt(msg.sender);
@@ -108,38 +120,25 @@ contract DeployL2OFTAdapter is BaseScript {
 
         require(predictedOFTAdapter == address(l2OFTAdapter), "Prediction mismatch");
 
+        currentDeployment.oftAdapterProxyAdmin = getTransparentUpgradeableProxyAdminAddress(address(l2OFTAdapter));
+        currentDeployment.oftAdapterTimelock = ProxyAdmin(currentDeployment.oftAdapterProxyAdmin).owner();
+        currentDeployment.oftAdapter = address(l2OFTAdapter);
+
         if (l2OFTAdapter.owner() == deployer) {
-            vm.broadcast();
-            l2OFTAdapter.setRateLimits(_getRateLimitConfigs());
-            console.log("Set rate limits");
-
-            uint256[] memory chainIds = new uint256[](baseInput.l2ChainIds.length + 1);
-            for (uint256 i = 0; i < baseInput.l2ChainIds.length; i++) {
-                chainIds[i] = baseInput.l2ChainIds[i];
-            }
-            chainIds[baseInput.l2ChainIds.length] = baseInput.l1ChainId;
-
-            for (uint256 i = 0; i < chainIds.length; i++) {
-                uint256 chainId = chainIds[i];
-                if (chainId == block.chainid) {
-                    continue;
+            uint256[] memory dstChainIds = baseInput.l2ChainIds;
+            for (uint256 i = 0; i < dstChainIds.length; i++) {
+                if (dstChainIds[i] == block.chainid) {
+                    dstChainIds[i] = baseInput.l1ChainId;
                 }
-                uint32 eid = getEID(chainId);
-                address adapter =
-                    chainId == baseInput.l1ChainId ? predictions.l1OFTAdapter : predictions.l2OFTAdapter;
-                bytes32 adapterBytes32 = addressToBytes32(adapter);
-                if (l2OFTAdapter.peers(eid) == adapterBytes32) {
-                    console.log("Already set peer for chainid %d", chainId);
-                    continue;
-                }
-
-                vm.broadcast();
-                l2OFTAdapter.setPeer(eid, adapterBytes32);
-                console.log("Set peer for chainid %d", chainId);
             }
 
-            vm.broadcast();
-            l2OFTAdapter.transferOwnership(getData(block.chainid).OFT_OWNER);
+            configureRateLimits();
+            configurePeers(dstChainIds);
+            configureSendLibs(dstChainIds);
+            configureReceiveLibs(dstChainIds);
+            configureEnforcedOptions(dstChainIds);
+            configureDVNs(dstChainIds);
+            configureExecutor(dstChainIds);
         }
 
         if (l2ERC20.hasRole(l2ERC20.DEFAULT_ADMIN_ROLE(), deployer)) {
@@ -149,13 +148,6 @@ contract DeployL2OFTAdapter is BaseScript {
             l2ERC20.renounceRole(l2ERC20.DEFAULT_ADMIN_ROLE(), deployer);
             vm.stopBroadcast();
         }
-
-        currentDeployment.oftAdapterProxyAdmin = getTransparentUpgradeableProxyAdminAddress(address(l2OFTAdapter));
-        currentDeployment.oftAdapterTimelock = ProxyAdmin(currentDeployment.oftAdapterProxyAdmin).owner();
-        currentDeployment.oftAdapter = address(l2OFTAdapter);
-
-        currentDeployment.erc20ProxyAdmin = getTransparentUpgradeableProxyAdminAddress(address(l2ERC20));
-        currentDeployment.erc20Address = address(l2ERC20);
 
         _saveDeployment();
     }

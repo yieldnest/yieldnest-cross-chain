@@ -32,6 +32,17 @@ contract DeployL1OFTAdapter is BaseScript {
 
         address deployer = msg.sender;
 
+        address timelock = _predictTimelockController(timelockSalt, block.chainid);
+
+        if (!isContract(timelock)) {
+            vm.startBroadcast();
+            timelock = _deployTimelockController(timelockSalt, block.chainid);
+            vm.stopBroadcast();
+            console.log("Timelock deployed at: ", timelock);
+        } else {
+            console.log("Already deployed Timelock at: ", timelock);
+        }
+
         if (!isContract(currentDeployment.oftAdapter)) {
             vm.broadcast();
             address l1OFTAdapterImpl = address(
@@ -44,7 +55,6 @@ contract DeployL1OFTAdapter is BaseScript {
                 abi.encodeWithSelector(L1YnOFTAdapterUpgradeable.initialize.selector, deployer);
 
             vm.startBroadcast();
-            address timelock = _deployTimelockController(timelockSalt);
             l1OFTAdapter = L1YnOFTAdapterUpgradeable(
                 address(
                     new TransparentUpgradeableProxy{salt: proxySalt}(l1OFTAdapterImpl, timelock, initializeData)
@@ -60,33 +70,21 @@ contract DeployL1OFTAdapter is BaseScript {
 
         require(address(l1OFTAdapter) == predictions.l1OFTAdapter, "Prediction mismatch");
 
-        if (l1OFTAdapter.owner() == deployer) {
-            vm.broadcast();
-            l1OFTAdapter.setRateLimits(_getRateLimitConfigs());
-            console.log("Set rate limits");
-
-            for (uint256 i = 0; i < baseInput.l2ChainIds.length; i++) {
-                uint256 chainId = baseInput.l2ChainIds[i];
-                uint32 eid = getEID(chainId);
-                address adapter = predictions.l2OFTAdapter;
-                bytes32 adapterBytes32 = addressToBytes32(adapter);
-                if (l1OFTAdapter.peers(eid) == adapterBytes32) {
-                    console.log("Already set peer for chainid %d", chainId);
-                    continue;
-                }
-
-                vm.broadcast();
-                l1OFTAdapter.setPeer(eid, adapterBytes32);
-                console.log("Set peer for chainid %d", chainId);
-            }
-
-            vm.broadcast();
-            l1OFTAdapter.transferOwnership(getData(block.chainid).OFT_OWNER);
-        }
-
         currentDeployment.oftAdapterProxyAdmin = getTransparentUpgradeableProxyAdminAddress(address(l1OFTAdapter));
         currentDeployment.oftAdapterTimelock = ProxyAdmin(currentDeployment.oftAdapterProxyAdmin).owner();
         currentDeployment.oftAdapter = address(l1OFTAdapter);
+
+        if (l1OFTAdapter.owner() == deployer) {
+            uint256[] memory dstChainIds = baseInput.l2ChainIds;
+
+            configureRateLimits();
+            configurePeers(dstChainIds);
+            configureSendLibs(dstChainIds);
+            configureReceiveLibs(dstChainIds);
+            configureEnforcedOptions(dstChainIds);
+            configureDVNs(dstChainIds);
+            configureExecutor(dstChainIds);
+        }
 
         _saveDeployment();
     }
