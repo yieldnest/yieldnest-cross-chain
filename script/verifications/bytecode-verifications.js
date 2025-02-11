@@ -5,6 +5,10 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 
+const ERC20_IMPLEMENTATION_ADDRESS = '0x01029eE5670dd5cc1294410588cacC43a49f8fF1';
+const L2YnOFTAdapterImplementationAddress = '0xa6d3F9E893604Dd77c773e8cdb4040c060aE5884';
+
+
 
 // Helper to execute curl command and get bytecode
 async function getBytecode(rpc, address) {
@@ -31,6 +35,14 @@ function getLocalTransparentUpgradeableProxyBytecode() {
     const proxyBuild = JSON.parse(fs.readFileSync(proxyBuildPath));
     return proxyBuild.deployedBytecode.object;
 }
+
+// Get L2YnERC20Upgradeable bytecode from local build output
+function getLocalL2YnERC20UpgradeableBytecode() {
+    const buildPath = 'out/L2YnERC20Upgradeable.sol/L2YnERC20Upgradeable.json';
+    const build = JSON.parse(fs.readFileSync(buildPath));
+    return build.deployedBytecode.object;
+}
+
 
 // Get RPC URL for a chain ID using environment variables
 function getRpcUrl(chainId) {
@@ -89,6 +101,24 @@ async function verifyProxyBytecode(deployment, proxyKey, proxyAdminKey) {
     console.log('Suffix length:', parts.suffix.length);
 }
 
+async function verifyERC20ProxyBytecode(deployment) {
+    console.log('\nVerifying ERC20 implementation bytecode...');
+    console.log('Chain ID:', deployment.chainId);
+    console.log('ERC20 Implementation Address:', ERC20_IMPLEMENTATION_ADDRESS);
+    const rpc = getRpcUrl(deployment.chainId);
+    const bytecode = await getBytecode(rpc, ERC20_IMPLEMENTATION_ADDRESS);
+
+    
+    // Get local bytecode for comparison
+    const localBytecode = getLocalL2YnERC20UpgradeableBytecode();
+    
+    if (bytecode !== localBytecode) {
+        throw new Error('ERC20 bytecode does not match local implementation');
+    }
+    
+    console.log('ERC20 bytecode verification successful');
+}
+
 // Main verification function
 async function main() {
     // Read all deployment files from deployments directory
@@ -103,13 +133,14 @@ async function main() {
     
     for (const chainId of chainIds) {
         const deployment = deployments[chainId];
-        
+
         // Skip chain ID 1 (mainnet)
         if (deployment.chainId === 1) continue;
         
         console.log(`\nVerifying bytecode for chain ${deployment.chainId}...`);
         
         try {
+
             // Verify ERC20 proxy
             console.log('\nVerifying ERC20 proxy bytecode...');
             await verifyProxyBytecode(
@@ -125,6 +156,8 @@ async function main() {
                 'oftAdapter',
                 'oftAdapterProxyAdmin'
             );
+
+            await verifyERC20ProxyBytecode(deployment);
             
             console.log(`\nAll verifications passed for chain ${deployment.chainId}`);
             
@@ -132,7 +165,6 @@ async function main() {
             console.error(`\nVerification failed for chain ${deployment.chainId}:`);
             console.error(error.message);
         }
-
     }
 }
 
