@@ -8,7 +8,7 @@ dotenv.config();
 // TODO: Fill in the correct addresses for the implementation contracts for each new deployment
 const ERC20_IMPLEMENTATION_ADDRESS = '0x01029eE5670dd5cc1294410588cacC43a49f8fF1';
 const OFT_ADAPTER_IMPLEMENTATION_ADDRESS = '0xa6d3F9E893604Dd77c773e8cdb4040c060aE5884';
-
+const L1_OFT_IMPLEMENTATION_ADDRESS = '0x09564BE5E4933586DC89B2a2Ac5790c6ba636003';
 
 
 // Helper to execute curl command and get bytecode
@@ -50,6 +50,14 @@ function getLocalL2YnERC20UpgradeableBytecode() {
     const build = JSON.parse(fs.readFileSync(buildPath));
     return build.deployedBytecode.object;
 }
+
+// Get L1YnOFTAdapter bytecode from local build output 
+function getLocalL1YnOFTUpgradeableBytecode() {
+    const buildPath = 'out/L1YnOFTAdapterUpgradeable.sol/L1YnOFTAdapterUpgradeable.json';
+    const build = JSON.parse(fs.readFileSync(buildPath));
+    return build.deployedBytecode.object;
+}
+
 
 // Get L2YnOFTAdapter bytecode from local build output
 function getLocalL2YnOFTAdapterUpgradeableBytecode() {
@@ -141,6 +149,24 @@ async function verifyOFTAdapterBytecode(deployment) {
     console.log('OFT Adapter bytecode verification successful');
 }
 
+async function verifyL1OFTBytecode(deployment) {
+    console.log('\nVerifying L1 OFT implementation bytecode...');
+    console.log('Chain ID:', deployment.chainId);
+    console.log('L1 OFT Implementation Address:', L1_OFT_IMPLEMENTATION_ADDRESS);
+    const rpc = getRpcUrl(deployment.chainId);
+    const bytecode = await getBytecode(rpc, L1_OFT_IMPLEMENTATION_ADDRESS);
+
+    // Get local bytecode for comparison
+    const localBytecode = getLocalL1YnOFTUpgradeableBytecode();
+
+    if (bytecode !== localBytecode) {
+        throw new Error('L1 OFT bytecode does not match local implementation');
+    }
+    
+    console.log('L1 OFT bytecode verification successful');
+}
+
+
 
 // Main verification function
 async function main() {
@@ -153,6 +179,28 @@ async function main() {
     console.log('\nStarting bytecode verification...');
     console.log('Found chain IDs:', chainIds);
     console.log('Deployment file:', 'deployments/ynETHx-1-v0.0.1.json');
+
+    // Verify mainnet first
+    const mainnetDeployment = deployments["1"];
+    if (mainnetDeployment) {
+        console.log('\nVerifying bytecode for mainnet...');
+        try {
+            // Verify OFT adapter proxy only for mainnet
+            console.log('\nVerifying OFT adapter proxy bytecode...');
+            await verifyProxyBytecode(
+                mainnetDeployment,
+                'oftAdapter', 
+                'oftAdapterProxyAdmin'
+            );
+
+            await verifyL1OFTBytecode(mainnetDeployment);
+
+            console.log('\nAll verifications passed for mainnet');
+        } catch (error) {
+            console.error('\nVerification failed for mainnet:');
+            console.error(error.message);
+        }
+    }
     
     for (const chainId of chainIds) {
         const deployment = deployments[chainId];
@@ -179,7 +227,7 @@ async function main() {
                 'oftAdapter',
                 'oftAdapterProxyAdmin'
             );
-
+            
             await verifyERC20ProxyBytecode(deployment);
 
             await verifyOFTAdapterBytecode(deployment);
