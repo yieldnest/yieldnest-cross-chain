@@ -37,6 +37,13 @@ function getLocalTransparentUpgradeableProxyBytecode() {
     return proxyBuild.deployedBytecode.object;
 }
 
+// Get proxyAdmin bytecode from local build output
+function getLocalProxyAdminBytecode() {
+    const proxyAdminBuildPath = 'out/ProxyAdmin.sol/ProxyAdmin.json';
+    const proxyAdminBuild = JSON.parse(fs.readFileSync(proxyAdminBuildPath));
+    return proxyAdminBuild.deployedBytecode.object;
+}
+
 // Get L2YnERC20Upgradeable bytecode from local build output
 function getLocalL2YnERC20UpgradeableBytecode() {
     const buildPath = 'out/L2YnERC20Upgradeable.sol/L2YnERC20Upgradeable.json';
@@ -81,6 +88,16 @@ async function verifyProxyBytecode(deployment, proxyKey, proxyAdminKey) {
     // Verify owner is proxy admin
     if ('0x' + parts.owner.toLowerCase() !== proxyAdmin.toLowerCase()) {
         throw new Error('Owner in bytecode does not match proxy admin');
+    }
+
+    // Get bytecode for proxyAdmin
+    const bytecodeAdmin = await getBytecode(rpc, '0x' + parts.owner);
+    // Get local bytecode for comparison
+    const localBytecodeAdmin = getLocalProxyAdminBytecode();
+
+    // Verify proxyAdmin bytecode
+    if (bytecodeAdmin.toLowerCase() !== localBytecodeAdmin.toLowerCase()) {
+        throw new Error('ProxyAdmin bytecode is different local vs on-chain');
     }
     
     console.log('Bytecode verification successful');
