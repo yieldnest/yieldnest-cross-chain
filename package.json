@@ -40,5 +40,8 @@
     "deploy": "bash ./script/bash/deploy.sh",
     "test": "forge test -vvv",
     "test:upgrades": "bash ./script/bash/test-upgrades.sh"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7"
   }
 }
