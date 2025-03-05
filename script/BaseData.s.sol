@@ -33,12 +33,14 @@ contract BaseData is Script {
         uint256 linea;
         uint256 bera;
         uint256 binance;
+        uint256 hemi;
         // testnets
         uint256 holesky;
         uint256 sepolia;
         uint256 fraxtalTestnet;
         uint256 morphTestnet;
-        uint256 hemi;
+        uint256 hemiTestnet;
+        uint256 binanceTestnet;
     }
 
     mapping(uint256 => Data) private __chainIdToData;
@@ -64,7 +66,8 @@ contract BaseData is Script {
         sepolia: 11155111,
         fraxtalTestnet: 2522,
         morphTestnet: 2810,
-        hemiTestnet: 743111
+        hemiTestnet: 743111,
+        binanceTestnet: 97
     });
 
     function setUp() public virtual {
@@ -310,10 +313,22 @@ contract BaseData is Script {
             LZ_SEND_LIB: 0xd682ECF100f6F4284138AA925348633B0611Ae21,
             LZ_RECEIVE_LIB: 0xcF1B0F4106B0324F96fEfcC31bA9498caa80701C,
             LZ_DVN: 0xC1868e054425D378095A003EcbA3823a5D0135C9,
-            NETHERMIND_DVN: 0xF49d162484290EAeAd7bb8C2c7E3a6f8f52e32d6, // since there's no listed nethermind
-                // testnet dvn, using LZ's dvn
+            NETHERMIND_DVN: 0xF49d162484290EAeAd7bb8C2c7E3a6f8f52e32d6, //no listed nethermind testnet dvn, using
+                // LZ's dvn
             LZ_EXECUTOR: 0x701f3927871EfcEa1235dB722f9E608aE120d243,
             LZ_EID: 40338
+        });
+        __chainIdToData[__chainIds.binanceTestnet] = Data({
+            OFT_OWNER: 0x72fdBD51085bDa5eEEd3b55D1a46E2e92f0837a5,
+            TOKEN_ADMIN: 0x72fdBD51085bDa5eEEd3b55D1a46E2e92f0837a5,
+            PROXY_ADMIN: 0x72fdBD51085bDa5eEEd3b55D1a46E2e92f0837a5,
+            LZ_ENDPOINT: 0x6EDCE65403992e310A62460808c4b910D972f10f,
+            LZ_SEND_LIB: 0x55f16c442907e86D764AFdc2a07C2de3BdAc8BB7,
+            LZ_RECEIVE_LIB: 0x188d4bbCeD671A7aA2b5055937F79510A32e9683,
+            LZ_DVN: address(0),
+            NETHERMIND_DVN: 0x6334290B7b4a365F3c0E79c85B1b42F078db78E4,
+            LZ_EXECUTOR: 0x31894b190a8bAbd9A067Ce59fde0BfCFD2B18470,
+            LZ_EID: 40102
         });
     }
 
