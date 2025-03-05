@@ -1,0 +1,16 @@
+{
+    "erc20Name": "ynBTCk",
+    "erc20Symbol": "ynBTCk",
+    "l1ChainId": 97,
+    "l2ChainIds": [
+        743111,
+        2522,
+        2810,
+        11155111
+    ],
+    "l1ERC20Address": "0x3b9C0346A1f0AfF6B81804f0D18A25B4B43648F0",
+    "rateLimitConfig": {
+      "limit": "3000000000000000000000",
+      "window": "3600"
+    }
+  }

@@ -86,6 +86,10 @@ function broadcast() {
         forge script "$1" "${defaultArgs[@]}" --verifier custom --verifier-url "https://api.routescan.io/v2/network/mainnet/evm/80094/etherscan/api"
     elif [[ $3 == "morph_testnet" ]]; then
         forge script "$1" "${defaultArgs[@]}" --verifier blockscout --with-gas-price 0.03gwei --priority-gas-price 0.03gwei --verifier-url "https://explorer-api-holesky.morphl2.io/api?" --chain 2810
+    elif [[ $3 == "binance" ]]; then
+        forge script "$1" "${defaultArgs[@]}" --verifier blockscout --with-gas-price 0.03gwei --priority-gas-price 0.03gwei --verifier-url "https://api.bscscan.com/api/api" --chain 56
+    elif [[ $3 == "hemi" ]]; then
+        forge script "$1" "${defaultArgs[@]}" --verifier blockscout --with-gas-price 0.03gwei --priority-gas-price 0.03gwei --verifier-url "https://hemi.blockscout.com/api" --chain 43111
     else
         forge script "$1" "${defaultArgs[@]}" --etherscan-api-key "$4"
     fi

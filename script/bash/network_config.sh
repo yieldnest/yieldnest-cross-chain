@@ -56,6 +56,15 @@ function getRPC() {
     56)
         echo "binance"
         ;;
+    97)
+        echo "bsc_testnet"
+        ;;
+    743111)
+        echo "hemi_testnet"
+        ;;
+    43111)
+        echo "hemi"
+        ;;
     *)
         echo ""
         ;;
