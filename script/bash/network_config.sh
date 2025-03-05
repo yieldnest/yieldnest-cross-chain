@@ -129,6 +129,12 @@ function getEtherscanAPIKey() {
     56)
         echo "$BSCSCAN_API_KEY"
         ;;
+    97)
+        echo "$BSCSCAN_API_KEY"
+        ;;
+    743111)
+        echo "$HEMI_API_KEY"
+        ;;
     *)
         echo ""
         ;;
