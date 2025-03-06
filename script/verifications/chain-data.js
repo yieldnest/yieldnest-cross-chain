@@ -16,7 +16,8 @@ const chainIdToNetwork = {
     2810: "morph_testnet",
     2522: "fraxtal_testnet",
     80094: "bera",
-    56: "binance"
+    56: "binance",
+    43111: "hemi",
 };
 
 function getNetworkName(chainId) {
