@@ -37,7 +37,7 @@ const deployNo2Owners = [
     "0x92cfFf81BD9D3ca540d3ee7e7d26A67b47FdB7c8"
 ];
 
-async function verifyRolesAndOwnership(deployment) {
+async function verifyRolesAndOwnership(deployment, sourceNetwork) {
     const chainId = deployment.chainId;
     const networkName = getNetworkName(chainId);
     
@@ -89,7 +89,7 @@ async function verifyRolesAndOwnership(deployment) {
 
     // Check multisig owners
     const owners = await multisig.getOwners();
-    const expectedOwners = networkName === 'bera' || networkName === 'mainnet' ? deployNo2Owners : deployNo1Owners;
+    const expectedOwners = networkName === 'bera' || networkName === 'mainnet' || networkName === 'hemi' ? deployNo2Owners : deployNo1Owners;
     
     console.log(`\nVerifying multisig owners for ${networkName}...`);
     
@@ -120,7 +120,7 @@ async function verifyRolesAndOwnership(deployment) {
     console.log('\nVerifying proxy admin ownership...');
 
 
-    if (networkName !== 'mainnet') {
+    if (networkName !== getNetworkName(sourceNetwork[0])) {
         const erc20ProxyAdminOwner = await erc20ProxyAdmin.owner();
         if (erc20ProxyAdminOwner.toLowerCase() !== deployment.oftAdapterTimelock.toLowerCase()) {
             throw new Error(`ERC20 proxy admin not owned by timelock. Owner: ${erc20ProxyAdminOwner}`);
@@ -144,8 +144,7 @@ async function verifyRolesAndOwnership(deployment) {
     );
 
     console.log('\nVerifying DEFAULT_ADMIN_ROLE ownership...');
-
-    if (networkName !== 'mainnet') {
+    if (networkName !== getNetworkName(sourceNetwork[0])) {
         const erc20HasAdminRole = await erc20.hasRole(DEFAULT_ADMIN_ROLE, chainMultisigs[networkName]);
         if (!erc20HasAdminRole) {
             throw new Error('ERC20 DEFAULT_ADMIN_ROLE not owned by Multisig');
@@ -171,13 +170,28 @@ async function main() {
 
     console.log('Deployment path:', deploymentPath);
 
+    // Find source network by checking which chain has multiChainDeployer set to 0x0
+    const deploymentData = JSON.parse(fs.readFileSync(deploymentPath)).chains;
+    const sourceNetwork = Object.entries(deploymentData).find(
+        ([_, data]) => data.isL1 === true
+    );
+
+    if (!sourceNetwork) {
+        throw new Error("Could not find source network - no chain marked as L1");
+    }
+
+    const [sourceChainId, sourceData] = sourceNetwork;
+    const networkName = getNetworkName(parseInt(sourceChainId));
+    console.log('Source network chain ID:', sourceChainId);
+    console.log('Source network name:', networkName);
+
     // Read and parse deployment file
     const deploymentJson = JSON.parse(fs.readFileSync(deploymentPath)).chains;
 
     // Verify each deployment
     for (const [chainId, deployment] of Object.entries(deploymentJson)) {
         console.log(`\nVerifying ${chainId}...`);
-        await verifyRolesAndOwnership(deployment);
+        await verifyRolesAndOwnership(deployment, sourceNetwork);
     }
 
     console.log('\nAll verifications completed successfully');
