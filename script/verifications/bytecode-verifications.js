@@ -12,8 +12,18 @@ function getERC20ImplementationAddress(chainId) {
     }
     return '0x01029eE5670dd5cc1294410588cacC43a49f8fF1';
 }
-const OFT_ADAPTER_IMPLEMENTATION_ADDRESS = '0xa6d3F9E893604Dd77c773e8cdb4040c060aE5884';
-const L1_OFT_IMPLEMENTATION_ADDRESS = '0x09564BE5E4933586DC89B2a2Ac5790c6ba636003';
+function getOFTAdapterImplementationAddress(chainId) {
+    if (chainId === 1) {
+        return '0xe6d9b54c31f6d5e31022be36593d39a6991e22c2';
+    }
+    return '0xa6d3F9E893604Dd77c773e8cdb4040c060aE5884';
+}
+function getL1OFTImplementationAddress(chainId) {
+    if (chainId === 56) {
+        return '0xF7ea8CD8BC536192d0c94f4cef8e5f0BFF934757';
+    }
+    return '0x09564BE5E4933586DC89B2a2Ac5790c6ba636003';
+}
 
 
 // Helper to execute curl command and get bytecode
@@ -83,6 +93,7 @@ async function verifyProxyBytecode(deployment, proxyKey, proxyAdminKey) {
     
     // Get bytecode for OFT adapter
     const bytecode = await getBytecode(rpc, deployment[proxyKey]);
+    
     const parts = parseBytecode(bytecode);
     
     // Get local bytecode for comparison
@@ -122,11 +133,10 @@ async function verifyProxyBytecode(deployment, proxyKey, proxyAdminKey) {
 async function verifyERC20ProxyBytecode(deployment) {
     console.log('\nVerifying ERC20 implementation bytecode...');
     console.log('Chain ID:', deployment.chainId);
-    const erc20ImplAddress = await getERC20ImplementationAddress(deployment);
+    const erc20ImplAddress = await getERC20ImplementationAddress(deployment.chainId);
     console.log('ERC20 Implementation Address:', erc20ImplAddress);
     const rpc = getRpcUrl(deployment.chainId);
     const bytecode = await getBytecode(rpc, erc20ImplAddress);
-
     
     // Get local bytecode for comparison
     const localBytecode = getLocalL2YnERC20UpgradeableBytecode();
@@ -141,9 +151,10 @@ async function verifyERC20ProxyBytecode(deployment) {
 async function verifyOFTAdapterBytecode(deployment) {
     console.log('\nVerifying OFT Adapter implementation bytecode...');
     console.log('Chain ID:', deployment.chainId);
-    console.log('OFT Adapter Implementation Address:', OFT_ADAPTER_IMPLEMENTATION_ADDRESS);
+    const oftImplAddress = await getOFTAdapterImplementationAddress(deployment.chainId);
+    console.log('OFT Adapter Implementation Address:', oftImplAddress);
     const rpc = getRpcUrl(deployment.chainId);
-    const bytecode = await getBytecode(rpc, OFT_ADAPTER_IMPLEMENTATION_ADDRESS);
+    const bytecode = await getBytecode(rpc, oftImplAddress);
 
     // Get local bytecode for comparison
     const localBytecode = getLocalL2YnOFTAdapterUpgradeableBytecode();
@@ -158,11 +169,12 @@ async function verifyOFTAdapterBytecode(deployment) {
 async function verifyL1OFTBytecode(deployment) {
     console.log('\nVerifying L1 OFT implementation bytecode...');
     console.log('Chain ID:', deployment.chainId);
-    console.log('L1 OFT Implementation Address:', L1_OFT_IMPLEMENTATION_ADDRESS);
+    const l1OftImplAddress = await getL1OFTImplementationAddress(deployment.chainId);
+    console.log('L1 OFT Implementation Address:', l1OftImplAddress);
     const rpc = getRpcUrl(deployment.chainId);
     // Verify bytecode using forge verify-bytecode
     const { execSync } = require('child_process');
-    const cmd = `forge verify-bytecode ${L1_OFT_IMPLEMENTATION_ADDRESS} L1YnOFTAdapterUpgradeable.sol:L1YnOFTAdapterUpgradeable --rpc-url ${rpc}`;
+    const cmd = `forge verify-bytecode ${l1OftImplAddress} L1YnOFTAdapterUpgradeable.sol:L1YnOFTAdapterUpgradeable --rpc-url ${rpc}`;
     
     try {
         execSync(cmd);
