@@ -6,7 +6,12 @@ dotenv.config();
 
 
 // TODO: Fill in the correct addresses for the implementation contracts for each new deployment
-const ERC20_IMPLEMENTATION_ADDRESS = '0x01029eE5670dd5cc1294410588cacC43a49f8fF1';
+function getERC20ImplementationAddress(chainId) {
+    if (chainId === 1) {
+        return '0xe50aecb1bbffaba835366ca8264539c30ed6e1d9';
+    }
+    return '0x01029eE5670dd5cc1294410588cacC43a49f8fF1';
+}
 const OFT_ADAPTER_IMPLEMENTATION_ADDRESS = '0xa6d3F9E893604Dd77c773e8cdb4040c060aE5884';
 const L1_OFT_IMPLEMENTATION_ADDRESS = '0x09564BE5E4933586DC89B2a2Ac5790c6ba636003';
 
@@ -117,9 +122,10 @@ async function verifyProxyBytecode(deployment, proxyKey, proxyAdminKey) {
 async function verifyERC20ProxyBytecode(deployment) {
     console.log('\nVerifying ERC20 implementation bytecode...');
     console.log('Chain ID:', deployment.chainId);
-    console.log('ERC20 Implementation Address:', ERC20_IMPLEMENTATION_ADDRESS);
+    const erc20ImplAddress = await getERC20ImplementationAddress(deployment);
+    console.log('ERC20 Implementation Address:', erc20ImplAddress);
     const rpc = getRpcUrl(deployment.chainId);
-    const bytecode = await getBytecode(rpc, ERC20_IMPLEMENTATION_ADDRESS);
+    const bytecode = await getBytecode(rpc, erc20ImplAddress);
 
     
     // Get local bytecode for comparison
@@ -171,18 +177,35 @@ async function verifyL1OFTBytecode(deployment) {
 
 // Main verification function
 async function main() {
-    // Read all deployment files from deployments directory
-    const deployments = JSON.parse(fs.readFileSync('deployments/ynETHx-1-v0.0.1.json')).chains;
+    // Get deployment path from command line args
+    const deploymentPath = process.argv[2];
+    if (!deploymentPath) {
+        const deploymentFiles = fs.readdirSync('deployments')
+            .filter(f => f.endsWith('.json'))
+            .map(f => `• deployments/${f}`)
+            .join('\n');
+        throw new Error(`Please provide deployment file path as argument. Available paths:\n${deploymentFiles}`);
+    }
+
+    console.log('Deployment path:', deploymentPath);
+
+    // Read deployment file
+    const deployments = JSON.parse(fs.readFileSync(deploymentPath)).chains;
     
     // Get all chain IDs from deployment
     const chainIds = Object.keys(deployments).filter(key => !isNaN(key));
 
     console.log('\nStarting bytecode verification...');
     console.log('Found chain IDs:', chainIds);
-    console.log('Deployment file:', 'deployments/ynETHx-1-v0.0.1.json');
+    console.log('Deployment file:', deploymentPath);
 
-    // Verify mainnet first
-    const mainnetDeployment = deployments["1"];
+    
+    // Verify L1 chain first
+    const l1Deployment = Object.values(deployments).find(d => d.isL1);
+    if (!l1Deployment) {
+        throw new Error("Could not find L1 chain in deployment");
+    }
+    const mainnetDeployment = l1Deployment;
     if (mainnetDeployment) {
         console.log('\nVerifying bytecode for mainnet...');
         try {
@@ -206,8 +229,8 @@ async function main() {
     for (const chainId of chainIds) {
         const deployment = deployments[chainId];
 
-        // Skip chain ID 1 (mainnet)
-        if (deployment.chainId === 1) continue;
+        // Skip L1 chain
+        if (deployment.isL1) continue;
         
         console.log(`\nVerifying bytecode for chain ${deployment.chainId}...`);
         
