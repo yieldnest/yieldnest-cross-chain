@@ -159,8 +159,19 @@ async function verifyRolesAndOwnership(deployment) {
 async function main() {
     console.log('Starting ownership and admin role verifications...');
     
+    // Get deployment path from command line args
+    const deploymentPath = process.argv[2];
+    if (!deploymentPath) {
+        const deploymentFiles = fs.readdirSync('deployments')
+            .filter(f => f.endsWith('.json'))
+            .map(f => `• deployments/${f}`)
+            .join('\n');
+        throw new Error(`Please provide deployment file path as argument. Available paths:\n${deploymentFiles}`);
+    }
+
+    console.log('Deployment path:', deploymentPath);
+
     // Read and parse deployment file
-    const deploymentPath = 'deployments/ynETHx-1-v0.0.1.json';
     const deploymentJson = JSON.parse(fs.readFileSync(deploymentPath)).chains;
 
     // Verify each deployment
