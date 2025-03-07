@@ -2,6 +2,25 @@
 
 This project contains the smart contracts and scripts for deploying cross-chain Yieldnest tokens using LayerZero technology. It leverages the Foundry development toolkit for testing, building, and deploying contracts, and uses Yarn to manage dependencies.
 
+## Contract Addresses (ynETHx)
+
+### Mainnet Addresses
+- Ethereum: [0x657d9ABA1DBb59e53f9F3eCAA878447dCfC96dCb](https://etherscan.io/address/0x657d9ABA1DBb59e53f9F3eCAA878447dCfC96dCb)
+
+### Layer 2 & Sidechain Addresses
+- Arbitrum: [0xE231DB5F348d709239Ef1741EA30961B3B635a61](https://arbitrum.blockscout.com/address/0xE231DB5F348d709239Ef1741EA30961B3B635a61)
+- Optimism: [0xE231DB5F348d709239Ef1741EA30961B3B635a61](https://optimistic.etherscan.io/address/0xE231DB5F348d709239Ef1741EA30961B3B635a61)
+- Base: [0xE231DB5F348d709239Ef1741EA30961B3B635a61](https://basescan.org/address/0xE231DB5F348d709239Ef1741EA30961B3B635a61)
+- Fraxtal: [0xE231DB5F348d709239Ef1741EA30961B3B635a61](https://fraxscan.com/address/0xE231DB5F348d709239Ef1741EA30961B3B635a61)
+- Scroll: [0xE231DB5F348d709239Ef1741EA30961B3B635a61](https://scroll.blockscout.com/address/0xE231DB5F348d709239Ef1741EA30961B3B635a61)
+- Taiko: [0xE231DB5F348d709239Ef1741EA30961B3B635a61](https://taikoscan.io/address/0xE231DB5F348d709239Ef1741EA30961B3B635a61)
+- Mantle: [0xE231DB5F348d709239Ef1741EA30961B3B635a61](https://mantlescan.info/address/0xE231DB5F348d709239Ef1741EA30961B3B635a61)
+- Blast: [0xE231DB5F348d709239Ef1741EA30961B3B635a61](https://blastscan.io/address/0xE231DB5F348d709239Ef1741EA30961B3B635a61)
+- Bera: [0xE231DB5F348d709239Ef1741EA30961B3B635a61](https://beratrail.io/address/0xE231DB5F348d709239Ef1741EA30961B3B635a61)
+- BNB Chain: [0xE231DB5F348d709239Ef1741EA30961B3B635a61](https://bscscan.com/address/0xE231DB5F348d709239Ef1741EA30961B3B635a61)
+
+
+
 ## Project Overview
 
 This repository includes:
