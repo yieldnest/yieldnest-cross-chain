@@ -42,9 +42,32 @@ function getRpcUrl(chainId) {
     return rpcUrl;
 }
 
+// Get scan API key for a chain ID using environment variables
+function getScanApiKey(chainId) {
+    let networkName = getNetworkName(chainId);
+    if (!networkName) {
+        throw new Error(`No network name found for chain ID ${chainId}`);
+    }
+    
+    // Convert binance to bsc for scan API key
+    networkName = networkName === 'binance' ? 'bsc' : networkName;
+    // Convert network name to uppercase and append SCAN_API_KEY for env var name
+    const envVarName = `${networkName.toUpperCase()}SCAN_API_KEY`;
+    const apiKey = process.env[envVarName];
+    
+    if (!apiKey) {
+        throw new Error(`No scan API key found in environment variable ${envVarName}`);
+    }
+    
+    return apiKey;
+}
+
+
+
 
 module.exports = {
     getNetworkName,
-    getRpcUrl
+    getRpcUrl,
+    getScanApiKey
 };
 

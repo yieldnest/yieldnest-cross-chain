@@ -1,6 +1,6 @@
 const fs = require('fs');
 const { execSync } = require('child_process');
-const { getNetworkName, getRpcUrl } = require('./chain-data');
+const { getNetworkName, getRpcUrl, getScanApiKey } = require('./chain-data');
 const dotenv = require('dotenv');
 dotenv.config();
 
@@ -174,7 +174,8 @@ async function verifyL1OFTBytecode(deployment) {
     const rpc = getRpcUrl(deployment.chainId);
     // Verify bytecode using forge verify-bytecode
     const { execSync } = require('child_process');
-    const cmd = `forge verify-bytecode ${l1OftImplAddress} L1YnOFTAdapterUpgradeable.sol:L1YnOFTAdapterUpgradeable --rpc-url ${rpc}`;
+    const scanApiKey = getScanApiKey(deployment.chainId);
+    const cmd = `forge verify-bytecode ${l1OftImplAddress} L1YnOFTAdapterUpgradeable.sol:L1YnOFTAdapterUpgradeable --rpc-url ${rpc} --etherscan-api-key ${scanApiKey}`;
     
     try {
         execSync(cmd);
