@@ -152,6 +152,18 @@ async function verifyRolesAndOwnership(deployment, sourceNetwork) {
         console.log('✓ ERC20 DEFAULT_ADMIN_ROLE owned by Multisig');
     }
 
+    const oftAdapter = new ethers.Contract(
+        deployment.oftAdapter,
+        ['function owner() view returns (address)'],
+        provider
+    );
+
+    const oftAdapterOwner = await oftAdapter.owner();
+    if (oftAdapterOwner.toLowerCase() !== chainMultisigs[networkName].toLowerCase()) {
+        throw new Error(`OFT adapter not owned by Multisig. Owner: ${oftAdapterOwner}`);
+    }
+    console.log('✓ OFT adapter owned by Multisig');
+
     console.log(`\n✓ All verifications passed for ${networkName}`);
 }
 
