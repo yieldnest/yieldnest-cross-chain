@@ -49,8 +49,9 @@ function getScanApiKey(chainId) {
         throw new Error(`No network name found for chain ID ${chainId}`);
     }
     
-    // Convert binance to bsc for scan API key
+    // Convert network names for scan API keys
     networkName = networkName === 'binance' ? 'bsc' : networkName;
+    networkName = networkName === 'mainnet' ? 'ether' : networkName;
     // Convert network name to uppercase and append SCAN_API_KEY for env var name
     const envVarName = `${networkName.toUpperCase()}SCAN_API_KEY`;
     const apiKey = process.env[envVarName];
