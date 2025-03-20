@@ -368,7 +368,8 @@ contract BaseData is Script {
 
     function isTestnetChainId(uint256 chainId) internal view returns (bool isTestnet) {
         isTestnet = chainId == __chainIds.holesky || chainId == __chainIds.fraxtalTestnet
-            || chainId == __chainIds.sepolia || chainId == __chainIds.morphTestnet;
+            || chainId == __chainIds.sepolia || chainId == __chainIds.morphTestnet || chainId == __chainIds.hemiTestnet
+            || chainId == __chainIds.binanceTestnet;
     }
 
     function getMinDelay(uint256 chainId) internal view returns (uint256 minDelay) {

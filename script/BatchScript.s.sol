@@ -161,6 +161,19 @@ abstract contract BatchScript is Script {
             SAFE_API_BASE_URL = "";
             SAFE_MULTISEND_ADDRESS = 0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761;
         } else if (chainId == 56) {
+            // binance
+            SAFE_API_BASE_URL = "";
+            SAFE_MULTISEND_ADDRESS = 0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761;
+        } else if (chainId == 43111) {
+            // hemi
+            SAFE_API_BASE_URL = "";
+            SAFE_MULTISEND_ADDRESS = 0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761;
+        } else if (chainId == 743111) {
+            // hemi sepolia
+            SAFE_API_BASE_URL = "";
+            SAFE_MULTISEND_ADDRESS = 0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761;
+        } else if (chainId == 97) {
+            // bsc testnet
             SAFE_API_BASE_URL = "";
             SAFE_MULTISEND_ADDRESS = 0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761;
         } else if (chainId == 43111) {
