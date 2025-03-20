@@ -250,7 +250,7 @@ contract BaseData is Script {
             LZ_ENDPOINT: 0x6F475642a6e85809B1c36Fa62763669b1b48DD5B,
             LZ_SEND_LIB: 0xC39161c743D0307EB9BCc9FEF03eeb9Dc4802de7,
             LZ_RECEIVE_LIB: 0xe1844c5D63a9543023008D332Bd3d2e6f1FE1043,
-            LZ_DVN: 0x6788f52439ACA6BFF597d3eeC2DC9a44B8FEE842,
+            LZ_DVN: 0x282b3386571f7f794450d5789911a9804FA346b4,
             NETHERMIND_DVN: 0x07C05EaB7716AcB6f83ebF6268F8EECDA8892Ba1,
             LZ_EXECUTOR: 0x4208D6E27538189bB48E603D6123A94b8Abe0A0b,
             LZ_EID: 30329
@@ -325,7 +325,7 @@ contract BaseData is Script {
             LZ_ENDPOINT: 0x6EDCE65403992e310A62460808c4b910D972f10f,
             LZ_SEND_LIB: 0x55f16c442907e86D764AFdc2a07C2de3BdAc8BB7,
             LZ_RECEIVE_LIB: 0x188d4bbCeD671A7aA2b5055937F79510A32e9683,
-            LZ_DVN: address(0),
+            LZ_DVN: 0x0eE552262f7B562eFcED6DD4A7e2878AB897d405,
             NETHERMIND_DVN: 0x6334290B7b4a365F3c0E79c85B1b42F078db78E4,
             LZ_EXECUTOR: 0x31894b190a8bAbd9A067Ce59fde0BfCFD2B18470,
             LZ_EID: 40102
@@ -359,10 +359,11 @@ contract BaseData is Script {
             || chainId == __chainIds.optimism || chainId == __chainIds.arbitrum || chainId == __chainIds.manta
             || chainId == __chainIds.taiko || chainId == __chainIds.scroll || chainId == __chainIds.fantom
             || chainId == __chainIds.mantle || chainId == __chainIds.blast || chainId == __chainIds.linea
-            || chainId == __chainIds.bera || chainId == __chainIds.binance
+            || chainId == __chainIds.bera || chainId == __chainIds.binance || chainId == __chainIds.hemi
         // testnets
         || chainId == __chainIds.holesky || chainId == __chainIds.fraxtalTestnet || chainId == __chainIds.sepolia
-            || chainId == __chainIds.morphTestnet;
+            || chainId == __chainIds.morphTestnet || chainId == __chainIds.hemiTestnet
+            || chainId == __chainIds.binanceTestnet;
     }
 
     function isTestnetChainId(uint256 chainId) internal view returns (bool isTestnet) {

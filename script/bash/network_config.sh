@@ -135,6 +135,9 @@ function getEtherscanAPIKey() {
     743111)
         echo "$HEMI_API_KEY"
         ;;
+    43111)
+        echo "$HEMI_API_KEY"
+        ;;
     *)
         echo ""
         ;;
