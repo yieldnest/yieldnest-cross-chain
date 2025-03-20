@@ -1,0 +1,19 @@
+{
+    "erc20Name": "YieldNest Restaked BTC - Kernel",
+    "erc20Symbol": "ynBTCk",
+    "l1ChainId": 56,
+    "l2ChainIds": [
+      43111,
+      1,
+      167000,
+      8453,
+      42161,
+      10
+    ],
+    "l1ERC20Address": "0x78839cE14a8213779128Ee4da6D75E1326606A56",
+    "rateLimitConfig": {
+      "limit": "3000000000000000000000",
+      "window": "3600"
+    }
+  }
+  

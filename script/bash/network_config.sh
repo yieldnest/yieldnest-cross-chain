@@ -56,6 +56,15 @@ function getRPC() {
     56)
         echo "binance"
         ;;
+    97)
+        echo "bsc_testnet"
+        ;;
+    743111)
+        echo "hemi_testnet"
+        ;;
+    43111)
+        echo "hemi"
+        ;;
     *)
         echo ""
         ;;
@@ -119,6 +128,15 @@ function getEtherscanAPIKey() {
         ;;
     56)
         echo "$BSCSCAN_API_KEY"
+        ;;
+    97)
+        echo "$BSCSCAN_API_KEY"
+        ;;
+    743111)
+        echo "$HEMI_API_KEY"
+        ;;
+    43111)
+        echo "$HEMI_API_KEY"
         ;;
     *)
         echo ""

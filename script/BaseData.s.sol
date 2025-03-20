@@ -33,11 +33,14 @@ contract BaseData is Script {
         uint256 linea;
         uint256 bera;
         uint256 binance;
+        uint256 hemi;
         // testnets
         uint256 holesky;
         uint256 sepolia;
         uint256 fraxtalTestnet;
         uint256 morphTestnet;
+        uint256 hemiTestnet;
+        uint256 binanceTestnet;
     }
 
     mapping(uint256 => Data) private __chainIdToData;
@@ -57,11 +60,14 @@ contract BaseData is Script {
         linea: 59144,
         bera: 80094,
         binance: 56,
+        hemi: 43111,
         // testnets
         holesky: 17000,
         sepolia: 11155111,
         fraxtalTestnet: 2522,
-        morphTestnet: 2810
+        morphTestnet: 2810,
+        hemiTestnet: 743111,
+        binanceTestnet: 97
     });
 
     function setUp() public virtual {
@@ -237,6 +243,18 @@ contract BaseData is Script {
             LZ_EXECUTOR: 0x3ebD570ed38B1b3b4BC886999fcF507e9D584859,
             LZ_EID: 30102
         });
+        __chainIdToData[__chainIds.hemi] = Data({
+            OFT_OWNER: 0x54d4F70a7a8f4E5209F8B21cC4e88440B9192160,
+            TOKEN_ADMIN: 0x54d4F70a7a8f4E5209F8B21cC4e88440B9192160,
+            PROXY_ADMIN: 0x54d4F70a7a8f4E5209F8B21cC4e88440B9192160,
+            LZ_ENDPOINT: 0x6F475642a6e85809B1c36Fa62763669b1b48DD5B,
+            LZ_SEND_LIB: 0xC39161c743D0307EB9BCc9FEF03eeb9Dc4802de7,
+            LZ_RECEIVE_LIB: 0xe1844c5D63a9543023008D332Bd3d2e6f1FE1043,
+            LZ_DVN: 0x282b3386571f7f794450d5789911a9804FA346b4,
+            NETHERMIND_DVN: 0x07C05EaB7716AcB6f83ebF6268F8EECDA8892Ba1,
+            LZ_EXECUTOR: 0x4208D6E27538189bB48E603D6123A94b8Abe0A0b,
+            LZ_EID: 30329
+        });
 
         // testnets
         __chainIdToData[__chainIds.holesky] = Data({
@@ -287,6 +305,31 @@ contract BaseData is Script {
             LZ_EXECUTOR: 0x701f3927871EfcEa1235dB722f9E608aE120d243,
             LZ_EID: 40322
         });
+        __chainIdToData[__chainIds.hemiTestnet] = Data({
+            OFT_OWNER: 0x72fdBD51085bDa5eEEd3b55D1a46E2e92f0837a5,
+            TOKEN_ADMIN: 0x72fdBD51085bDa5eEEd3b55D1a46E2e92f0837a5,
+            PROXY_ADMIN: 0x72fdBD51085bDa5eEEd3b55D1a46E2e92f0837a5,
+            LZ_ENDPOINT: 0x6C7Ab2202C98C4227C5c46f1417D81144DA716Ff,
+            LZ_SEND_LIB: 0xd682ECF100f6F4284138AA925348633B0611Ae21,
+            LZ_RECEIVE_LIB: 0xcF1B0F4106B0324F96fEfcC31bA9498caa80701C,
+            LZ_DVN: 0xC1868e054425D378095A003EcbA3823a5D0135C9,
+            NETHERMIND_DVN: 0xF49d162484290EAeAd7bb8C2c7E3a6f8f52e32d6, //no listed nethermind testnet dvn, using
+                // LZ's dvn
+            LZ_EXECUTOR: 0x701f3927871EfcEa1235dB722f9E608aE120d243,
+            LZ_EID: 40338
+        });
+        __chainIdToData[__chainIds.binanceTestnet] = Data({
+            OFT_OWNER: 0x72fdBD51085bDa5eEEd3b55D1a46E2e92f0837a5,
+            TOKEN_ADMIN: 0x72fdBD51085bDa5eEEd3b55D1a46E2e92f0837a5,
+            PROXY_ADMIN: 0x72fdBD51085bDa5eEEd3b55D1a46E2e92f0837a5,
+            LZ_ENDPOINT: 0x6EDCE65403992e310A62460808c4b910D972f10f,
+            LZ_SEND_LIB: 0x55f16c442907e86D764AFdc2a07C2de3BdAc8BB7,
+            LZ_RECEIVE_LIB: 0x188d4bbCeD671A7aA2b5055937F79510A32e9683,
+            LZ_DVN: 0x0eE552262f7B562eFcED6DD4A7e2878AB897d405,
+            NETHERMIND_DVN: 0x6334290B7b4a365F3c0E79c85B1b42F078db78E4,
+            LZ_EXECUTOR: 0x31894b190a8bAbd9A067Ce59fde0BfCFD2B18470,
+            LZ_EID: 40102
+        });
     }
 
     function getData(uint256 chainId) internal view returns (Data storage _data) {
@@ -316,15 +359,17 @@ contract BaseData is Script {
             || chainId == __chainIds.optimism || chainId == __chainIds.arbitrum || chainId == __chainIds.manta
             || chainId == __chainIds.taiko || chainId == __chainIds.scroll || chainId == __chainIds.fantom
             || chainId == __chainIds.mantle || chainId == __chainIds.blast || chainId == __chainIds.linea
-            || chainId == __chainIds.bera || chainId == __chainIds.binance
+            || chainId == __chainIds.bera || chainId == __chainIds.binance || chainId == __chainIds.hemi
         // testnets
         || chainId == __chainIds.holesky || chainId == __chainIds.fraxtalTestnet || chainId == __chainIds.sepolia
-            || chainId == __chainIds.morphTestnet;
+            || chainId == __chainIds.morphTestnet || chainId == __chainIds.hemiTestnet
+            || chainId == __chainIds.binanceTestnet;
     }
 
     function isTestnetChainId(uint256 chainId) internal view returns (bool isTestnet) {
         isTestnet = chainId == __chainIds.holesky || chainId == __chainIds.fraxtalTestnet
-            || chainId == __chainIds.sepolia || chainId == __chainIds.morphTestnet;
+            || chainId == __chainIds.sepolia || chainId == __chainIds.morphTestnet || chainId == __chainIds.hemiTestnet
+            || chainId == __chainIds.binanceTestnet;
     }
 
     function getMinDelay(uint256 chainId) internal view returns (uint256 minDelay) {

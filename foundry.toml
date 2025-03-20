@@ -52,11 +52,13 @@ blast = "${BLAST_RPC_URL}"
 linea = "${LINEA_RPC_URL}"
 bera = "${BERA_RPC_URL}"
 binance = "${BSC_RPC_URL}"
-
+hemi = "${HEMI_RPC_URL}"
 holesky = "${HOLESKY_RPC_URL}"
 sepolia = "${SEPOLIA_RPC_URL}"
 fraxtal_testnet = "${FRAX_TESTNET_RPC_URL}"
 morph_testnet = "${MORPH_TESTNET_RPC_URL}"
+bsc_testnet = "${BSC_TESTNET_RPC_URL}"
+hemi_testnet = "${HEMI_TESTNET_RPC_URL}"
 
 [etherscan]
 mainnet = { key = "${ETHERSCAN_API_KEY}" }

@@ -78,7 +78,7 @@ function simulate() {
 }
 
 function broadcast() {
-    defaultArgs=("--sig" "$2" "--rpc-url" "$3" "--account" "$DEPLOYER_ACCOUNT_NAME" "--sender" "$DEPLOYER_ADDRESS" "--broadcast" "--verify" "--slow" "--password" "")
+    defaultArgs=("--sig" "$2" "--rpc-url" "$3" "--account" "$DEPLOYER_ACCOUNT_NAME" "--sender" "$DEPLOYER_ADDRESS" "--broadcast" "--verify" "--slow" "--password" "$PASSWORD")
     
     if [[ $3 == "arbitrum" || $3 == "scroll" ]]; then
         forge script "$1" "${defaultArgs[@]}" --verifier blockscout --verifier-url "https://$3.blockscout.com/api/"
@@ -86,6 +86,10 @@ function broadcast() {
         forge script "$1" "${defaultArgs[@]}" --verifier custom --verifier-url "https://api.routescan.io/v2/network/mainnet/evm/80094/etherscan/api"
     elif [[ $3 == "morph_testnet" ]]; then
         forge script "$1" "${defaultArgs[@]}" --verifier blockscout --with-gas-price 0.03gwei --priority-gas-price 0.03gwei --verifier-url "https://explorer-api-holesky.morphl2.io/api?" --chain 2810
+    elif [[ $3 == "binance" ]]; then
+        forge script "$1" "${defaultArgs[@]}" --verifier etherscan --verifier-url "https://api.bscscan.com/api" --verifier-api-key "$BSCSCAN_API_KEY" --chain 56
+    elif [[ $3 == "hemi" ]]; then
+        forge script "$1" "${defaultArgs[@]}" --verifier blockscout --verifier-url "https://explorer.hemi.xyz/api" --legacy --with-gas-price 0.05gwei --priority-gas-price 0.05gwei --chain 43111
     else
         forge script "$1" "${defaultArgs[@]}" --etherscan-api-key "$4"
     fi
@@ -102,6 +106,7 @@ function error_exit() {
 BROADCAST=false
 VERIFY_ONLY=false
 SIMULATE_ONLY=false
+SKIP_L1=false
 
 function runScript() {
     local SCRIPT=$1
@@ -178,6 +183,10 @@ while [[ $# -gt 0 ]]; do
         SIMULATE_ONLY=true
         shift
         ;;
+    --skip-l1 | -l)
+        SKIP_L1=true
+        shift
+        ;;
     *)
         echo "Error, unrecognized flag" >&2
         display_help
@@ -225,10 +234,15 @@ CALLDATA=$(cast calldata "run(string)" "/$INPUT_PATH")
 
 if [[ $VERIFY_ONLY == false ]]; then
 
-    echo "Deploying L1 Adapter for $L1_RPC ($L1_CHAIN_ID)"
-    runScript script/DeployL1OFTAdapter.s.sol:DeployL1OFTAdapter $CALLDATA $L1_RPC $L1_ETHERSCAN_API_KEY
-    
-    delimiter
+    if [[ $SKIP_L1 == false ]]; then
+        echo "Deploying L1 Adapter for $L1_RPC ($L1_CHAIN_ID)"
+        runScript script/DeployL1OFTAdapter.s.sol:DeployL1OFTAdapter $CALLDATA $L1_RPC $L1_ETHERSCAN_API_KEY
+        
+        delimiter
+    else
+        echo "Skipping L1 deployment as requested"
+        delimiter
+    fi
     
     for L2_CHAIN_ID in $L2_CHAIN_IDS_ARRAY; do
         L2_RPC=$(getRPC $L2_CHAIN_ID)
