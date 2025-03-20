@@ -258,7 +258,7 @@ contract BaseData is Script {
 
         // testnets
         __chainIdToData[__chainIds.holesky] = Data({
-            OFT_OWNER: 0x54d4F70a7a8f4E5209F8B21cC4e88440B9192160,
+            OFT_OWNER: 0x72fdBD51085bDa5eEEd3b55D1a46E2e92f0837a5,
             TOKEN_ADMIN: 0x72fdBD51085bDa5eEEd3b55D1a46E2e92f0837a5,
             PROXY_ADMIN: 0x72fdBD51085bDa5eEEd3b55D1a46E2e92f0837a5,
             LZ_ENDPOINT: 0x6EDCE65403992e310A62460808c4b910D972f10f,
