@@ -101,8 +101,7 @@ contract BaseScript is BaseData, Utils {
     Deployment public deployment;
     ChainDeployment public currentDeployment;
     PredictedAddresses public predictions;
-    string private constant VERSION = "v0.0.2";
-    string private constant LABEL = "YN";
+    string private constant VERSION = "v0.0.1";
 
     error InvalidDVN();
 
@@ -125,10 +124,14 @@ contract BaseScript is BaseData, Utils {
     }
 
     function _loadInput(string calldata _inputPath) internal {
+        _loadInput(_inputPath, "");
+    }
+
+    function _loadInput(string calldata _inputPath, string memory _deploymentPath) internal {
         _loadJson(_inputPath);
         _validateInput();
         bool isL1 = _getIsL1();
-        _loadDeployment();
+        _loadDeployment(_deploymentPath);
         if (deployment.deployerAddress != address(0)) {
             require(deployment.deployerAddress == msg.sender, "Invalid Deployer");
         }
@@ -313,11 +316,13 @@ contract BaseScript is BaseData, Utils {
         vm.writeJson(json, filePath);
     }
 
-    function _loadDeployment() internal {
+    function _loadDeployment(string memory filePath) internal {
         // Reset the deployment struct
         delete deployment;
 
-        string memory filePath = _getDeploymentFilePath();
+        if (keccak256(bytes(filePath)) == keccak256(bytes(""))) {
+            filePath = _getDeploymentFilePath();
+        }
 
         if (!vm.isFile(filePath)) {
             return;
@@ -381,7 +386,7 @@ contract BaseScript is BaseData, Utils {
 
     function createImmutableMultiChainDeployerSalt(address _deployerAddress)
         internal
-        pure
+        view
         returns (bytes32 _salt)
     {
         _salt = createSalt(_deployerAddress, "MultiChainDeployer");
@@ -389,48 +394,51 @@ contract BaseScript is BaseData, Utils {
 
     function createL1YnOFTAdapterUpgradeableProxySalt(address _deployerAddress)
         internal
-        pure
+        view
         returns (bytes32 _salt)
     {
         _salt = createSalt(_deployerAddress, "L1YnOFTAdapterProxy");
     }
 
-    function createL1YnOFTAdapterUpgradeableSalt(address _deployerAddress) internal pure returns (bytes32 _salt) {
+    function createL1YnOFTAdapterUpgradeableSalt(address _deployerAddress) internal view returns (bytes32 _salt) {
         _salt = createSalt(_deployerAddress, "L1YnOFTAdapter");
     }
 
     function createL2YnOFTAdapterUpgradeableProxySalt(address _deployerAddress)
         internal
-        pure
+        view
         returns (bytes32 _salt)
     {
         _salt = createSalt(_deployerAddress, "L2YnOFTAdapterProxy");
     }
 
-    function createL2YnOFTAdapterUpgradeableSalt(address _deployerAddress) internal pure returns (bytes32 _salt) {
+    function createL2YnOFTAdapterUpgradeableSalt(address _deployerAddress) internal view returns (bytes32 _salt) {
         _salt = createSalt(_deployerAddress, "L2YnOFTAdapter");
     }
 
-    function createL2YnERC20UpgradeableProxySalt(address _deployerAddress) internal pure returns (bytes32 _salt) {
+    function createL2YnERC20UpgradeableProxySalt(address _deployerAddress) internal view returns (bytes32 _salt) {
         _salt = createSalt(_deployerAddress, "L2YnERC20Proxy");
     }
 
-    function createL2YnERC20UpgradeableSalt(address _deployerAddress) internal pure returns (bytes32 _salt) {
+    function createL2YnERC20UpgradeableSalt(address _deployerAddress) internal view returns (bytes32 _salt) {
         _salt = createSalt(_deployerAddress, "L2YnERC20");
     }
 
-    function createL1YnOFTAdapterTimelockSalt(address _deployerAddress) internal pure returns (bytes32 _salt) {
+    function createL1YnOFTAdapterTimelockSalt(address _deployerAddress) internal view returns (bytes32 _salt) {
         _salt = createSalt(_deployerAddress, "L1YnOFTTimelock");
     }
 
-    function createL2YnOFTAdapterTimelockSalt(address _deployerAddress) internal pure returns (bytes32 _salt) {
+    function createL2YnOFTAdapterTimelockSalt(address _deployerAddress) internal view returns (bytes32 _salt) {
         _salt = createSalt(_deployerAddress, "L2YnOFTTimelock");
     }
 
-    function createSalt(address _deployerAddress, string memory _label) internal pure returns (bytes32 _salt) {
+    function createSalt(address _deployerAddress, string memory _label) internal view returns (bytes32 _salt) {
+        require(bytes(baseInput.erc20Symbol).length > 0, "Invalid ERC20 Symbol");
+
         _salt = bytes32(
             abi.encodePacked(
-                bytes20(_deployerAddress), bytes12(bytes32(keccak256(abi.encode(_label, LABEL, VERSION))))
+                bytes20(_deployerAddress),
+                bytes12(bytes32(keccak256(abi.encode(_label, baseInput.erc20Symbol, VERSION))))
             )
         );
     }

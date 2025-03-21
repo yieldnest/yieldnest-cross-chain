@@ -38,6 +38,7 @@
     "lint": "solhint \"src/**/*.sol\" && solhint \"test/**/*.sol\" && solhint \"script/**/*.sol\"",
     "prepare": "husky",
     "deploy": "bash ./script/bash/deploy.sh",
+    "verify": "bash ./script/bash/verify.sh",
     "test": "forge test -vvv",
     "test:upgrades": "bash ./script/bash/test-upgrades.sh"
   },

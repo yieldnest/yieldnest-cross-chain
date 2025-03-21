@@ -33,43 +33,50 @@ contract VerifyL2OFTAdapter is BaseScript, BatchScript {
     SendLibConfig[] public newSendLibs;
     ReceiveLibConfig[] public newReceiveLibs;
 
-    function run(string calldata _jsonPath) public isBatch(getData(block.chainid).OFT_OWNER) {
-        _loadInput(_jsonPath);
+    function run(
+        string calldata _jsonPath,
+        string calldata _deploymentPath
+    )
+        public
+        isBatch(getData(block.chainid).OFT_OWNER)
+    {
+        string memory _fullDeploymentPath = string(abi.encodePacked(vm.projectRoot(), _deploymentPath));
+        _loadInput(_jsonPath, _fullDeploymentPath);
 
         require(currentDeployment.isL1 != true, "Must be L2 deployment");
-
-        console.log("Predicted L1OFTAdapter:", predictions.l1OFTAdapter);
-        console.log("Predicted L2MultiChainDeployer:", predictions.l2MultiChainDeployer);
-        console.log("Predicted L2ERC20:", predictions.l2ERC20);
-        console.log("Predicted L2OFTAdapter:", predictions.l2OFTAdapter);
 
         if (!isContract(currentDeployment.multiChainDeployer)) {
             revert("ImmutableMultiChainDeployer not deployed");
         }
-
-        require(
-            address(currentDeployment.multiChainDeployer) == predictions.l2MultiChainDeployer,
-            "Predicted ImmutableMultiChainDeployer address mismatch"
-        );
-
         multiChainDeployer = ImmutableMultiChainDeployer(currentDeployment.multiChainDeployer);
 
         if (!isContract(currentDeployment.erc20Address)) {
             revert("L2 ERC20 not deployed");
         }
-
-        require(address(currentDeployment.erc20Address) == predictions.l2ERC20, "Predicted ERC20 address mismatch");
-
-        l2ERC20 = L2YnERC20Upgradeable(predictions.l2ERC20);
+        l2ERC20 = L2YnERC20Upgradeable(currentDeployment.erc20Address);
 
         if (!isContract(currentDeployment.oftAdapter)) {
             revert("L2 OFT Adapter not deployed");
         }
-        require(
-            address(currentDeployment.oftAdapter) == predictions.l2OFTAdapter,
-            "Predicted L2 OFT Adapter address mismatch"
-        );
-        l2OFTAdapter = L2YnOFTAdapterUpgradeable(predictions.l2OFTAdapter);
+        l2OFTAdapter = L2YnOFTAdapterUpgradeable(currentDeployment.oftAdapter);
+
+        address l1OFTAdapter = address(0);
+        for (uint256 i; i < deployment.chains.length; i++) {
+            if (deployment.chains[i].chainId == block.chainid) {
+                continue;
+            }
+            if (deployment.chains[i].isL1 == true) {
+                l1OFTAdapter = deployment.chains[i].oftAdapter;
+            } else {
+                require(
+                    address(l2OFTAdapter) == deployment.chains[i].oftAdapter,
+                    "L2 OFT Adapter is not same for all chains"
+                );
+                require(
+                    address(l2ERC20) == deployment.chains[i].erc20Address, "L2 ERC20 is not same for all chains"
+                );
+            }
+        }
 
         address proxyAdmin = getTransparentUpgradeableProxyAdminAddress(address(l2OFTAdapter));
         if (proxyAdmin != currentDeployment.oftAdapterProxyAdmin) {
@@ -133,7 +140,7 @@ contract VerifyL2OFTAdapter is BaseScript, BatchScript {
             if (chainId == block.chainid) {
                 continue;
             }
-            address adapter = chainId == baseInput.l1ChainId ? predictions.l1OFTAdapter : predictions.l2OFTAdapter;
+            address adapter = chainId == baseInput.l1ChainId ? l1OFTAdapter : address(l2OFTAdapter);
             bytes32 adapterBytes32 = addressToBytes32(adapter);
             if (l2OFTAdapter.peers(eid) != adapterBytes32) {
                 needsUpdate = true;
