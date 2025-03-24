@@ -44,6 +44,7 @@ struct RateLimitConfig {
 struct BaseInput {
     string erc20Name;
     string erc20Symbol;
+    uint8 erc20Decimals;
     uint256 l1ChainId;
     address l1ERC20Address;
     uint256[] l2ChainIds;
@@ -151,6 +152,10 @@ contract BaseScript is BaseData, Utils {
                 keccak256(bytes(IERC20(baseInput.l1ERC20Address).name())) == keccak256(bytes(baseInput.erc20Name)),
                 "Invalid ERC20 Name"
             );
+
+            require(
+                IERC20(baseInput.l1ERC20Address).decimals() == baseInput.erc20Decimals, "Invalid ERC20 Decimals"
+            );
         }
         currentDeployment.lzEndpoint = getData(block.chainid).LZ_ENDPOINT;
         currentDeployment.lzEID = getEID(block.chainid);
@@ -224,6 +229,7 @@ contract BaseScript is BaseData, Utils {
     function _validateInput() internal view {
         require(bytes(baseInput.erc20Name).length > 0, "Invalid ERC20 Name");
         require(bytes(baseInput.erc20Symbol).length > 0, "Invalid ERC20 Symbol");
+        require(baseInput.erc20Decimals > 0, "Invalid ERC20 Decimals");
         require(baseInput.rateLimitConfig.limit > 0, "Invalid Rate Limit");
         require(baseInput.rateLimitConfig.window > 0, "Invalid Rate Window");
         require(isSupportedChainId(baseInput.l1ChainId), "Invalid L1 ChainId");
@@ -360,6 +366,7 @@ contract BaseScript is BaseData, Utils {
         // Parse simple fields
         baseInput.erc20Name = vm.parseJsonString(json, ".erc20Name");
         baseInput.erc20Symbol = vm.parseJsonString(json, ".erc20Symbol");
+        baseInput.erc20Decimals = uint8(vm.parseJsonUint(json, ".erc20Decimals"));
 
         // Parse the L1Input struct
         baseInput.l1ChainId = vm.parseJsonUint(json, ".l1ChainId");
@@ -419,10 +426,6 @@ contract BaseScript is BaseData, Utils {
     function createL2YnOFTAdapterTimelockSalt(address _deployerAddress) internal pure returns (bytes32 _salt) {
         _salt = createSalt(_deployerAddress, "L2YnOFTTimelock");
     }
-
-    // function createL2YnERC20TimelockSalt(address _deployerAddress) internal pure returns (bytes32 _salt) {
-    //     _salt = createSalt(_deployerAddress, "L2YnERC20Timelock");
-    // }
 
     function createSalt(address _deployerAddress, string memory _label) internal pure returns (bytes32 _salt) {
         _salt = bytes32(
