@@ -1,4 +1,4 @@
-/* solhint-disable gas-custom-errors, check-send-result */
+/* solhint-disable gas-custom-errors, check-send-result, one-contract-per-file */
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
