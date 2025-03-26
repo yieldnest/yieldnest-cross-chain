@@ -1,0 +1,14 @@
+{
+    "erc20Name": "YieldNest Restaked Coffer BTC - Kernel",
+    "erc20Symbol": "ynCoBTCk",
+    "erc20Decimals": 8,
+    "l1ChainId": 56,
+    "l2ChainIds": [
+        43111
+    ],
+    "l1ERC20Address": "0x132376b153d3cFf94615fe25712DB12CaAADf547",
+    "rateLimitConfig": {
+        "limit": "300000000000",
+        "window": "3600"
+    }
+}

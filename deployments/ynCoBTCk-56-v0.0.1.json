@@ -1,0 +1,29 @@
+{
+  "chains": {
+    "43111": {
+      "chainId": 43111,
+      "erc20Address": "0x8970a6A9Eae065aA81a94E86ebCAF4F3d4dd6DA1",
+      "erc20ProxyAdmin": "0x968eB450077b2cc00A3901B482dc18713Fb3307a",
+      "isL1": false,
+      "lzEID": 30329,
+      "lzEndpoint": "0x6F475642a6e85809B1c36Fa62763669b1b48DD5B",
+      "multiChainDeployer": "0x25D6aeb8Fde5aD3e75A421c2a297C6CA5d3e4c24",
+      "oftAdapter": "0x24ECbe695B1F5FDf154EC6f7c532C6A74dAB161c",
+      "oftAdapterProxyAdmin": "0x503C66B61D98a07c03A59B0E22e6962a84847aEd",
+      "oftAdapterTimelock": "0xE659e81BFB834E8910Bd446e21E0Da5922D2cB54"
+    },
+    "56": {
+      "chainId": 56,
+      "erc20Address": "0x132376b153d3cFf94615fe25712DB12CaAADf547",
+      "erc20ProxyAdmin": "0x0000000000000000000000000000000000000000",
+      "isL1": true,
+      "lzEID": 30102,
+      "lzEndpoint": "0x1a44076050125825900e736c501f859c50fE728c",
+      "multiChainDeployer": "0x0000000000000000000000000000000000000000",
+      "oftAdapter": "0x89935D6DB5f7BD0Faf142b1BBcfb57Ec44B255a3",
+      "oftAdapterProxyAdmin": "0xEfA5182BE5f96B31e2261Fc922991dAbF8D4FF62",
+      "oftAdapterTimelock": "0xCB47d05505E3E306d330098Ed982481F21b37c6b"
+    }
+  },
+  "deployerAddress": "0x4C51Ce7B2546e18449fbE16738A8D55bc195a4dd"
+}
