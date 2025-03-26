@@ -100,7 +100,7 @@ contract BaseScript is BaseData, Utils {
     Deployment public deployment;
     ChainDeployment public currentDeployment;
     PredictedAddresses public predictions;
-    string private constant VERSION = "v0.0.1";
+    string private constant VERSION = "v0.0.2";
     string private constant LABEL = "YN";
 
     error InvalidDVN();
@@ -632,6 +632,7 @@ contract BaseScript is BaseData, Utils {
             SetConfigParam[] memory params = new SetConfigParam[](1);
             params[0] = SetConfigParam(dstEid, CONFIG_TYPE_ULN, abi.encode(ulnConfig));
             vm.startBroadcast();
+            console.log("SENDER", msg.sender);
             lzEndpoint.setConfig(currentDeployment.oftAdapter, data.LZ_SEND_LIB, params);
             lzEndpoint.setConfig(currentDeployment.oftAdapter, data.LZ_RECEIVE_LIB, params);
             vm.stopBroadcast();

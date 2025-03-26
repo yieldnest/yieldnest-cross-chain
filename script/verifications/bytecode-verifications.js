@@ -1,14 +1,29 @@
 const fs = require('fs');
 const { execSync } = require('child_process');
-const { getNetworkName, getRpcUrl } = require('./chain-data');
+const { getNetworkName, getRpcUrl, getScanApiKey } = require('./chain-data');
 const dotenv = require('dotenv');
 dotenv.config();
 
 
 // TODO: Fill in the correct addresses for the implementation contracts for each new deployment
-const ERC20_IMPLEMENTATION_ADDRESS = '0x01029eE5670dd5cc1294410588cacC43a49f8fF1';
-const OFT_ADAPTER_IMPLEMENTATION_ADDRESS = '0xa6d3F9E893604Dd77c773e8cdb4040c060aE5884';
-const L1_OFT_IMPLEMENTATION_ADDRESS = '0x09564BE5E4933586DC89B2a2Ac5790c6ba636003';
+function getERC20ImplementationAddress(chainId) {
+    if (chainId === 1) {
+        return '0xe50aecb1bbffaba835366ca8264539c30ed6e1d9';
+    }
+    return '0x01029eE5670dd5cc1294410588cacC43a49f8fF1';
+}
+function getOFTAdapterImplementationAddress(chainId) {
+    if (chainId === 1) {
+        return '0xe6d9b54c31f6d5e31022be36593d39a6991e22c2';
+    }
+    return '0xa6d3F9E893604Dd77c773e8cdb4040c060aE5884';
+}
+function getL1OFTImplementationAddress(chainId) {
+    if (chainId === 56) {
+        return '0xF7ea8CD8BC536192d0c94f4cef8e5f0BFF934757';
+    }
+    return '0x09564BE5E4933586DC89B2a2Ac5790c6ba636003';
+}
 
 
 // Helper to execute curl command and get bytecode
@@ -78,6 +93,7 @@ async function verifyProxyBytecode(deployment, proxyKey, proxyAdminKey) {
     
     // Get bytecode for OFT adapter
     const bytecode = await getBytecode(rpc, deployment[proxyKey]);
+    
     const parts = parseBytecode(bytecode);
     
     // Get local bytecode for comparison
@@ -117,10 +133,10 @@ async function verifyProxyBytecode(deployment, proxyKey, proxyAdminKey) {
 async function verifyERC20ProxyBytecode(deployment) {
     console.log('\nVerifying ERC20 implementation bytecode...');
     console.log('Chain ID:', deployment.chainId);
-    console.log('ERC20 Implementation Address:', ERC20_IMPLEMENTATION_ADDRESS);
+    const erc20ImplAddress = await getERC20ImplementationAddress(deployment.chainId);
+    console.log('ERC20 Implementation Address:', erc20ImplAddress);
     const rpc = getRpcUrl(deployment.chainId);
-    const bytecode = await getBytecode(rpc, ERC20_IMPLEMENTATION_ADDRESS);
-
+    const bytecode = await getBytecode(rpc, erc20ImplAddress);
     
     // Get local bytecode for comparison
     const localBytecode = getLocalL2YnERC20UpgradeableBytecode();
@@ -135,9 +151,10 @@ async function verifyERC20ProxyBytecode(deployment) {
 async function verifyOFTAdapterBytecode(deployment) {
     console.log('\nVerifying OFT Adapter implementation bytecode...');
     console.log('Chain ID:', deployment.chainId);
-    console.log('OFT Adapter Implementation Address:', OFT_ADAPTER_IMPLEMENTATION_ADDRESS);
+    const oftImplAddress = await getOFTAdapterImplementationAddress(deployment.chainId);
+    console.log('OFT Adapter Implementation Address:', oftImplAddress);
     const rpc = getRpcUrl(deployment.chainId);
-    const bytecode = await getBytecode(rpc, OFT_ADAPTER_IMPLEMENTATION_ADDRESS);
+    const bytecode = await getBytecode(rpc, oftImplAddress);
 
     // Get local bytecode for comparison
     const localBytecode = getLocalL2YnOFTAdapterUpgradeableBytecode();
@@ -152,11 +169,13 @@ async function verifyOFTAdapterBytecode(deployment) {
 async function verifyL1OFTBytecode(deployment) {
     console.log('\nVerifying L1 OFT implementation bytecode...');
     console.log('Chain ID:', deployment.chainId);
-    console.log('L1 OFT Implementation Address:', L1_OFT_IMPLEMENTATION_ADDRESS);
+    const l1OftImplAddress = await getL1OFTImplementationAddress(deployment.chainId);
+    console.log('L1 OFT Implementation Address:', l1OftImplAddress);
     const rpc = getRpcUrl(deployment.chainId);
     // Verify bytecode using forge verify-bytecode
     const { execSync } = require('child_process');
-    const cmd = `forge verify-bytecode ${L1_OFT_IMPLEMENTATION_ADDRESS} L1YnOFTAdapterUpgradeable.sol:L1YnOFTAdapterUpgradeable --rpc-url ${rpc}`;
+    const scanApiKey = getScanApiKey(deployment.chainId);
+    const cmd = `forge verify-bytecode ${l1OftImplAddress} L1YnOFTAdapterUpgradeable.sol:L1YnOFTAdapterUpgradeable --rpc-url ${rpc} --etherscan-api-key ${scanApiKey}`;
     
     try {
         execSync(cmd);
@@ -171,18 +190,35 @@ async function verifyL1OFTBytecode(deployment) {
 
 // Main verification function
 async function main() {
-    // Read all deployment files from deployments directory
-    const deployments = JSON.parse(fs.readFileSync('deployments/ynETHx-1-v0.0.1.json')).chains;
+    // Get deployment path from command line args
+    const deploymentPath = process.argv[2];
+    if (!deploymentPath) {
+        const deploymentFiles = fs.readdirSync('deployments')
+            .filter(f => f.endsWith('.json'))
+            .map(f => `• deployments/${f}`)
+            .join('\n');
+        throw new Error(`Please provide deployment file path as argument. Available paths:\n${deploymentFiles}`);
+    }
+
+    console.log('Deployment path:', deploymentPath);
+
+    // Read deployment file
+    const deployments = JSON.parse(fs.readFileSync(deploymentPath)).chains;
     
     // Get all chain IDs from deployment
     const chainIds = Object.keys(deployments).filter(key => !isNaN(key));
 
     console.log('\nStarting bytecode verification...');
     console.log('Found chain IDs:', chainIds);
-    console.log('Deployment file:', 'deployments/ynETHx-1-v0.0.1.json');
+    console.log('Deployment file:', deploymentPath);
 
-    // Verify mainnet first
-    const mainnetDeployment = deployments["1"];
+    
+    // Verify L1 chain first
+    const l1Deployment = Object.values(deployments).find(d => d.isL1);
+    if (!l1Deployment) {
+        throw new Error("Could not find L1 chain in deployment");
+    }
+    const mainnetDeployment = l1Deployment;
     if (mainnetDeployment) {
         console.log('\nVerifying bytecode for mainnet...');
         try {
@@ -206,8 +242,8 @@ async function main() {
     for (const chainId of chainIds) {
         const deployment = deployments[chainId];
 
-        // Skip chain ID 1 (mainnet)
-        if (deployment.chainId === 1) continue;
+        // Skip L1 chain
+        if (deployment.isL1) continue;
         
         console.log(`\nVerifying bytecode for chain ${deployment.chainId}...`);
         
