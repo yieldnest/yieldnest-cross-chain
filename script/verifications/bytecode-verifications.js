@@ -6,10 +6,16 @@ dotenv.config();
 
 
 // TODO: Fill in the correct addresses for the implementation contracts for each new deployment
-function getERC20ImplementationAddress(chainId) {
-    if (chainId === 1) {
+function getERC20ImplementationAddress(deployment) {
+
+    if (deployment.erc20Implementation) {
+        return deployment.erc20Implementation;
+    }
+
+    if (deployment.chainId === 1) {
         return '0xe50aecb1bbffaba835366ca8264539c30ed6e1d9';
     }
+    
     return '0x01029eE5670dd5cc1294410588cacC43a49f8fF1';
 }
 function getOFTAdapterImplementationAddress(chainId) {
@@ -133,7 +139,7 @@ async function verifyProxyBytecode(deployment, proxyKey, proxyAdminKey) {
 async function verifyERC20ProxyBytecode(deployment) {
     console.log('\nVerifying ERC20 implementation bytecode...');
     console.log('Chain ID:', deployment.chainId);
-    const erc20ImplAddress = await getERC20ImplementationAddress(deployment.chainId);
+    const erc20ImplAddress = await getERC20ImplementationAddress(deployment);
     console.log('ERC20 Implementation Address:', erc20ImplAddress);
     const rpc = getRpcUrl(deployment.chainId);
     const bytecode = await getBytecode(rpc, erc20ImplAddress);
