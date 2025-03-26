@@ -21,6 +21,20 @@ This project contains the smart contracts and scripts for deploying cross-chain 
 
 
 
+## Contract Addresses (ynBTCk)
+
+### Mainnet Addresses
+- BNB Chain: [0x78839cE14a8213779128Ee4da6D75E1326606A56](https://bscscan.com/address/0x78839cE14a8213779128Ee4da6D75E1326606A56)
+
+### Layer 2 & Sidechain Addresses
+- Ethereum: [0x68589adc7687A23Ff2B06fb032b997f09B44Ed5d](https://etherscan.io/address/0x68589adc7687A23Ff2B06fb032b997f09B44Ed5d)
+- Arbitrum: [0x68589adc7687A23Ff2B06fb032b997f09B44Ed5d](https://arbiscan.io/address/0x68589adc7687A23Ff2B06fb032b997f09B44Ed5d)
+- Optimism: [0x68589adc7687A23Ff2B06fb032b997f09B44Ed5d](https://optimistic.etherscan.io/address/0x68589adc7687A23Ff2B06fb032b997f09B44Ed5d)
+- Base: [0x68589adc7687A23Ff2B06fb032b997f09B44Ed5d](https://basescan.org/address/0x68589adc7687A23Ff2B06fb032b997f09B44Ed5d)
+- Taiko: [0x68589adc7687A23Ff2B06fb032b997f09B44Ed5d](https://taikoscan.io/address/0x68589adc7687A23Ff2B06fb032b997f09B44Ed5d)
+- Hemi: [0x68589adc7687A23Ff2B06fb032b997f09B44Ed5d](https://explorer.hemi.xyz/address/0x68589adc7687A23Ff2B06fb032b997f09B44Ed5d)
+
+
 ## Project Overview
 
 This repository includes:
