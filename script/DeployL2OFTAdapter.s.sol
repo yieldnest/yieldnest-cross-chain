@@ -72,6 +72,7 @@ contract DeployL2OFTAdapter is BaseScript {
                     proxySalt,
                     baseInput.erc20Name,
                     baseInput.erc20Symbol,
+                    baseInput.erc20Decimals,
                     deployer,
                     timelock,
                     type(L2YnERC20Upgradeable).creationCode

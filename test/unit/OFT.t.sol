@@ -75,7 +75,7 @@ contract OFTTest is TestHelperOz5 {
                 _deployContractAndProxy(
                     type(L2YnERC20).creationCode,
                     "",
-                    abi.encodeWithSelector(L2YnERC20.initialize.selector, "bToken", "bToken", address(this))
+                    abi.encodeWithSelector(L2YnERC20.initialize.selector, "bToken", "bToken", 18, address(this))
                 )
             );
             bOFTAdapter = L2OFTAdapterMock(
@@ -94,7 +94,7 @@ contract OFTTest is TestHelperOz5 {
                 _deployContractAndProxy(
                     type(L2YnERC20).creationCode,
                     "",
-                    abi.encodeWithSelector(L2YnERC20.initialize.selector, "cToken", "cToken", address(this))
+                    abi.encodeWithSelector(L2YnERC20.initialize.selector, "cToken", "cToken", 18, address(this))
                 )
             );
             cOFTAdapter = L2OFTAdapterMock(
@@ -131,6 +131,22 @@ contract OFTTest is TestHelperOz5 {
         assertEq(aOFTAdapter.token(), address(aERC20));
         assertEq(bOFTAdapter.token(), address(bERC20));
         assertEq(cOFTAdapter.token(), address(cERC20));
+    }
+
+    function test_erc20Decimals() public {
+        assertEq(aERC20.decimals(), 18);
+        assertEq(bERC20.decimals(), 18);
+        assertEq(cERC20.decimals(), 18);
+
+        L2YnERC20 newYnERC20 = L2YnERC20(
+            _deployContractAndProxy(
+                type(L2YnERC20).creationCode,
+                "",
+                abi.encodeWithSelector(L2YnERC20.initialize.selector, "newToken", "newToken", 12, address(this))
+            )
+        );
+
+        assertEq(newYnERC20.decimals(), 12);
     }
 
     function test_oftVersion() public view {
