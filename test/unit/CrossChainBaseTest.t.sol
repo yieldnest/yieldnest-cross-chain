@@ -104,6 +104,7 @@ contract CrossChainBaseTest is Test {
                     optimismERC20ProxySalt,
                     "Test Token",
                     "TEST",
+                    18,
                     _owner,
                     _controller,
                     l2YnERC20ByteCode
@@ -139,6 +140,7 @@ contract CrossChainBaseTest is Test {
                     arbitrumERC20ProxySalt,
                     "Test Token",
                     "TEST",
+                    18,
                     _owner,
                     _controller,
                     l2YnERC20ByteCode
