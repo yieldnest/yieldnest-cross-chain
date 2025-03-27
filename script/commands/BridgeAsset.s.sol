@@ -4,7 +4,7 @@ pragma solidity ^0.8.24;
 
 import {OptionsBuilder} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/libs/OptionsBuilder.sol";
 import {MessagingFee} from "@layerzerolabs/oapp-evm/contracts/oapp/OAppSender.sol";
-import {IOFT, SendParam} from "@layerzerolabs/oft-evm/contracts/interfaces/IOFT.sol";
+import {IOFT, OFTReceipt, SendParam} from "@layerzerolabs/oft-evm/contracts/interfaces/IOFT.sol";
 
 import {BaseData} from "../BaseData.s.sol";
 import {IERC20} from "@openzeppelin/contracts/interfaces/IERC20.sol";
@@ -199,6 +199,136 @@ contract BridgeAssetYnBTCk is BaseData {
         console.log("Fee: %s", fee.nativeFee);
         // Approve ynBTCk spending on OFT adapter
         IERC20(ynBTCk).approve(oftAdapter, extraYnBTCk);
+
+        // Bridge tokens
+        IOFT(oftAdapter).send{value: fee.nativeFee}(sendParam, fee, payable(refundAddress));
+
+        vm.stopBroadcast();
+    }
+
+    function addressToBytes32(address _addr) internal pure returns (bytes32) {
+        return bytes32(uint256(uint160(_addr)));
+    }
+}
+
+/**
+ * @notice This script bridges ynCoBTCk tokens between chains using LayerZero OFT protocol
+ *
+ * @dev How it works:
+ * 1. User provides destination chain ID via prompt
+ * 2. If on base chain (L1):
+ *    - Wraps ETH to WETH by sending ETH to WETH contract
+ * 3. Bridges tokens via OFT adapter's sendFrom()
+ *
+ * Usage:
+ * ```
+ * forge script script/commands/BridgeAsset.s.sol:BridgeAssetYnCoBTCk --rpc-url <RPC_URL> --broadcast
+ * ```
+ */
+contract BridgeAssetYnCoBTCk is BaseData {
+    using OptionsBuilder for bytes;
+
+    // Amount to bridge, min is 100
+    uint256 public constant BRIDGE_AMOUNT = 100;
+
+    function run() external {
+        uint256 sourceChainId = block.chainid;
+        uint256 baseChainId = 56; //bsc
+
+        // Load deployment config
+        string memory json =
+            vm.readFile(string.concat("deployments/ynCoBTCk-", vm.toString(baseChainId), "-v0.0.1.json"));
+
+        address oftAdapter = abi.decode(
+            vm.parseJson(json, string.concat(".chains.", vm.toString(sourceChainId), ".oftAdapter")), (address)
+        );
+
+        uint256 destinationChainId =
+            vm.parseUint(vm.prompt("Enter destination chain ID (e.g. 1 for eth mainnet):"));
+        require(isSupportedChainId(destinationChainId), "Unsupported destination chain ID");
+        uint32 destinationEid = getEID(destinationChainId);
+
+        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+
+        address sender = vm.addr(deployerPrivateKey);
+
+        // Get the ynCoBTCk contract address
+        address ynCoBTCk = abi.decode(
+            vm.parseJson(json, string.concat(".chains.", vm.toString(sourceChainId), ".erc20Address")), (address)
+        );
+
+        address refundAddress = sender;
+
+        console.log("Chain ID: %s", block.chainid);
+        console.log("Sender: %s", sender);
+        console.log("YNCOBTCK Balance: %s", IERC20(ynCoBTCk).balanceOf(sender));
+        console.log("Destination Chain ID: %s", destinationChainId);
+        console.log("Destination EID: %s", destinationEid);
+
+        vm.startBroadcast(deployerPrivateKey);
+
+        uint256 extraYnCoBTCk;
+        if (sourceChainId == baseChainId) {
+            // Get initial ynCoBTCk balance
+            uint256 initialYnCoBTCkBalance = IERC20(ynCoBTCk).balanceOf(sender);
+
+            address coBTC = 0x918b3aa73e2D42D96CF64CBdB16838985992dAbc;
+            console.log("COBTC Balance: %s", IERC20(coBTC).balanceOf(sender));
+
+            if (IERC4626(ynCoBTCk).asset() != coBTC) {
+                console.log("Asset mismatch");
+                vm.stopBroadcast();
+                return;
+            }
+
+            // Calculate amount of coBTC to deposit into ynCoBTCk
+            uint256 coBTCAmount = BRIDGE_AMOUNT;
+
+            // Approve coBTC spending
+            IERC20(coBTC).approve(ynCoBTCk, coBTCAmount);
+
+            // Deposit coBTC to mint ynCoBTCk using ERC4626 interface
+            IERC4626(ynCoBTCk).deposit(coBTCAmount, sender);
+
+            // Get final ynCoBTCk balance and calculate extra amount received
+            uint256 finalYnCoBTCkBalance = IERC20(ynCoBTCk).balanceOf(sender);
+            extraYnCoBTCk = finalYnCoBTCkBalance - initialYnCoBTCkBalance;
+
+            console.log("Initial ynCoBTCk balance: %s", initialYnCoBTCkBalance);
+            console.log("Final ynCoBTCk balance: %s", finalYnCoBTCkBalance);
+            console.log("Extra ynCoBTCk received: %s", extraYnCoBTCk);
+        } else {
+            extraYnCoBTCk = BRIDGE_AMOUNT;
+        }
+
+        if (extraYnCoBTCk > IERC20(ynCoBTCk).balanceOf(sender)) {
+            extraYnCoBTCk = IERC20(ynCoBTCk).balanceOf(sender);
+        }
+
+        IOFT oft = IOFT(oftAdapter);
+
+        // Prepare bridge params
+        bytes memory options = OptionsBuilder.newOptions().addExecutorLzReceiveOption(170000, 0);
+        SendParam memory sendParam =
+            SendParam(destinationEid, addressToBytes32(sender), extraYnCoBTCk, extraYnCoBTCk / 2, options, "", "");
+
+        // Get quote, this ensures the amount can be sent
+        (,, OFTReceipt memory receipt) = oft.quoteOFT(sendParam);
+
+        console.log("Receipt.amountSentLD: %s", receipt.amountSentLD);
+        console.log("Receipt.amountReceivedLD: %s", receipt.amountReceivedLD);
+
+        if (receipt.amountSentLD < extraYnCoBTCk) {
+            console.log("Amount sent is less than expected, exiting");
+            vm.stopBroadcast();
+            return;
+        }
+
+        // Get messaging fee
+        MessagingFee memory fee = oft.quoteSend(sendParam, false);
+        console.log("Fee: %s", fee.nativeFee);
+        // Approve ynCoBTCk spending on OFT adapter
+        IERC20(ynCoBTCk).approve(oftAdapter, extraYnCoBTCk);
 
         // Bridge tokens
         IOFT(oftAdapter).send{value: fee.nativeFee}(sendParam, fee, payable(refundAddress));
