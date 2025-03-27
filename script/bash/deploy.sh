@@ -101,7 +101,6 @@ function error_exit() {
 }
 
 BROADCAST=false
-VERIFY_ONLY=false
 SIMULATE_ONLY=false
 SKIP_L1=false
 
