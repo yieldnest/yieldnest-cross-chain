@@ -101,8 +101,7 @@ contract BaseScript is BaseData, Utils {
     Deployment public deployment;
     ChainDeployment public currentDeployment;
     PredictedAddresses public predictions;
-    string private constant VERSION = "v0.0.4";
-    string private constant LABEL = "YN";
+    string private constant VERSION = "v0.0.1";
 
     error InvalidDVN();
 
