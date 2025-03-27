@@ -7,7 +7,7 @@ import {MessagingFee} from "@layerzerolabs/oapp-evm/contracts/oapp/OAppSender.so
 import {IOFT, SendParam} from "@layerzerolabs/oft-evm/contracts/interfaces/IOFT.sol";
 
 import {BaseData} from "../BaseData.s.sol";
-import {IERC20} from "@openzeppelin/contracts/interfaces/IERC20.sol";
+import {IERC20Metadata as IERC20} from "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {console} from "forge-std/console.sol";
 
@@ -228,7 +228,20 @@ contract BridgeAssetYnBfBTCk is BaseData {
     using OptionsBuilder for bytes;
 
     // Amount to bridge
-    uint256 public constant BRIDGE_AMOUNT = 0.00001 ether;
+    uint256 public constant BRIDGE_AMOUNT = 100;
+
+    function _decimalConversionFactor(IOFT oft) internal view returns (uint256) {
+        uint8 sharedDecimals = oft.sharedDecimals(); // fixed at 6
+        if (sharedDecimals != 6) {
+            revert("Shared decimals must be 6 always");
+        }
+        uint8 localDecimals = IERC20(oft.token()).decimals();
+        if (localDecimals != 8) {
+            revert("Local decimals must be 8 for ynBfBTCk");
+        }
+
+        return 10 ** (localDecimals - sharedDecimals);
+    }
 
     function run() external {
         uint256 sourceChainId = block.chainid;
@@ -236,7 +249,7 @@ contract BridgeAssetYnBfBTCk is BaseData {
 
         // Load deployment config
         string memory json =
-            vm.readFile(string.concat("deployments/ynBfBTCk-", vm.toString(baseChainId), "-v0.0.4.json"));
+            vm.readFile(string.concat("deployments/ynBfBTCk-", vm.toString(baseChainId), "-v0.0.1.json"));
 
         address oftAdapter = abi.decode(
             vm.parseJson(json, string.concat(".chains.", vm.toString(sourceChainId), ".oftAdapter")), (address)
@@ -264,27 +277,37 @@ contract BridgeAssetYnBfBTCk is BaseData {
         console.log("Destination Chain ID: %s", destinationChainId);
         console.log("Destination EID: %s", destinationEid);
 
-        vm.startBroadcast(deployerPrivateKey);
+        uint256 bridgeAmount = BRIDGE_AMOUNT;
 
-        uint256 extraYnBfBTCk = BRIDGE_AMOUNT;
+        if (bridgeAmount > IERC20(ynBfBTCk).balanceOf(sender)) {
+            bridgeAmount = IERC20(ynBfBTCk).balanceOf(sender);
+        }
 
-        if (extraYnBfBTCk > IERC20(ynBfBTCk).balanceOf(sender)) {
-            extraYnBfBTCk = IERC20(ynBfBTCk).balanceOf(sender);
+        console.log("Bridge amount: %s", bridgeAmount);
+
+        IOFT oft = IOFT(oftAdapter);
+
+        // validate bridge amount
+        if (bridgeAmount % _decimalConversionFactor(oft) != 0) {
+            revert("Bridge amount too low or has dust");
         }
 
         // Prepare bridge params
         bytes memory options = OptionsBuilder.newOptions().addExecutorLzReceiveOption(170000, 0);
         SendParam memory sendParam =
-            SendParam(destinationEid, addressToBytes32(sender), extraYnBfBTCk, extraYnBfBTCk / 2, options, "", "");
+            SendParam(destinationEid, addressToBytes32(sender), bridgeAmount, bridgeAmount, options, "", "");
 
         // Get messaging fee
-        MessagingFee memory fee = IOFT(oftAdapter).quoteSend(sendParam, false);
+        MessagingFee memory fee = oft.quoteSend(sendParam, false);
         console.log("Fee: %s", fee.nativeFee);
+
+        vm.startBroadcast(deployerPrivateKey);
+
         // Approve ynBTCk spending on OFT adapter
-        IERC20(ynBfBTCk).approve(oftAdapter, extraYnBfBTCk);
+        IERC20(ynBfBTCk).approve(address(oft), bridgeAmount);
 
         // Bridge tokens
-        IOFT(oftAdapter).send{value: fee.nativeFee}(sendParam, fee, payable(refundAddress));
+        oft.send{value: fee.nativeFee}(sendParam, fee, payable(refundAddress));
 
         vm.stopBroadcast();
     }
