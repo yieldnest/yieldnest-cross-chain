@@ -28,7 +28,6 @@ function display_help() {
     echo "  -s, --sender          Set the deployer address"
     echo "  -b, --simulate-only   Simulate the deployment"
     echo "  -b, --broadcast       Deploy & verify contracts on etherscan"
-    echo "  -v, --verify-only     Run verify scripts for the deployment"
 
     delimiter
 }
@@ -61,8 +60,6 @@ ERC20_NAME=$(jq -r ".erc20Name" "$INPUT_PATH")
 ERC20_SYMBOL=$(jq -r ".erc20Symbol" "$INPUT_PATH")
 L2_CHAIN_IDS_ARRAY=$(jq -r ".l2ChainIds" "$INPUT_PATH" | jq -r ".[]")
 
-OUTPUT_PATH="deployments/ynETH-$L1_CHAIN_ID.json"
-
 # verify env variables
 if [[ -z $ETHERSCAN_API_KEY || -z $DEPLOYER_ADDRESS ]]; then
     echo "invalid .env vars"
@@ -89,7 +86,7 @@ function broadcast() {
     elif [[ $3 == "binance" ]]; then
         forge script "$1" "${defaultArgs[@]}" --verifier etherscan --verifier-url "https://api.bscscan.com/api" --verifier-api-key "$BSCSCAN_API_KEY" --chain 56
     elif [[ $3 == "hemi" ]]; then
-        forge script "$1" "${defaultArgs[@]}" --verifier blockscout --verifier-url "https://explorer.hemi.xyz/api" --legacy --with-gas-price 0.05gwei --priority-gas-price 0.05gwei --chain 43111
+        forge script "$1" "${defaultArgs[@]}" --verifier blockscout --verifier-url "https://explorer.hemi.xyz/api" --chain 43111
     else
         forge script "$1" "${defaultArgs[@]}" --etherscan-api-key "$4"
     fi
@@ -104,7 +101,6 @@ function error_exit() {
 }
 
 BROADCAST=false
-VERIFY_ONLY=false
 SIMULATE_ONLY=false
 SKIP_L1=false
 
@@ -175,10 +171,6 @@ while [[ $# -gt 0 ]]; do
         BROADCAST=true
         shift
         ;;
-    --verify-only | -v)
-        VERIFY_ONLY=true
-        shift
-        ;;
     --simulate-only | -s)
         SIMULATE_ONLY=true
         shift
@@ -232,45 +224,15 @@ delimiter
 
 CALLDATA=$(cast calldata "run(string)" "/$INPUT_PATH")
 
-if [[ $VERIFY_ONLY == false ]]; then
-
-    if [[ $SKIP_L1 == false ]]; then
-        echo "Deploying L1 Adapter for $L1_RPC ($L1_CHAIN_ID)"
-        runScript script/DeployL1OFTAdapter.s.sol:DeployL1OFTAdapter $CALLDATA $L1_RPC $L1_ETHERSCAN_API_KEY
-        
-        delimiter
-    else
-        echo "Skipping L1 deployment as requested"
-        delimiter
-    fi
+if [[ $SKIP_L1 == false ]]; then
+    echo "Deploying L1 Adapter for $L1_RPC ($L1_CHAIN_ID)"
+    runScript script/DeployL1OFTAdapter.s.sol:DeployL1OFTAdapter $CALLDATA $L1_RPC $L1_ETHERSCAN_API_KEY
     
-    for L2_CHAIN_ID in $L2_CHAIN_IDS_ARRAY; do
-        L2_RPC=$(getRPC $L2_CHAIN_ID)
-        if [[ -z $L2_RPC ]]; then
-            echo "No RPC found for $L2_CHAIN_ID"
-            exit 1
-        fi
-        L2_ETHERSCAN_API_KEY=$(getEtherscanAPIKey $L2_CHAIN_ID)
-        if [[ -z $L2_ETHERSCAN_API_KEY ]]; then
-            echo "No Etherscan API key found for $L2_CHAIN_ID"
-            exit 1
-        fi
-        echo "Deploying L2 Adapter for $L2_RPC ($L2_CHAIN_ID)"
-        runScript script/DeployL2OFTAdapter.s.sol:DeployL2OFTAdapter $CALLDATA $L2_RPC $L2_ETHERSCAN_API_KEY
-    
-        delimiter
-    done
-
+    delimiter
+else
+    echo "Skipping L1 deployment as requested"
+    delimiter
 fi
-
-if [[ $SIMULATE_ONLY == true ]]; then
-    exit 0
-fi
-
-echo "Verifying L1 Adapter for $L1_RPC ($L1_CHAIN_ID)"
-simulate script/VerifyL1OFTAdapter.s.sol:VerifyL1OFTAdapter $CALLDATA $L1_RPC $L1_ETHERSCAN_API_KEY
-
-delimiter
 
 for L2_CHAIN_ID in $L2_CHAIN_IDS_ARRAY; do
     L2_RPC=$(getRPC $L2_CHAIN_ID)
@@ -278,11 +240,15 @@ for L2_CHAIN_ID in $L2_CHAIN_IDS_ARRAY; do
         echo "No RPC found for $L2_CHAIN_ID"
         exit 1
     fi
-    echo "Verifying L2 Adapter for $L2_RPC ($L2_CHAIN_ID)"
-    simulate script/VerifyL2OFTAdapter.s.sol:VerifyL2OFTAdapter $CALLDATA $L2_RPC
+    L2_ETHERSCAN_API_KEY=$(getEtherscanAPIKey $L2_CHAIN_ID)
+    if [[ -z $L2_ETHERSCAN_API_KEY ]]; then
+        echo "No Etherscan API key found for $L2_CHAIN_ID"
+        exit 1
+    fi
+    echo "Deploying L2 Adapter for $L2_RPC ($L2_CHAIN_ID)"
+    runScript script/DeployL2OFTAdapter.s.sol:DeployL2OFTAdapter $CALLDATA $L2_RPC $L2_ETHERSCAN_API_KEY
 
     delimiter
 done
-
 
 exit 0

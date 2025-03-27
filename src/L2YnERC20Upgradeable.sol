@@ -15,6 +15,9 @@ contract L2YnERC20Upgradeable is ERC20Upgradeable, AccessControlUpgradeable, IMi
     /// @notice Role identifier for accounts allowed to mint and burn tokens.
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
+    // @notice The number of decimals for the token.
+    uint8 private __decimals;
+
     /// @notice Constructor that disables initializers to prevent direct initialization.
     /// @dev Uses OpenZeppelin's _disableInitializers to prevent the implementation contract from being
     /// initialized.
@@ -28,11 +31,20 @@ contract L2YnERC20Upgradeable is ERC20Upgradeable, AccessControlUpgradeable, IMi
     /// @param _name The name of the token.
     /// @param _symbol The symbol of the token.
     /// @param _owner The address that will be assigned the default admin role.
-    function initialize(string memory _name, string memory _symbol, address _owner) public initializer {
+    function initialize(
+        string memory _name,
+        string memory _symbol,
+        uint8 _decimals,
+        address _owner
+    )
+        public
+        initializer
+    {
         __ERC20_init(_name, _symbol);
         __AccessControl_init();
 
         _grantRole(DEFAULT_ADMIN_ROLE, _owner);
+        __decimals = _decimals;
     }
 
     /// @notice Mints a specified amount of tokens to a given address.
@@ -49,5 +61,9 @@ contract L2YnERC20Upgradeable is ERC20Upgradeable, AccessControlUpgradeable, IMi
     /// @param _amount The amount of tokens to be burned.
     function burn(address _from, uint256 _amount) public onlyRole(MINTER_ROLE) {
         _burn(_from, _amount);
+    }
+
+    function decimals() public view virtual override returns (uint8) {
+        return __decimals;
     }
 }

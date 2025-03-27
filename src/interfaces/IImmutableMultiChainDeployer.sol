@@ -44,6 +44,7 @@ interface IImmutableMultiChainDeployer {
     /// @param _proxySalt The salt for the ERC20 proxy.
     /// @param _name The name of the ERC20 token.
     /// @param _symbol The symbol of the ERC20 token.
+    /// @param _decimals The decimals of the ERC20 token.
     /// @param _owner The owner address of the ERC20 token.
     /// @param _proxyController The proxy controller address of the ERC20 token.
     /// @param _l2YnOFTAdapterBytecode The bytecode of the L2YnOFTAdapter contract to deploy.
@@ -53,6 +54,7 @@ interface IImmutableMultiChainDeployer {
         bytes32 _proxySalt,
         string calldata _name,
         string calldata _symbol,
+        uint8 _decimals,
         address _owner,
         address _proxyController,
         bytes calldata _l2YnOFTAdapterBytecode

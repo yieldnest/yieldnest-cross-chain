@@ -1,6 +1,7 @@
 {
     "erc20Name": "YieldNest Restaked BTC - Kernel",
     "erc20Symbol": "ynBTCk",
+    "erc20Decimals": 18,
     "l1ChainId": 56,
     "l2ChainIds": [
       43111,

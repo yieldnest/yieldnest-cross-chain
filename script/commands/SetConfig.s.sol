@@ -11,8 +11,6 @@ import {ILayerZeroEndpointV2} from
     "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroEndpointV2.sol";
 
 import {SetConfigParam} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/IMessageLibManager.sol";
-import {MessagingFee} from "@layerzerolabs/oapp-evm/contracts/oapp/OAppSender.sol";
-import {IOFT, SendParam} from "@layerzerolabs/oft-evm/contracts/interfaces/IOFT.sol";
 
 import {console} from "forge-std/console.sol";
 
@@ -33,7 +31,7 @@ import {console} from "forge-std/console.sol";
 contract ConfigureDVNs is BaseData, BaseScript {
     using OptionsBuilder for bytes;
 
-    L2YnOFTAdapterUpgradeable l2OFTAdapter;
+    L2YnOFTAdapterUpgradeable public l2OFTAdapter;
 
     // Amount to bridge
     uint256 public constant BRIDGE_AMOUNT = 0.00001 ether;
@@ -60,8 +58,6 @@ contract ConfigureDVNs is BaseData, BaseScript {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
 
         address sender = vm.addr(deployerPrivateKey);
-
-        address refundAddress = sender;
 
         console.log("Chain ID: %s", block.chainid);
         console.log("Sender: %s", sender);

@@ -1,6 +1,7 @@
 {
   "erc20Name": "ynETH MAX",
   "erc20Symbol": "ynETHx",
+  "erc20Decimals": 18,
   "l1ChainId": 17000,
   "l2ChainIds": [
     2522,
