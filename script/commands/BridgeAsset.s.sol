@@ -7,7 +7,7 @@ import {MessagingFee} from "@layerzerolabs/oapp-evm/contracts/oapp/OAppSender.so
 import {IOFT, OFTReceipt, SendParam} from "@layerzerolabs/oft-evm/contracts/interfaces/IOFT.sol";
 
 import {BaseData} from "../BaseData.s.sol";
-import {IERC20} from "@openzeppelin/contracts/interfaces/IERC20.sol";
+import {IERC20Metadata as IERC20} from "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {console} from "forge-std/console.sol";
 
