@@ -86,7 +86,7 @@ function broadcast() {
     elif [[ $3 == "binance" ]]; then
         forge script "$1" "${defaultArgs[@]}" --verifier etherscan --verifier-url "https://api.bscscan.com/api" --verifier-api-key "$BSCSCAN_API_KEY" --chain 56
     elif [[ $3 == "hemi" ]]; then
-        forge script "$1" "${defaultArgs[@]}" --verifier blockscout --verifier-url "https://explorer.hemi.xyz/api" --legacy --with-gas-price 0.05gwei --priority-gas-price 0.05gwei --chain 43111
+        forge script "$1" "${defaultArgs[@]}" --verifier blockscout --verifier-url "https://explorer.hemi.xyz/api" --chain 43111
     else
         forge script "$1" "${defaultArgs[@]}" --etherscan-api-key "$4"
     fi
@@ -101,6 +101,7 @@ function error_exit() {
 }
 
 BROADCAST=false
+VERIFY_ONLY=false
 SIMULATE_ONLY=false
 SKIP_L1=false
 
