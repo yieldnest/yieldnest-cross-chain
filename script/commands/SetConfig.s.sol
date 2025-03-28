@@ -91,33 +91,39 @@ contract CreateBatchConfigTX is CreateConfigTX, BatchScript {
 
         for (uint256 i = 0; i < dstChainIds.length; i++) {
             (adapter, encodedTx) = getConfigureRateLimitsTX();
-            addToBatch(adapter, 0, encodedTx);
+            _addToBatch(adapter, 0, encodedTx);
 
             (adapter, encodedTx) = getConfigurePeersTX(dstChainIds[i]);
-            addToBatch(adapter, 0, encodedTx);
+            _addToBatch(adapter, 0, encodedTx);
 
             (adapter, encodedTx) = getConfigureSendLibTX(dstChainIds[i]);
-            addToBatch(adapter, 0, encodedTx);
+            _addToBatch(adapter, 0, encodedTx);
 
             (adapter, encodedTx) = getConfigureReceiveLibTX(dstChainIds[i]);
-            addToBatch(adapter, 0, encodedTx);
+            _addToBatch(adapter, 0, encodedTx);
 
             (adapter, encodedTx) = getConfigureEnforcedOptionsTX(dstChainIds[i]);
-            addToBatch(adapter, 0, encodedTx);
+            _addToBatch(adapter, 0, encodedTx);
 
             bytes memory sendEncodedTx;
             bytes memory receiveEncodedTX;
             (adapter, sendEncodedTx, receiveEncodedTX) = getConfigureDVNsTX(dstChainIds[i]);
-            addToBatch(adapter, 0, sendEncodedTx);
-            addToBatch(adapter, 0, receiveEncodedTX);
+            _addToBatch(adapter, 0, sendEncodedTx);
+            _addToBatch(adapter, 0, receiveEncodedTX);
 
             (adapter, encodedTx) = getConfigureExecutorTX(dstChainIds[i]);
-            addToBatch(adapter, 0, encodedTx);
+            _addToBatch(adapter, 0, encodedTx);
         }
 
         console.log("Encoded Txns: ");
         for (uint256 i = 0; i < encodedTxns.length; i++) {
             console.logBytes(encodedTxns[i]);
+        }
+    }
+
+    function _addToBatch(address adapter, bytes memory encodedTx) internal {
+        if (adapter != address(0) && encodedTx.length > 0) {
+            addToBatch(adapter, 0, encodedTx);
         }
     }
 }
