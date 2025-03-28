@@ -554,8 +554,15 @@ contract BaseScript is BaseData, Utils {
         uint32 eid = getEID(chainId);
         address adapter = chainId == baseInput.l1ChainId ? predictions.l1OFTAdapter : predictions.l2OFTAdapter;
         bytes32 adapterBytes32 = addressToBytes32(adapter);
+
         oftAdapter = currentDeployment.oftAdapter;
-        encodedPeersTX = abi.encodeWithSelector(IOAppCore.setPeer.selector, eid, adapterBytes32);
+        if (OFTAdapterUpgradeable(oftAdapter).peers(eid) == adapterBytes32) {
+            console.log("Already set peer for chainid %d", chainId);
+            oftAdapter = address(0);
+            encodedPeersTX = "";
+        } else {
+            encodedPeersTX = abi.encodeWithSelector(IOAppCore.setPeer.selector, eid, adapterBytes32);
+        }
     }
 
     function configureSendLibs(uint256[] memory dstChainIds) internal {
@@ -585,12 +592,21 @@ contract BaseScript is BaseData, Utils {
     {
         uint32 eid = getEID(chainId);
         lzEndpoint = getData(block.chainid).LZ_ENDPOINT;
-        encodedSendLibTX = abi.encodeWithSelector(
-            IMessageLibManager.setSendLibrary.selector,
-            currentDeployment.oftAdapter,
-            eid,
-            getData(block.chainid).LZ_SEND_LIB
-        );
+        if (
+            ILayerZeroEndpointV2(lzEndpoint).getSendLibrary(currentDeployment.oftAdapter, eid)
+                == getData(block.chainid).LZ_SEND_LIB
+        ) {
+            console.log("Already set send library for chainid %d", chainId);
+            lzEndpoint = address(0);
+            encodedSendLibTX = "";
+        } else {
+            encodedSendLibTX = abi.encodeWithSelector(
+                IMessageLibManager.setSendLibrary.selector,
+                currentDeployment.oftAdapter,
+                eid,
+                getData(block.chainid).LZ_SEND_LIB
+            );
+        }
     }
 
     function configureReceiveLibs(uint256[] memory dstChainIds) internal {
@@ -622,7 +638,13 @@ contract BaseScript is BaseData, Utils {
     {
         uint32 eid = getEID(chainId);
         lzEndpoint = getData(block.chainid).LZ_ENDPOINT;
-
+        (address lib, bool isDefault) =
+            ILayerZeroEndpointV2(lzEndpoint).getReceiveLibrary(currentDeployment.oftAdapter, eid);
+        if (lib == getData(block.chainid).LZ_RECEIVE_LIB && isDefault == false) {
+            console.log("Already set receive library for chainid %d", chainId);
+            lzEndpoint = address(0);
+            encodedReceiveLibTX = "";
+        }
         encodedReceiveLibTX = abi.encodeWithSelector(
             IMessageLibManager.setReceiveLibrary.selector,
             currentDeployment.oftAdapter,
