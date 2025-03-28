@@ -435,10 +435,15 @@ contract BaseScript is BaseData, Utils {
     function createSalt(address _deployerAddress, string memory _label) internal view returns (bytes32 _salt) {
         require(bytes(baseInput.erc20Symbol).length > 0, "Invalid ERC20 Symbol");
 
+        string memory _symbol = "YN";
+
+        if (keccak256(bytes(baseInput.erc20Symbol)) != keccak256(bytes("ynETHx"))) {
+            _symbol = baseInput.erc20Symbol;
+        }
+
         _salt = bytes32(
             abi.encodePacked(
-                bytes20(_deployerAddress),
-                bytes12(bytes32(keccak256(abi.encode(_label, baseInput.erc20Symbol, VERSION))))
+                bytes20(_deployerAddress), bytes12(bytes32(keccak256(abi.encode(_label, _symbol, VERSION))))
             )
         );
     }
