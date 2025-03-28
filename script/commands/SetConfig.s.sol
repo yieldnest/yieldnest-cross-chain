@@ -5,46 +5,34 @@ pragma solidity ^0.8.24;
 import {L2YnOFTAdapterUpgradeable} from "../../src/L2YnOFTAdapterUpgradeable.sol";
 import {BaseData} from "../BaseData.s.sol";
 import {BaseScript} from "../BaseScript.s.sol";
+import {BatchScript} from "../BatchScript.s.sol";
 import {UlnConfig} from "@layerzerolabs/lz-evm-messagelib-v2/contracts/uln/UlnBase.sol";
 import {OptionsBuilder} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/libs/OptionsBuilder.sol";
 import {ILayerZeroEndpointV2} from
     "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroEndpointV2.sol";
-
+import {IMessageLibManager} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/IMessageLibManager.sol";
 import {SetConfigParam} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/IMessageLibManager.sol";
 
 import {console} from "forge-std/console.sol";
 
-/**
- * @notice This script bridges ynETHx tokens between chains using LayerZero OFT protocol
- *
- * @dev How it works:
- * 1. User provides destination chain ID via prompt
- * 2. If on base chain (L1):
- *    - Wraps ETH to WETH by sending ETH to WETH contract
- * 3. Bridges tokens via OFT adapter's sendFrom()
- *
- * Usage:
- * ```
- * forge script script/commands/SetConfig.s.sol:SetConfig --rpc-url <RPC_URL> --broadcast
- * ```
- */
-contract ConfigureDVNs is BaseData, BaseScript {
+contract CreateDVNConfigTX is BaseData, BaseScript {
     using OptionsBuilder for bytes;
 
     L2YnOFTAdapterUpgradeable public l2OFTAdapter;
 
-    // Amount to bridge
-    uint256 public constant BRIDGE_AMOUNT = 0.00001 ether;
-
-    function run() external {
+    function _getChainIds(
+        string memory inputPath,
+        string memory deploymentPath
+    )
+        internal
+        returns (uint256[] memory)
+    {
         uint256 sourceChainId = block.chainid;
-        uint256 baseChainId = 56; //bsc
 
         // Load deployment config
-        string memory json =
-            vm.readFile(string.concat("deployments/ynBTCk-", vm.toString(baseChainId), "-v0.0.2.json"));
+        string memory json = vm.readFile(deploymentPath);
 
-        __loadJson(string.concat("/script/inputs/bsc-ynBTCk.json"));
+        __loadJson(inputPath);
 
         address oftAdapter = abi.decode(
             vm.parseJson(json, string.concat(".chains.", vm.toString(sourceChainId), ".oftAdapter")), (address)
@@ -55,36 +43,36 @@ contract ConfigureDVNs is BaseData, BaseScript {
 
         uint32 destinationEid = getEID(sourceChainId);
 
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-
-        address sender = vm.addr(deployerPrivateKey);
-
         console.log("Chain ID: %s", block.chainid);
-        console.log("Sender: %s", sender);
+        console.log("Sender: %s", msg.sender);
         console.log("Destination Chain ID: %s", sourceChainId);
         console.log("Destination EID: %s", destinationEid);
 
-        if (l2OFTAdapter.owner() == sender) {
-            uint256[] memory dstChainIds = baseInput.l2ChainIds;
-            for (uint256 i = 0; i < dstChainIds.length; i++) {
-                if (dstChainIds[i] == block.chainid) {
-                    dstChainIds[i] = baseInput.l1ChainId;
-                }
-            }
+        uint256[] memory dstChainIds = baseInput.l2ChainIds;
 
-            __configureDVNs(dstChainIds);
+        for (uint256 i = 0; i < dstChainIds.length; i++) {
+            if (dstChainIds[i] == block.chainid) {
+                dstChainIds[i] = baseInput.l1ChainId;
+            }
         }
+
+        return dstChainIds;
     }
 
-    function __configureDVNs(uint256[] memory dstChainIds) internal {
-        console.log("Configuring DVNs...");
+    function __getConfigParams(uint256[] memory dstChainIds)
+        internal
+        view
+        returns (SetConfigParam[] memory configParams)
+    {
+        console.log("Creating config params...");
 
         Data storage data = getData(block.chainid);
-        ILayerZeroEndpointV2 lzEndpoint = ILayerZeroEndpointV2(data.LZ_ENDPOINT);
 
         bool isTestnet = isTestnetChainId(block.chainid);
         uint64 confirmations = isTestnet ? 8 : 32;
         uint8 requiredDVNCount = isTestnet ? 1 : 2;
+
+        SetConfigParam[] memory params = new SetConfigParam[](dstChainIds.length);
 
         for (uint256 i = 0; i < dstChainIds.length; i++) {
             uint256 chainId = dstChainIds[i];
@@ -112,15 +100,10 @@ contract ConfigureDVNs is BaseData, BaseScript {
                 optionalDVNs: new address[](0)
             });
 
-            SetConfigParam[] memory params = new SetConfigParam[](1);
-            params[0] = SetConfigParam(dstEid, CONFIG_TYPE_ULN, abi.encode(ulnConfig));
-            vm.startBroadcast();
-            console.log("SENDER", msg.sender);
-            lzEndpoint.setConfig(address(l2OFTAdapter), data.LZ_SEND_LIB, params);
-            lzEndpoint.setConfig(address(l2OFTAdapter), data.LZ_RECEIVE_LIB, params);
-            vm.stopBroadcast();
-            console.log("Set DVNs for chainid %d", chainId);
+            params[i] = SetConfigParam(dstEid, CONFIG_TYPE_ULN, abi.encode(ulnConfig));
         }
+
+        return params;
     }
 
     function __loadJson(string memory _path) private {
@@ -143,5 +126,71 @@ contract ConfigureDVNs is BaseData, BaseScript {
         // Parse RateLimitConfig struct
         baseInput.rateLimitConfig.limit = vm.parseJsonUint(json, ".rateLimitConfig.limit");
         baseInput.rateLimitConfig.window = vm.parseJsonUint(json, ".rateLimitConfig.window");
+    }
+}
+
+contract ConfigureDVNs is CreateDVNConfigTX {
+    function run(string memory deploymentPath, string memory inputPath) external {
+        if (l2OFTAdapter.owner() == msg.sender) {
+            uint256[] memory dstChainIds = _getChainIds(inputPath, deploymentPath);
+
+            __configureDVNs(dstChainIds);
+        }
+    }
+
+    function __configureDVNs(uint256[] memory dstChainIds) internal {
+        console.log("Configuring DVNs...");
+
+        Data storage data = getData(block.chainid);
+        ILayerZeroEndpointV2 lzEndpoint = ILayerZeroEndpointV2(data.LZ_ENDPOINT);
+
+        SetConfigParam[] memory params = __getConfigParams(dstChainIds);
+        SetConfigParam[] memory tempParam = new SetConfigParam[](1);
+
+        for (uint256 i = 0; i < params.length; i++) {
+            tempParam[0] = params[i];
+            vm.startBroadcast();
+            console.log("SENDER", msg.sender);
+            lzEndpoint.setConfig(address(l2OFTAdapter), data.LZ_SEND_LIB, tempParam);
+            lzEndpoint.setConfig(address(l2OFTAdapter), data.LZ_RECEIVE_LIB, tempParam);
+            vm.stopBroadcast();
+            console.log("Set DVNs for dstChainId %d", tempParam[0].eid);
+        }
+    }
+}
+
+contract CreateBatchDVNTX is CreateDVNConfigTX, BatchScript {
+    function run(string memory deploymentPath, string memory inputPath) external {
+        uint256[] memory dstChainIds = _getChainIds(inputPath, deploymentPath);
+        bytes[] memory encodedTransactions = createBatchDVNTX(dstChainIds);
+
+        console.log("Encoded Txns: ");
+        for (uint256 i = 0; i < encodedTransactions.length; i++) {
+            console.logBytes(encodedTransactions[i]);
+        }
+    }
+
+    function createBatchDVNTX(uint256[] memory dstChainIds) internal returns (bytes[] memory) {
+        console.log("Configuring DVNs...");
+
+        Data storage data = getData(block.chainid);
+
+        SetConfigParam[] memory params = __getConfigParams(dstChainIds);
+        SetConfigParam[] memory tempParam = new SetConfigParam[](1);
+
+        for (uint256 i = 0; i < params.length; i++) {
+            tempParam[0] = params[i];
+            bytes memory encodedSendTx =
+                abi.encodeWithSelector(IMessageLibManager.setConfig.selector, data.LZ_SEND_LIB, tempParam);
+            bytes memory encodedReceiveTx =
+                abi.encodeWithSelector(IMessageLibManager.setConfig.selector, data.LZ_RECEIVE_LIB, tempParam);
+
+            addToBatch(address(data.LZ_ENDPOINT), 0, encodedSendTx);
+            addToBatch(address(data.LZ_ENDPOINT), 0, encodedReceiveTx);
+
+            console.log("Encoded Send Tx added for dstChainId: ", tempParam[0].eid);
+        }
+
+        return encodedTxns;
     }
 }
