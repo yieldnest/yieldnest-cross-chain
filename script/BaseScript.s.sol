@@ -22,7 +22,10 @@ import {console} from "forge-std/console.sol";
 
 import {ILayerZeroEndpointV2} from
     "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroEndpointV2.sol";
-import {OFTAdapterUpgradeable} from "@layerzerolabs/oft-evm-upgradeable/contracts/oft/OFTAdapterUpgradeable.sol";
+import {IMessageLibManager} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/IMessageLibManager.sol";
+import {IOAppCore} from "@layerzerolabs/oapp-evm/contracts/oapp/interfaces/IOAppCore.sol";
+import {IOAppOptionsType3} from "@layerzerolabs/oapp-evm/contracts/oapp/interfaces/IOAppOptionsType3.sol";
+import {console} from "forge-std/console.sol";
 
 import {EnforcedOptionParam} from "@layerzerolabs/oapp-evm/contracts/oapp/interfaces/IOAppOptionsType3.sol";
 
@@ -378,6 +381,16 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
         vm.stopBroadcast();
     }
 
+    function getConfigureRateLimitsTX()
+        internal
+        view
+        returns (address oftAdapter, bytes memory encodedRateLimitConfigs)
+    {
+        oftAdapter = currentDeployment.oftAdapter;
+        encodedRateLimitConfigs =
+            abi.encodeWithSelector(IOFTRateLimiter.setRateLimits.selector, _getRateLimitConfigs());
+    }
+
     function configurePeers(uint256[] memory dstChainIds) internal {
         console.log("Configuring peers...");
 
@@ -401,6 +414,18 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
         }
     }
 
+    function getConfigurePeersTX(uint256 chainId)
+        internal
+        view
+        returns (address oftAdapter, bytes memory encodedPeersTX)
+    {
+        uint32 eid = getEID(chainId);
+        address adapter = chainId == baseInput.l1ChainId ? predictions.l1OFTAdapter : predictions.l2OFTAdapter;
+        bytes32 adapterBytes32 = addressToBytes32(adapter);
+        oftAdapter = currentDeployment.oftAdapter;
+        encodedPeersTX = abi.encodeWithSelector(IOAppCore.setPeer.selector, eid, adapterBytes32);
+    }
+
     function configureSendLibs(uint256[] memory dstChainIds) internal {
         console.log("Configuring send libs...");
         ILayerZeroEndpointV2 lzEndpoint = ILayerZeroEndpointV2(getData(block.chainid).LZ_ENDPOINT);
@@ -419,6 +444,21 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
             console.log("Set send library for chainid %d", chainId);
             vm.stopBroadcast();
         }
+    }
+
+    function getConfigureSendLibTX(uint256 chainId)
+        internal
+        view
+        returns (address lzEndpoint, bytes memory encodedSendLibTX)
+    {
+        uint32 eid = getEID(chainId);
+        lzEndpoint = getData(block.chainid).LZ_ENDPOINT;
+        encodedSendLibTX = abi.encodeWithSelector(
+            IMessageLibManager.setSendLibrary.selector,
+            currentDeployment.oftAdapter,
+            eid,
+            getData(block.chainid).LZ_SEND_LIB
+        );
     }
 
     function configureReceiveLibs(uint256[] memory dstChainIds) internal {
@@ -441,6 +481,23 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
             console.log("Set receive library for chainid %d", chainId);
             vm.stopBroadcast();
         }
+    }
+
+    function getConfigureReceiveLibTX(uint256 chainId)
+        internal
+        view
+        returns (address lzEndpoint, bytes memory encodedReceiveLibTX)
+    {
+        uint32 eid = getEID(chainId);
+        lzEndpoint = getData(block.chainid).LZ_ENDPOINT;
+
+        encodedReceiveLibTX = abi.encodeWithSelector(
+            IMessageLibManager.setReceiveLibrary.selector,
+            currentDeployment.oftAdapter,
+            eid,
+            getData(block.chainid).LZ_RECEIVE_LIB,
+            0
+        );
     }
 
     function configureEnforcedOptions(uint256[] memory dstChainIds) internal {
@@ -469,6 +526,34 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
         oftAdapter.setEnforcedOptions(enforcedOptions);
         console.log("Set enforced options");
         vm.stopBroadcast();
+    }
+
+    function getConfigureEnforcedOptionsTX(uint256 dstChainId)
+        internal
+        view
+        returns (address oftAdapter, bytes memory encodedEnforcedOptions)
+    {
+        oftAdapter = currentDeployment.oftAdapter;
+
+        EnforcedOptionParam[] memory enforcedOptions = new EnforcedOptionParam[](2);
+
+        uint32 dstEid = getEID(dstChainId);
+        enforcedOptions[0] = EnforcedOptionParam({
+            eid: dstEid,
+            msgType: 1,
+            options: OptionsBuilder.newOptions().addExecutorLzReceiveOption(170_000, 0)
+        });
+
+        enforcedOptions[1] = EnforcedOptionParam({
+            eid: dstEid,
+            msgType: 2,
+            options: OptionsBuilder.newOptions().addExecutorLzReceiveOption(170_000, 0).addExecutorLzComposeOption(
+                0, 170_000, 0
+            )
+        });
+
+        encodedEnforcedOptions =
+            abi.encodeWithSelector(IOAppOptionsType3.setEnforcedOptions.selector, enforcedOptions);
     }
 
     function configureDVNs(uint256[] memory dstChainIds) internal {
@@ -518,6 +603,52 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
         }
     }
 
+    function getConfigureDVNsTX(uint256 dstChainId)
+        internal
+        view
+        returns (address lzEndpoint, bytes memory encodedSendTx, bytes memory encodedReceiveTx)
+    {
+        Data storage data = getData(block.chainid);
+        uint32 dstEid = getEID(dstChainId);
+        bool isTestnet = isTestnetChainId(block.chainid);
+
+        address[] memory requiredDVNs = new address[](isTestnet ? 1 : 2);
+        uint64 confirmations = isTestnet ? 8 : 32;
+        uint8 requiredDVNCount = isTestnet ? 1 : 2;
+
+        if (isTestnet) {
+            requiredDVNs[0] = data.LZ_DVN;
+        } else {
+            if (data.LZ_DVN > data.NETHERMIND_DVN) {
+                requiredDVNs[0] = data.NETHERMIND_DVN;
+                requiredDVNs[1] = data.LZ_DVN;
+            } else {
+                requiredDVNs[0] = data.LZ_DVN;
+                requiredDVNs[1] = data.NETHERMIND_DVN;
+            }
+        }
+
+        UlnConfig memory ulnConfig = UlnConfig({
+            confirmations: confirmations,
+            requiredDVNCount: requiredDVNCount,
+            optionalDVNCount: 0,
+            optionalDVNThreshold: 0,
+            requiredDVNs: requiredDVNs,
+            optionalDVNs: new address[](0)
+        });
+
+        SetConfigParam[] memory params = new SetConfigParam[](1);
+        params[0] = SetConfigParam(dstEid, CONFIG_TYPE_ULN, abi.encode(ulnConfig));
+
+        lzEndpoint = getData(block.chainid).LZ_ENDPOINT;
+        encodedSendTx = abi.encodeWithSelector(
+            IMessageLibManager.setConfig.selector, currentDeployment.oftAdapter, data.LZ_SEND_LIB, params
+        );
+        encodedReceiveTx = abi.encodeWithSelector(
+            IMessageLibManager.setConfig.selector, currentDeployment.oftAdapter, data.LZ_RECEIVE_LIB, params
+        );
+    }
+
     function configureExecutor(uint256[] memory dstChainIds) internal {
         console.log("Configuring executor...");
 
@@ -539,5 +670,24 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
 
             console.log("Set executor for chainid %d", chainId);
         }
+    }
+
+    function getConfigureExecutorTX(uint256 dstChainId)
+        internal
+        view
+        returns (address lzEndpoint, bytes memory encodedExecutorTx)
+    {
+        Data storage data = getData(block.chainid);
+        uint32 dstEid = getEID(dstChainId);
+        ExecutorConfig memory executorConfig =
+            ExecutorConfig({maxMessageSize: DEFAULT_MAX_MESSAGE_SIZE, executor: data.LZ_EXECUTOR});
+
+        SetConfigParam[] memory params = new SetConfigParam[](1);
+        params[0] = SetConfigParam(dstEid, CONFIG_TYPE_EXECUTOR, abi.encode(executorConfig));
+
+        lzEndpoint = getData(block.chainid).LZ_ENDPOINT;
+        encodedExecutorTx = abi.encodeWithSelector(
+            IMessageLibManager.setConfig.selector, currentDeployment.oftAdapter, data.LZ_SEND_LIB, params
+        );
     }
 }
