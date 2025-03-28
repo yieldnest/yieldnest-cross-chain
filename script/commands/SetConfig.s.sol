@@ -130,7 +130,7 @@ contract CreateDVNConfigTX is BaseData, BaseScript {
 }
 
 contract ConfigureDVNs is CreateDVNConfigTX {
-    function run(string memory deploymentPath, string memory inputPath) external {
+    function run(string memory inputPath, string memory deploymentPath) external {
         if (l2OFTAdapter.owner() == msg.sender) {
             uint256[] memory dstChainIds = _getChainIds(inputPath, deploymentPath);
 
@@ -160,7 +160,7 @@ contract ConfigureDVNs is CreateDVNConfigTX {
 }
 
 contract CreateBatchDVNTX is CreateDVNConfigTX, BatchScript {
-    function run(string memory deploymentPath, string memory inputPath) external {
+    function run(string memory inputPath, string memory deploymentPath) external {
         uint256[] memory dstChainIds = _getChainIds(inputPath, deploymentPath);
         bytes[] memory encodedTransactions = createBatchDVNTX(dstChainIds);
 
