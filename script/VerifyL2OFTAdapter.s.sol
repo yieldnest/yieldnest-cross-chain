@@ -9,9 +9,9 @@ import {
     IMessageLibManager
 } from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroEndpointV2.sol";
 
-import {L2YnERC20Upgradeable} from "@/L2YnERC20Upgradeable.sol";
-import {L2YnOFTAdapterUpgradeable} from "@/L2YnOFTAdapterUpgradeable.sol";
-import {ImmutableMultiChainDeployer} from "@/factory/ImmutableMultiChainDeployer.sol";
+import {L2YnERC20Upgradeable} from "src/L2YnERC20Upgradeable.sol";
+import {L2YnOFTAdapterUpgradeable} from "src/L2YnOFTAdapterUpgradeable.sol";
+import {ImmutableMultiChainDeployer} from "src/factory/ImmutableMultiChainDeployer.sol";
 
 import {IOAppCore} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/interfaces/IOAppCore.sol";
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";

@@ -4,9 +4,6 @@ pragma solidity ^0.8.24;
 
 import {TimelockController} from "@openzeppelin/contracts/governance/TimelockController.sol";
 
-import {L1YnOFTAdapterUpgradeable} from "@/L1YnOFTAdapterUpgradeable.sol";
-import {L2YnERC20Upgradeable as LegacyL2YnERC20Upgradeable} from "@/legacy/L2YnERC20Upgradeable.sol";
-import {L2YnOFTAdapterUpgradeable as LegacyL2YnOFTAdapterUpgradeable} from "@/legacy/L2YnOFTAdapterUpgradeable.sol";
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
 import {ILayerZeroEndpointV2} from
     "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroEndpointV2.sol";
@@ -14,6 +11,10 @@ import {TransparentUpgradeableProxy} from
     "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {Test} from "forge-std/Test.sol";
 import {Test} from "forge-std/Test.sol";
+import {L1YnOFTAdapterUpgradeable} from "src/L1YnOFTAdapterUpgradeable.sol";
+import {L2YnERC20Upgradeable as LegacyL2YnERC20Upgradeable} from "src/legacy/L2YnERC20Upgradeable.sol";
+import {L2YnOFTAdapterUpgradeable as LegacyL2YnOFTAdapterUpgradeable} from
+    "src/legacy/L2YnOFTAdapterUpgradeable.sol";
 
 import {console2} from "forge-std/console2.sol";
 import {ImmutableMultiChainDeployer as LegacyImmutableMultiChainDeployer} from
@@ -38,13 +39,12 @@ contract TestLegacyDeployment is CrossChainBaseTest {
 
     address public correctERC20Address = 0xE231DB5F348d709239Ef1741EA30961B3B635a61;
     address public correctLegacyDeployerAddress = 0xDE21c853BA39e77251a90dBB0b4C3d94463EbCfA;
-    address public deployerAddress = address(0x4C51Ce7B2546e18449fbE16738A8D55bc195a4dd);
+    address public deployerAddress = 0x4C51Ce7B2546e18449fbE16738A8D55bc195a4dd;
+    address public ownerAddress = 0x54d4F70a7a8f4E5209F8B21cC4e88440B9192160;
 
     function setUp() public virtual override {
-        super.setUp();
-        hemiFork = vm.createFork(vm.envString("HEMI_RPC_URL"));
+        hemiFork = vm.createSelectFork(vm.envString("HEMI_RPC_URL"));
 
-        vm.selectFork(hemiFork);
         hemiEid = hemiLzEndpoint.eid();
 
         RateLimiter.RateLimitConfig[] memory _rateLimitConfigs = new RateLimiter.RateLimitConfig[](4);
@@ -57,8 +57,11 @@ contract TestLegacyDeployment is CrossChainBaseTest {
         _rateLimitConfigs[3] = RateLimiter.RateLimitConfig({dstEid: hemiEid, limit: 1000000 ether, window: 1 days});
 
         vm.startPrank(deployerAddress);
+
         bytes32 deployerSalt = createLegacySalt(deployerAddress, "MultiChainDeployer");
         hemiDeployer = new LegacyImmutableMultiChainDeployer{salt: deployerSalt}();
+
+        console2.logBytes32(deployerSalt);
 
         bytes32 hemiERC20Salt = createLegacySalt(deployerAddress, "L2YnERC20");
         bytes32 hemiERC20ProxySalt = createLegacySalt(deployerAddress, "L2YnERC20Proxy");
@@ -70,7 +73,7 @@ contract TestLegacyDeployment is CrossChainBaseTest {
                 hemiERC20ProxySalt,
                 "Test Token",
                 "TEST",
-                _owner,
+                ownerAddress,
                 _controller,
                 _l2YnERC20UpgradeableByteCode
             )

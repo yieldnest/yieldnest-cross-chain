@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {L1YnOFTAdapterUpgradeable} from "@/L1YnOFTAdapterUpgradeable.sol";
+import {L1YnOFTAdapterUpgradeable} from "src/L1YnOFTAdapterUpgradeable.sol";
 
 contract L1OFTAdapterMock is L1YnOFTAdapterUpgradeable {
     constructor(address _token, address _lzEndpoint) L1YnOFTAdapterUpgradeable(_token, _lzEndpoint) {

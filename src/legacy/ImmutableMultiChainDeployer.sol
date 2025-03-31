@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {IImmutableMultiChainDeployer} from "@/legacy/IImmutableMultiChainDeployer.sol";
-import {L2YnERC20Upgradeable} from "@/legacy/L2YnERC20Upgradeable.sol";
-import {L2YnOFTAdapterUpgradeable} from "@/legacy/L2YnOFTAdapterUpgradeable.sol";
+import {L2YnERC20Upgradeable} from "@/L2YnERC20Upgradeable.sol";
+import {L2YnOFTAdapterUpgradeable} from "@/L2YnOFTAdapterUpgradeable.sol";
+import {IImmutableMultiChainDeployer} from "@/interfaces/IImmutableMultiChainDeployer.sol";
 import {TransparentUpgradeableProxy} from
     "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {CREATE3} from "solmate/utils/CREATE3.sol";

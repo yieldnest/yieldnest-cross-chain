@@ -4,9 +4,9 @@ pragma solidity ^0.8.24;
 
 import {BaseScript} from "./BaseScript.s.sol";
 
-import {L2YnERC20Upgradeable} from "@/L2YnERC20Upgradeable.sol";
-import {L2YnOFTAdapterUpgradeable} from "@/L2YnOFTAdapterUpgradeable.sol";
-import {ImmutableMultiChainDeployer} from "@/factory/ImmutableMultiChainDeployer.sol";
+import {L2YnERC20Upgradeable} from "src/L2YnERC20Upgradeable.sol";
+import {L2YnOFTAdapterUpgradeable} from "src/L2YnOFTAdapterUpgradeable.sol";
+import {ImmutableMultiChainDeployer} from "src/factory/ImmutableMultiChainDeployer.sol";
 
 import {ProxyAdmin} from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 

@@ -4,7 +4,7 @@ pragma solidity ^0.8.24;
 
 import {BaseScript} from "./BaseScript.s.sol";
 
-import {L1YnOFTAdapterUpgradeable} from "@/L1YnOFTAdapterUpgradeable.sol";
+import {L1YnOFTAdapterUpgradeable} from "src/L1YnOFTAdapterUpgradeable.sol";
 
 import {
     ProxyAdmin,

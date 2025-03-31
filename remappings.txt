@@ -4,7 +4,7 @@
 solidity-bytes-utils/=node_modules/solidity-bytes-utils/
 hardhat-deploy/=node_modules/hardhat-deploy/
 
-@/=src/
+@/=src/legacy/
 
 forge-std/=lib/forge-std/src/
 solmate/=lib/solmate/src/
