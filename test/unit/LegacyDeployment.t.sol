@@ -57,9 +57,9 @@ contract TestLegacyDeployment is CrossChainBaseTest {
         _rateLimitConfigs[3] = RateLimiter.RateLimitConfig({dstEid: hemiEid, limit: 1000000 ether, window: 1 days});
 
         vm.startPrank(deployerAddress);
-
         bytes32 deployerSalt = createLegacySalt(deployerAddress, "MultiChainDeployer");
         hemiDeployer = new LegacyImmutableMultiChainDeployer{salt: deployerSalt}();
+
         bytes32 hemiERC20Salt = createLegacySalt(deployerAddress, "L2YnERC20");
         bytes32 hemiERC20ProxySalt = createLegacySalt(deployerAddress, "L2YnERC20Proxy");
         bytes memory _l2YnERC20UpgradeableByteCode = type(LegacyL2YnERC20Upgradeable).creationCode;
