@@ -125,7 +125,7 @@ contract TestLegacyDeployment is CrossChainBaseTest {
         string memory _label
     )
         internal
-        view
+        pure
         returns (bytes32 _salt)
     {
         _salt = bytes32(
