@@ -86,7 +86,6 @@ contract ImmutableMultiChainDeployer is IImmutableMultiChainDeployer {
         bytes32 _proxySalt,
         string calldata _name,
         string calldata _symbol,
-        uint8 _decimals,
         address _owner,
         address _proxyController,
         bytes memory _l2YnERC20UpgradeableByteCode
@@ -96,7 +95,7 @@ contract ImmutableMultiChainDeployer is IImmutableMultiChainDeployer {
         returns (address deployedContract)
     {
         bytes memory _initializeArgs =
-            abi.encodeWithSelector(L2YnERC20Upgradeable.initialize.selector, _name, _symbol, _decimals, _owner);
+            abi.encodeWithSelector(L2YnERC20Upgradeable.initialize.selector, _name, _symbol, _owner);
         deployedContract = deployContractAndProxy(
             _implSalt, _proxySalt, _proxyController, _l2YnERC20UpgradeableByteCode, _initializeArgs
         );
