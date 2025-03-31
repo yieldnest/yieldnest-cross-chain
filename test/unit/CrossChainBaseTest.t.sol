@@ -54,9 +54,9 @@ contract CrossChainBaseTest is Test {
 
     function setUp() public virtual {
         // create forks
-        optimismFork = vm.createFork(vm.envString("OPTIMISM_RPC_URL"), 124909408);
-        arbitrumFork = vm.createFork(vm.envString("ARBITRUM_RPC_URL"), 249855816);
-        mainnetFork = vm.createFork(vm.envString("MAINNET_RPC_URL"), 20674289);
+        optimismFork = vm.createFork(vm.envString("OPTIMISM_RPC_URL"), 133894558);
+        arbitrumFork = vm.createFork(vm.envString("ARBITRUM_RPC_URL"), 321312456);
+        mainnetFork = vm.createFork(vm.envString("MAINNET_RPC_URL"), 22163892);
 
         vm.selectFork(mainnetFork);
         mainnetEid = mainnetLzEndpoint.eid();

@@ -4,6 +4,7 @@ pragma solidity ^0.8.24;
 import {CrossChainBaseTest} from "./CrossChainBaseTest.t.sol";
 
 import {ImmutableMultiChainDeployer} from "@/factory/ImmutableMultiChainDeployer.sol";
+import {CREATE3Factory} from "src/factory/CREATE3Factory.sol";
 
 contract MultiChainDeployerTest is CrossChainBaseTest {
     function test_Deployment() public view {
