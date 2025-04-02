@@ -4,7 +4,7 @@ pragma solidity ^0.8.24;
 
 import {L2YnOFTAdapterUpgradeable} from "../../src/L2YnOFTAdapterUpgradeable.sol";
 import {BaseData} from "../BaseData.s.sol";
-import {BaseScript} from "../BaseScript.s.sol";
+import {BaseScript, ChainDeployment, Deployment} from "../BaseScript.s.sol";
 import {BatchScript} from "../BatchScript.s.sol";
 import {UlnConfig} from "@layerzerolabs/lz-evm-messagelib-v2/contracts/uln/UlnBase.sol";
 import {OptionsBuilder} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/libs/OptionsBuilder.sol";
@@ -12,17 +12,26 @@ import {ILayerZeroEndpointV2} from
     "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroEndpointV2.sol";
 import {IMessageLibManager} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/IMessageLibManager.sol";
 import {SetConfigParam} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/IMessageLibManager.sol";
-
 import {console} from "forge-std/console.sol";
+
+interface IERC20 {
+    function symbol() external view returns (string memory);
+    function name() external view returns (string memory);
+    function decimals() external view returns (uint8);
+}
+
+interface IOFTAdapter {
+    function owner() external view returns (address);
+}
 
 contract CreateConfigTX is BaseData, BaseScript {
     using OptionsBuilder for bytes;
 
-    L2YnOFTAdapterUpgradeable public l2OFTAdapter;
+    address oftOwner;
 
     function _getChainIds(
-        string memory inputPath,
-        string memory deploymentPath
+        string calldata inputPath,
+        string calldata deploymentPath
     )
         internal
         returns (uint256[] memory)
@@ -37,7 +46,12 @@ contract CreateConfigTX is BaseData, BaseScript {
         address oftAdapter = abi.decode(
             vm.parseJson(json, string.concat(".chains.", vm.toString(sourceChainId), ".oftAdapter")), (address)
         );
-        l2OFTAdapter = L2YnOFTAdapterUpgradeable(oftAdapter);
+
+        address deployer = abi.decode(vm.parseJson(json, string.concat(".deployerAddress")), (address));
+
+        address oftOwner = getData(sourceChainId).OFT_OWNER;
+
+        _checkOftOwner(oftAdapter, oftOwner, deployer);
 
         require(isSupportedChainId(sourceChainId), "Unsupported destination chain ID");
 
@@ -45,6 +59,7 @@ contract CreateConfigTX is BaseData, BaseScript {
 
         console.log("Chain ID: %s", block.chainid);
         console.log("Sender: %s", msg.sender);
+        console.log("OFT Owner: %s", oftOwner);
         console.log("Destination Chain ID: %s", sourceChainId);
         console.log("Destination EID: %s", destinationEid);
 
@@ -55,8 +70,20 @@ contract CreateConfigTX is BaseData, BaseScript {
                 dstChainIds[i] = baseInput.l1ChainId;
             }
         }
-
+        __loadInput(inputPath, deploymentPath);
         return dstChainIds;
+    }
+
+    function _checkOftOwner(address oftAdapter, address owner, address deployer) internal {
+        IOFTAdapter oftAdapter = IOFTAdapter(oftAdapter);
+        address oftOwner = oftAdapter.owner();
+        if (oftOwner != owner && deployer == oftOwner) {
+            revert("OFT Owner is still the deployer");
+        } else if (oftOwner != owner && deployer != oftOwner) {
+            revert("OFT Owner is not security council or deployer");
+        } else {
+            revert("OFT Owner unknown");
+        }
     }
 
     function __loadJson(string memory _path) private {
@@ -80,19 +107,71 @@ contract CreateConfigTX is BaseData, BaseScript {
         baseInput.rateLimitConfig.limit = vm.parseJsonUint(json, ".rateLimitConfig.limit");
         baseInput.rateLimitConfig.window = vm.parseJsonUint(json, ".rateLimitConfig.window");
     }
+
+    function __loadInput(string calldata _inputPath, string memory _deploymentPath) internal {
+        console.log("Loading Input: ");
+        _loadJson(_inputPath);
+        _validateInput();
+        bool isL1 = _getIsL1();
+        console.log("Loading Deployment: ");
+        _loadDeployment(_deploymentPath);
+        console.log("deployment loaded");
+        if (deployment.deployerAddress != address(0)) {
+            require(deployment.deployerAddress == msg.sender, "Invalid Deployer");
+        }
+        for (uint256 i; i < deployment.chains.length; i++) {
+            if (deployment.chains[i].chainId == block.chainid) {
+                currentDeployment = deployment.chains[i];
+                break;
+            }
+        }
+        currentDeployment.chainId = block.chainid;
+
+        assert(currentDeployment.chainId != 0);
+        currentDeployment.isL1 = isL1;
+        if (isL1) {
+            currentDeployment.erc20Address = baseInput.l1ERC20Address;
+            require(
+                keccak256(bytes(IERC20(baseInput.l1ERC20Address).symbol()))
+                    == keccak256(bytes(baseInput.erc20Symbol)),
+                "Invalid ERC20 Symbol"
+            );
+
+            require(
+                keccak256(bytes(IERC20(baseInput.l1ERC20Address).name())) == keccak256(bytes(baseInput.erc20Name)),
+                "Invalid ERC20 Name"
+            );
+
+            require(
+                IERC20(baseInput.l1ERC20Address).decimals() == baseInput.erc20Decimals, "Invalid ERC20 Decimals"
+            );
+        }
+        currentDeployment.lzEndpoint = getData(block.chainid).LZ_ENDPOINT;
+        currentDeployment.lzEID = getEID(block.chainid);
+        require(
+            deployment.deployerAddress == address(0) || deployment.deployerAddress == msg.sender,
+            "Invalid Deployer Address"
+        );
+    }
 }
 
-contract CreateBatchConfigTX is CreateConfigTX, BatchScript {
-    function run(string memory inputPath, string memory deploymentPath) external {
+// source .env && forge script script/commands/SetConfig.s.sol:CreateBatchConfigTX -s "run(string,string)"
+// /script/inputs/holesky-ynETH.json deployments/ynETHx-17000-v0.0.1.json --rpc-url $HOLESKY_RPC_URL -vvvv
+// --account $DEPLOYER_ACCOUNT_NAME--sender $DEPLOYER_ADDRESS
+contract CreateBatchConfigTX is BaseScript, CreateConfigTX, BatchScript {
+    function run(string calldata inputPath, string calldata deploymentPath) external {
         uint256[] memory dstChainIds = _getChainIds(inputPath, deploymentPath);
-
         address adapter;
         bytes memory encodedTx;
+        console.log("Encoding Txns: ");
 
         for (uint256 i = 0; i < dstChainIds.length; i++) {
-            (adapter, encodedTx) = getConfigureRateLimitsTX();
-            _addToBatch(adapter, encodedTx);
+            console.log("Encoding Rate Limits: ", dstChainIds[i]);
 
+            (adapter, encodedTx) = getConfigureRateLimitsTX();
+            console.log("adding rate limits to batch");
+            _addToBatch(adapter, encodedTx);
+            console.log("Encoded Configure Peers: ");
             (adapter, encodedTx) = getConfigurePeersTX(dstChainIds[i]);
             _addToBatch(adapter, encodedTx);
 
@@ -121,7 +200,16 @@ contract CreateBatchConfigTX is CreateConfigTX, BatchScript {
         }
     }
 
-    function _addToBatch(address adapter, bytes memory encodedTx) internal {
+    function _getDeployment(uint256 chainid) internal view returns (ChainDeployment memory) {
+        for (uint256 i = 0; i < deployment.chains.length; i++) {
+            if (deployment.chains[i].chainId == chainid) {
+                return deployment.chains[i];
+            }
+        }
+    }
+
+    function _addToBatch(address adapter, bytes memory encodedTx) internal isBatch(oftOwner) {
+        require(oftOwner != address(0), "Current Safe is not set");
         if (adapter != address(0) && encodedTx.length > 0) {
             addToBatch(adapter, 0, encodedTx);
         }
