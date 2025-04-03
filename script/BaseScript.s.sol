@@ -3,24 +3,26 @@
 pragma solidity ^0.8.24;
 
 import {BaseData} from "./BaseData.s.sol";
+import {CREATE3Script} from "./CREATE3Script.sol";
+import {Utils} from "./Utils.sol";
 
-import {L1YnOFTAdapterUpgradeable} from "@/L1YnOFTAdapterUpgradeable.sol";
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
-import {OFTAdapterUpgradeable} from "@layerzerolabs/oft-evm-upgradeable/contracts/oft/OFTAdapterUpgradeable.sol";
 
-import {TimelockController} from "@openzeppelin/contracts/governance/TimelockController.sol";
-import {TransparentUpgradeableProxy} from
-    "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {IERC20Metadata as IERC20} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {CREATE3Script} from "script/CREATE3Script.sol";
 import {Utils} from "script/Utils.sol";
 
 import {Bytes32AddressLib} from "solmate/utils/Bytes32AddressLib.sol";
 
-import {ILayerZeroEndpointV2} from
-    "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroEndpointV2.sol";
+import {OptionsBuilder} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/libs/OptionsBuilder.sol";
+
+import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
 
 import {console} from "forge-std/console.sol";
+
+import {ILayerZeroEndpointV2} from
+    "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroEndpointV2.sol";
+import {OFTAdapterUpgradeable} from "@layerzerolabs/oft-evm-upgradeable/contracts/oft/OFTAdapterUpgradeable.sol";
 
 import {EnforcedOptionParam} from "@layerzerolabs/oapp-evm/contracts/oapp/interfaces/IOAppOptionsType3.sol";
 
@@ -29,8 +31,6 @@ import {SetConfigParam} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interf
 import {UlnConfig} from "@layerzerolabs/lz-evm-messagelib-v2/contracts/uln/UlnBase.sol";
 
 import {ExecutorConfig} from "@layerzerolabs/lz-evm-messagelib-v2/contracts/SendLibBase.sol";
-
-import {OptionsBuilder} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/libs/OptionsBuilder.sol";
 
 interface IOFTRateLimiter {
     function setRateLimits(RateLimiter.RateLimitConfig[] calldata _rateLimitConfigs) external;
@@ -54,8 +54,6 @@ struct BaseInput {
 struct Deployment {
     ChainDeployment[] chains;
     address deployerAddress;
-    string erc20Name;
-    string erc20Symbol;
 }
 
 struct ChainDeployment {
@@ -70,12 +68,6 @@ struct ChainDeployment {
     address oftAdapterProxyAdmin;
     address oftAdapterImplementation;
     address oftAdapterTimelock;
-}
-
-struct PredictedAddresses {
-    address l1OFTAdapter;
-    address l2ERC20;
-    address l2OFTAdapter;
 }
 
 struct PeerConfig {
@@ -100,7 +92,6 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
     BaseInput public baseInput;
     Deployment public deployment;
     ChainDeployment public currentDeployment;
-    PredictedAddresses public predictions;
     string private constant VERSION = "v0.0.1";
 
     error InvalidDVN();
@@ -163,34 +154,10 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
         }
         currentDeployment.lzEndpoint = getData(block.chainid).LZ_ENDPOINT;
         currentDeployment.lzEID = getEID(block.chainid);
-        _loadPredictions();
         require(
             deployment.deployerAddress == address(0) || deployment.deployerAddress == msg.sender,
             "Invalid Deployer Address"
         );
-    }
-
-    function _loadPredictions() internal {
-        {
-            bytes32 proxySalt = createL1YnOFTAdapterUpgradeableProxySalt();
-
-            address predictedAddress = CREATE3_FACTORY.getDeployed(msg.sender, proxySalt);
-            predictions.l1OFTAdapter = predictedAddress;
-        }
-
-        {
-            bytes32 salt = createL2YnOFTAdapterUpgradeableProxySalt();
-
-            address predictedAddress = CREATE3_FACTORY.getDeployed(msg.sender, salt);
-            predictions.l2OFTAdapter = predictedAddress;
-        }
-
-        {
-            bytes32 salt = createL2YnERC20UpgradeableProxySalt();
-
-            address predictedAddress = CREATE3_FACTORY.getDeployed(msg.sender, salt);
-            predictions.l2ERC20 = predictedAddress;
-        }
     }
 
     function _validateInput() internal view {
@@ -353,36 +320,24 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
         baseInput.rateLimitConfig.window = vm.parseJsonUint(json, ".rateLimitConfig.window");
     }
 
-    function createL1YnOFTAdapterUpgradeableProxySalt() internal view returns (bytes32 _salt) {
-        _salt = createSalt("L1YnOFTAdapterProxy");
+    function createOFTAdapterProxySalt() internal view returns (bytes32 _salt) {
+        _salt = createSalt("OFTAdapterProxy");
     }
 
-    function createL1YnOFTAdapterUpgradeableSalt() internal view returns (bytes32 _salt) {
-        _salt = createSalt("L1YnOFTAdapter");
+    function createOFTAdapterImplementationSalt() internal view returns (bytes32 _salt) {
+        _salt = createSalt("OFTAdapterImplementation");
     }
 
-    function createL2YnOFTAdapterUpgradeableProxySalt() internal view returns (bytes32 _salt) {
-        _salt = createSalt("L2YnOFTAdapterProxy");
+    function createERC20ProxySalt() internal view returns (bytes32 _salt) {
+        _salt = createSalt("ERC20Proxy");
     }
 
-    function createL2YnOFTAdapterUpgradeableSalt() internal view returns (bytes32 _salt) {
-        _salt = createSalt("L2YnOFTAdapter");
+    function createERC20ImplementationSalt() internal view returns (bytes32 _salt) {
+        _salt = createSalt("ERC20Implementation");
     }
 
-    function createL2YnERC20UpgradeableProxySalt() internal view returns (bytes32 _salt) {
-        _salt = createSalt("L2YnERC20Proxy");
-    }
-
-    function createL2YnERC20UpgradeableSalt() internal view returns (bytes32 _salt) {
-        _salt = createSalt("L2YnERC20");
-    }
-
-    function createL1YnOFTAdapterTimelockSalt() internal view returns (bytes32 _salt) {
-        _salt = createSalt("L1YnOFTTimelock");
-    }
-
-    function createL2YnOFTAdapterTimelockSalt() internal view returns (bytes32 _salt) {
-        _salt = createSalt("L2YnOFTTimelock");
+    function createTimelockSalt() internal view returns (bytes32 _salt) {
+        _salt = createSalt("OFTTimelock");
     }
 
     function createSalt(string memory _label) internal view returns (bytes32 _salt) {
@@ -404,38 +359,13 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
         return (size > 0);
     }
 
-    function _predictTimelockController(
-        address deployer,
-        bytes32 timelockSalt
-    )
-        internal
-        virtual
-        returns (address)
-    {
-        return CREATE3_FACTORY.getDeployed(deployer, timelockSalt);
-    }
-
-    function _deployTimelockController(
-        bytes32 timelockSalt,
-        uint256 chainId
-    )
-        internal
-        virtual
-        returns (address timelock)
-    {
-        address admin = getData(chainId).PROXY_ADMIN;
-
-        address[] memory proposers = new address[](1);
-        proposers[0] = admin;
-
-        address[] memory executors = new address[](1);
-        executors[0] = admin;
-
-        uint256 minDelay = getMinDelay(chainId);
-        bytes memory constructorParams = abi.encode(minDelay, proposers, executors, admin);
-        bytes memory contractCode = abi.encodePacked(type(TimelockController).creationCode, constructorParams);
-
-        timelock = CREATE3_FACTORY.deploy(timelockSalt, contractCode);
+    function findChainDeployment(uint256 chainId) internal view returns (ChainDeployment memory) {
+        for (uint256 i = 0; i < deployment.chains.length; i++) {
+            if (deployment.chains[i].chainId == chainId) {
+                return deployment.chains[i];
+            }
+        }
+        revert(string.concat("Deployment for chain ", vm.toString(chainId), " not found"));
     }
 
     function configureRateLimits() internal {
@@ -455,7 +385,9 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
         for (uint256 i = 0; i < dstChainIds.length; i++) {
             uint256 chainId = dstChainIds[i];
             uint32 eid = getEID(chainId);
-            address adapter = chainId == baseInput.l1ChainId ? predictions.l1OFTAdapter : predictions.l2OFTAdapter;
+
+            ChainDeployment memory chainDeployment = findChainDeployment(chainId);
+            address adapter = chainDeployment.oftAdapter;
             bytes32 adapterBytes32 = addressToBytes32(adapter);
             if (oftAdapter.peers(eid) == adapterBytes32) {
                 console.log("Already set peer for chainid %d", chainId);
@@ -607,14 +539,5 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
 
             console.log("Set executor for chainid %d", chainId);
         }
-    }
-
-    function findChainDeployment(uint256 chainId) internal view returns (ChainDeployment memory) {
-        for (uint256 i = 0; i < deployment.chains.length; i++) {
-            if (deployment.chains[i].chainId == chainId) {
-                return deployment.chains[i];
-            }
-        }
-        revert(string.concat("Deployment for chain ", vm.toString(chainId), " not found"));
     }
 }
