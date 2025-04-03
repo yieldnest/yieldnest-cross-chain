@@ -58,6 +58,7 @@ DEPLOYER_ACCOUNT_NAME=${DEPLOYER_ACCOUNT_NAME:-"yieldnestDeployerKey"}
 L1_CHAIN_ID=$(jq -r ".l1ChainId" "$INPUT_PATH")
 ERC20_NAME=$(jq -r ".erc20Name" "$INPUT_PATH")
 ERC20_SYMBOL=$(jq -r ".erc20Symbol" "$INPUT_PATH")
+ERC20_DECIMALS=$(jq -r ".erc20Decimals" "$INPUT_PATH")
 L2_CHAIN_IDS_ARRAY=$(jq -r ".l2ChainIds" "$INPUT_PATH" | jq -r ".[]")
 
 # verify env variables
@@ -87,6 +88,8 @@ function broadcast() {
         forge script "$1" "${defaultArgs[@]}" --verifier etherscan --verifier-url "https://api.bscscan.com/api" --verifier-api-key "$BSCSCAN_API_KEY" --chain 56
     elif [[ $3 == "hemi" ]]; then
         forge script "$1" "${defaultArgs[@]}" --verifier blockscout --verifier-url "https://explorer.hemi.xyz/api" --chain 43111
+    elif [[ $3 == "ink" ]]; then
+        forge script "$1" "${defaultArgs[@]}" --verifier blockscout --verifier-url "https://explorer.inkonchain.com/api" --chain 57073
     else
         forge script "$1" "${defaultArgs[@]}" --etherscan-api-key "$4"
     fi
