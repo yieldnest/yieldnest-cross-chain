@@ -24,7 +24,7 @@ interface IOFTAdapter {
     function owner() external view returns (address);
 }
 
-contract CreateConfigTX is BaseData, BaseScript {
+contract CreateConfigTx is BaseData, BaseScript {
     using OptionsBuilder for bytes;
 
     address oftOwner;
@@ -41,7 +41,7 @@ contract CreateConfigTX is BaseData, BaseScript {
         // Load deployment config
         string memory json = vm.readFile(deploymentPath);
 
-        __loadJson(inputPath);
+        __loadInput(inputPath, deploymentPath);
 
         address oftAdapter = abi.decode(
             vm.parseJson(json, string.concat(".chains.", vm.toString(sourceChainId), ".oftAdapter")), (address)
@@ -49,7 +49,7 @@ contract CreateConfigTX is BaseData, BaseScript {
 
         address deployer = abi.decode(vm.parseJson(json, string.concat(".deployerAddress")), (address));
 
-        address oftOwner = getData(sourceChainId).OFT_OWNER;
+        oftOwner = getData(sourceChainId).OFT_OWNER;
 
         _checkOftOwner(oftAdapter, oftOwner, deployer);
 
@@ -70,19 +70,17 @@ contract CreateConfigTX is BaseData, BaseScript {
                 dstChainIds[i] = baseInput.l1ChainId;
             }
         }
-        __loadInput(inputPath, deploymentPath);
+
         return dstChainIds;
     }
 
-    function _checkOftOwner(address oftAdapter, address owner, address deployer) internal {
-        IOFTAdapter oftAdapter = IOFTAdapter(oftAdapter);
-        address oftOwner = oftAdapter.owner();
-        if (oftOwner != owner && deployer == oftOwner) {
+    function _checkOftOwner(address _oftAdapter, address owner, address deployer) internal view {
+        IOFTAdapter adapter = IOFTAdapter(_oftAdapter);
+        address _oftOwner = adapter.owner();
+        if (_oftOwner != owner && deployer == _oftOwner) {
             revert("OFT Owner is still the deployer");
-        } else if (oftOwner != owner && deployer != oftOwner) {
+        } else if (_oftOwner != owner && deployer != _oftOwner) {
             revert("OFT Owner is not security council or deployer");
-        } else {
-            revert("OFT Owner unknown");
         }
     }
 
@@ -113,9 +111,7 @@ contract CreateConfigTX is BaseData, BaseScript {
         _loadJson(_inputPath);
         _validateInput();
         bool isL1 = _getIsL1();
-        console.log("Loading Deployment: ");
         _loadDeployment(_deploymentPath);
-        console.log("deployment loaded");
         if (deployment.deployerAddress != address(0)) {
             require(deployment.deployerAddress == msg.sender, "Invalid Deployer");
         }
@@ -155,10 +151,10 @@ contract CreateConfigTX is BaseData, BaseScript {
     }
 }
 
-// source .env && forge script script/commands/SetConfig.s.sol:CreateBatchConfigTX -s "run(string,string)"
+// source .env && forge script script/commands/CreateConfigTx.s.sol:CreateBatchConfigTx -s "run(string,string)"
 // /script/inputs/holesky-ynETH.json deployments/ynETHx-17000-v0.0.1.json --rpc-url $HOLESKY_RPC_URL -vvvv
-// --account $DEPLOYER_ACCOUNT_NAME--sender $DEPLOYER_ADDRESS
-contract CreateBatchConfigTX is BaseScript, CreateConfigTX, BatchScript {
+// --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS
+contract CreateBatchConfigTx is BaseScript, CreateConfigTx, BatchScript {
     function run(string calldata inputPath, string calldata deploymentPath) external {
         uint256[] memory dstChainIds = _getChainIds(inputPath, deploymentPath);
         address adapter;
@@ -197,14 +193,6 @@ contract CreateBatchConfigTX is BaseScript, CreateConfigTX, BatchScript {
         console.log("Encoded Txns: ");
         for (uint256 i = 0; i < encodedTxns.length; i++) {
             console.logBytes(encodedTxns[i]);
-        }
-    }
-
-    function _getDeployment(uint256 chainid) internal view returns (ChainDeployment memory) {
-        for (uint256 i = 0; i < deployment.chains.length; i++) {
-            if (deployment.chains[i].chainId == chainid) {
-                return deployment.chains[i];
-            }
         }
     }
 
