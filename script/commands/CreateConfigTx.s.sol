@@ -151,6 +151,12 @@ contract CreateConfigTx is BaseData, BaseScript {
     }
 }
 
+/**
+ *  @dev when adding paths the first path is the input path for the original deployment and the second path is the
+ * deployment json
+ *  any added chains should be added to the input json.
+ */
+
 // source .env && forge script script/commands/CreateConfigTx.s.sol:CreateBatchConfigTx -s "run(string,string)"
 // /script/inputs/holesky-ynETH.json deployments/ynETHx-17000-v0.0.1.json --rpc-url $HOLESKY_RPC_URL -vvvv
 // --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS
