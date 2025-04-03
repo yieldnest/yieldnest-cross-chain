@@ -36,6 +36,7 @@ import {OptionsBuilder} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/libs/
 
 interface IOFTRateLimiter {
     function setRateLimits(RateLimiter.RateLimitConfig[] calldata _rateLimitConfigs) external;
+    function rateLimits(uint32 _eid) external view returns (RateLimiter.RateLimit memory);
 }
 
 struct RateLimitConfig {
@@ -511,18 +512,55 @@ contract BaseScript is BaseData, Utils {
         IOFTRateLimiter oftAdapter = IOFTRateLimiter(payable(currentDeployment.oftAdapter));
         vm.startBroadcast();
         oftAdapter.setRateLimits(_getRateLimitConfigs());
-        console.log("Set rate limits");
         vm.stopBroadcast();
     }
 
     function getConfigureRateLimitsTX()
         internal
         view
-        returns (address oftAdapter, bytes memory encodedRateLimitConfigs)
+        returns (address oftAdapterAddress, bytes memory encodedRateLimitConfigs)
     {
-        oftAdapter = currentDeployment.oftAdapter;
+        RateLimiter.RateLimitConfig[] memory rateLimitConfigs = _getRateLimitConfigs();
+        RateLimiter.RateLimitConfig[] memory newRateLimitConfigs =
+            new RateLimiter.RateLimitConfig[](rateLimitConfigs.length);
+        uint256 uniqueLimits = 0;
+        RateLimiter.RateLimit memory currentLimit;
+        // check for existing rate limits
+        for (uint256 i = 0; i < rateLimitConfigs.length; i++) {
+            currentLimit = _getCurrentRateLimit(rateLimitConfigs[i].dstEid);
+            if (
+                currentLimit.limit != rateLimitConfigs[i].limit
+                    || currentLimit.window != rateLimitConfigs[i].window
+            ) {
+                newRateLimitConfigs[uniqueLimits] = rateLimitConfigs[i];
+                uniqueLimits++;
+            }
+        }
+
+        if (uniqueLimits == 0) {
+            return (address(0), "");
+        }
+
+        RateLimiter.RateLimitConfig[] memory finalRateLimitConfigs =
+            new RateLimiter.RateLimitConfig[](uniqueLimits);
+        // copy new rate limits to final rate limits
+        for (uint256 i = 0; i < uniqueLimits; i++) {
+            finalRateLimitConfigs[i] = newRateLimitConfigs[i];
+        }
         encodedRateLimitConfigs =
-            abi.encodeWithSelector(IOFTRateLimiter.setRateLimits.selector, _getRateLimitConfigs());
+            abi.encodeWithSelector(IOFTRateLimiter.setRateLimits.selector, finalRateLimitConfigs);
+    }
+
+    function _getCurrentRateLimit(uint32 _eid) internal view returns (RateLimiter.RateLimit memory) {
+        IOFTRateLimiter rateLimiter = IOFTRateLimiter(currentDeployment.oftAdapter);
+
+        try rateLimiter.rateLimits(_eid) returns (RateLimiter.RateLimit memory rateLimit) {
+            console.log("Rate limit found for eid %d", _eid);
+            return rateLimit;
+        } catch {
+            console.log("No rate limit found for eid %d", _eid);
+            return RateLimiter.RateLimit({limit: 0, window: 0, amountInFlight: 0, lastUpdated: 0});
+        }
     }
 
     function configurePeers(uint256[] memory dstChainIds) internal {

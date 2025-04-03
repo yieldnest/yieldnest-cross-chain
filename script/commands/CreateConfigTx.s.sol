@@ -49,7 +49,7 @@ contract CreateConfigTx is BaseData, BaseScript {
 
         address deployer = abi.decode(vm.parseJson(json, string.concat(".deployerAddress")), (address));
 
-        oftOwner = getData(sourceChainId).OFT_OWNER;
+        oftOwner = 0x4C51Ce7B2546e18449fbE16738A8D55bc195a4dd; //getData(sourceChainId).OFT_OWNER;
 
         _checkOftOwner(oftAdapter, oftOwner, deployer);
 
@@ -168,12 +168,11 @@ contract CreateBatchConfigTx is BaseScript, CreateConfigTx, BatchScript {
         console.log("Encoding Txns: ");
 
         for (uint256 i = 0; i < dstChainIds.length; i++) {
-            console.log("Encoding Rate Limits: ", dstChainIds[i]);
+            console.log("Encoding Config Transactions for chain: ", dstChainIds[i]);
 
             (adapter, encodedTx) = getConfigureRateLimitsTX();
-            console.log("adding rate limits to batch");
             _addToBatch(adapter, encodedTx);
-            console.log("Encoded Configure Peers: ");
+
             (adapter, encodedTx) = getConfigurePeersTX(dstChainIds[i]);
             _addToBatch(adapter, encodedTx);
 
