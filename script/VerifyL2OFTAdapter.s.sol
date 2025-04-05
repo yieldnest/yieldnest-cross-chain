@@ -11,8 +11,6 @@ import {
 
 import {L2YnERC20Upgradeable} from "@/L2YnERC20Upgradeable.sol";
 import {L2YnOFTAdapterUpgradeable} from "@/L2YnOFTAdapterUpgradeable.sol";
-import {ImmutableMultiChainDeployer} from "@/factory/ImmutableMultiChainDeployer.sol";
-
 import {IOAppCore} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/interfaces/IOAppCore.sol";
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
 import {TimelockController} from "@openzeppelin/contracts/governance/TimelockController.sol";
@@ -24,7 +22,6 @@ import {console} from "forge-std/console.sol";
 // --account ${deployerAccountName} --sender ${deployer}
 
 contract VerifyL2OFTAdapter is BaseScript, BatchScript {
-    ImmutableMultiChainDeployer public multiChainDeployer;
     L2YnOFTAdapterUpgradeable public l2OFTAdapter;
     L2YnERC20Upgradeable public l2ERC20;
 
@@ -44,11 +41,6 @@ contract VerifyL2OFTAdapter is BaseScript, BatchScript {
         _loadInput(_jsonPath, _fullDeploymentPath);
 
         require(currentDeployment.isL1 != true, "Must be L2 deployment");
-
-        if (!isContract(currentDeployment.multiChainDeployer)) {
-            revert("ImmutableMultiChainDeployer not deployed");
-        }
-        multiChainDeployer = ImmutableMultiChainDeployer(currentDeployment.multiChainDeployer);
 
         if (!isContract(currentDeployment.erc20Address)) {
             revert("L2 ERC20 not deployed");
