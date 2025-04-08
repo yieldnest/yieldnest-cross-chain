@@ -24,7 +24,7 @@ abstract contract CREATE3Script {
         public
         returns (address proxy)
     {
-        bytes memory _constructorParams = abi.encode(_implementation, _controller, _initializeArgs);
+        bytes memory _constructorParams = abi.encode(_implementation, _initialOwner, _initializeArgs);
         bytes memory _contractCode =
             abi.encodePacked(type(TransparentUpgradeableProxy).creationCode, _constructorParams);
         proxy = CREATE3_FACTORY.deploy(_salt, _contractCode);
