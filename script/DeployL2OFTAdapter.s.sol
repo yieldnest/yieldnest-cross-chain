@@ -27,22 +27,6 @@ contract DeployL2OFTAdapter is BaseScript {
 
         require(currentDeployment.isL1 != true, "Must be L2 deployment");
 
-        bytes32 salt = createImmutableMultiChainDeployerSalt(msg.sender);
-
-        address predictedAddress = predictions.l2MultiChainDeployer;
-        if (!isContract(currentDeployment.multiChainDeployer)) {
-            vm.broadcast();
-            multiChainDeployer = new ImmutableMultiChainDeployer{salt: salt}();
-            console.log("Deployed ImmutableMultiChainDeployer at: ", address(multiChainDeployer));
-        } else {
-            console.log("Already deployed ImmutableMultiChainDeployer at: ", currentDeployment.multiChainDeployer);
-            multiChainDeployer = ImmutableMultiChainDeployer(predictedAddress);
-        }
-
-        require(address(multiChainDeployer) == predictedAddress, "Prediction mismatch");
-
-        currentDeployment.multiChainDeployer = address(multiChainDeployer);
-
         bytes32 proxySalt = createL2YnERC20UpgradeableProxySalt(msg.sender);
         bytes32 implementationSalt = createL2YnERC20UpgradeableSalt(msg.sender);
         bytes32 timelockSalt = createL2YnOFTAdapterTimelockSalt(msg.sender);
@@ -52,7 +36,7 @@ contract DeployL2OFTAdapter is BaseScript {
         address predictedERC20 = multiChainDeployer.getDeployed(proxySalt);
         require(predictedERC20 == predictions.l2ERC20, "Prediction mismatch");
 
-        address timelock = _predictTimelockController(timelockSalt, block.chainid);
+        address timelock = _predictTimelockController(deployer, timelockSalt);
 
         if (!isContract(timelock)) {
             vm.startBroadcast();
@@ -67,15 +51,14 @@ contract DeployL2OFTAdapter is BaseScript {
             vm.startBroadcast();
 
             l2ERC20 = L2YnERC20Upgradeable(
-                multiChainDeployer.deployL2YnERC20(
+                deployL2YnERC20(
                     implementationSalt,
                     proxySalt,
                     baseInput.erc20Name,
                     baseInput.erc20Symbol,
                     baseInput.erc20Decimals,
                     deployer,
-                    timelock,
-                    type(L2YnERC20Upgradeable).creationCode
+                    timelock
                 )
             );
             vm.stopBroadcast();
@@ -94,21 +77,20 @@ contract DeployL2OFTAdapter is BaseScript {
         proxySalt = createL2YnOFTAdapterUpgradeableProxySalt(msg.sender);
         implementationSalt = createL2YnOFTAdapterUpgradeableSalt(msg.sender);
 
-        address predictedOFTAdapter = multiChainDeployer.getDeployed(proxySalt);
+        address predictedOFTAdapter = CREATE3_FACTORY.getDeployed(msg.sender, proxySalt);
         require(predictedOFTAdapter == predictions.l2OFTAdapter, "Prediction mismatch");
 
         if (!isContract(currentDeployment.oftAdapter)) {
             vm.startBroadcast();
 
             l2OFTAdapter = L2YnOFTAdapterUpgradeable(
-                multiChainDeployer.deployL2YnOFTAdapter(
+                deployL2YnOFTAdapter(
                     implementationSalt,
                     proxySalt,
                     address(l2ERC20),
                     getData(block.chainid).LZ_ENDPOINT,
                     deployer,
-                    timelock,
-                    type(L2YnOFTAdapterUpgradeable).creationCode
+                    timelock
                 )
             );
             vm.stopBroadcast();
