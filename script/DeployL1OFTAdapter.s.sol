@@ -42,6 +42,11 @@ contract DeployL1OFTAdapter is BaseScript {
             console.log("Already deployed Timelock at: ", timelock);
         }
 
+        currentDeployment.erc20ProxyAdmin = getTransparentUpgradeableProxyAdminAddress(baseInput.l1ERC20Address);
+        currentDeployment.erc20Implementation =
+            getTransparentUpgradeableProxyImplementationAddress(baseInput.l1ERC20Address);
+        currentDeployment.erc20Address = baseInput.l1ERC20Address;
+
         if (!isContract(currentDeployment.oftAdapter)) {
             vm.broadcast();
             address l1OFTAdapterImpl = address(
@@ -70,6 +75,8 @@ contract DeployL1OFTAdapter is BaseScript {
         require(address(l1OFTAdapter) == predictions.l1OFTAdapter, "Prediction mismatch");
 
         currentDeployment.oftAdapterProxyAdmin = getTransparentUpgradeableProxyAdminAddress(address(l1OFTAdapter));
+        currentDeployment.oftAdapterImplementation =
+            getTransparentUpgradeableProxyImplementationAddress(address(l1OFTAdapter));
         currentDeployment.oftAdapterTimelock = ProxyAdmin(currentDeployment.oftAdapterProxyAdmin).owner();
         currentDeployment.oftAdapter = address(l1OFTAdapter);
 

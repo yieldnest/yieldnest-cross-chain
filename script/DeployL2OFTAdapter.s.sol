@@ -72,6 +72,8 @@ contract DeployL2OFTAdapter is BaseScript {
         require(predictedERC20 == address(l2ERC20), "Prediction mismatch");
 
         currentDeployment.erc20ProxyAdmin = getTransparentUpgradeableProxyAdminAddress(address(l2ERC20));
+        currentDeployment.erc20Implementation =
+            getTransparentUpgradeableProxyImplementationAddress(address(l2ERC20));
         currentDeployment.erc20Address = address(l2ERC20);
 
         proxySalt = createL2YnOFTAdapterUpgradeableProxySalt();
@@ -104,6 +106,8 @@ contract DeployL2OFTAdapter is BaseScript {
         require(predictedOFTAdapter == address(l2OFTAdapter), "Prediction mismatch");
 
         currentDeployment.oftAdapterProxyAdmin = getTransparentUpgradeableProxyAdminAddress(address(l2OFTAdapter));
+        currentDeployment.oftAdapterImplementation =
+            getTransparentUpgradeableProxyImplementationAddress(address(l2OFTAdapter));
         currentDeployment.oftAdapterTimelock = ProxyAdmin(currentDeployment.oftAdapterProxyAdmin).owner();
         currentDeployment.oftAdapter = address(l2OFTAdapter);
 

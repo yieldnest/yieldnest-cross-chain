@@ -62,11 +62,13 @@ struct ChainDeployment {
     uint256 chainId;
     address erc20Address;
     address erc20ProxyAdmin;
+    address erc20Implementation;
     bool isL1;
     address lzEndpoint;
     uint32 lzEID;
     address oftAdapter;
     address oftAdapterProxyAdmin;
+    address oftAdapterImplementation;
     address oftAdapterTimelock;
 }
 
@@ -261,9 +263,14 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
             chainJson = vm.serializeUint(chainKey, "lzEID", deployment.chains[i].lzEID);
             chainJson = vm.serializeAddress(chainKey, "erc20Address", deployment.chains[i].erc20Address);
             chainJson = vm.serializeAddress(chainKey, "erc20ProxyAdmin", deployment.chains[i].erc20ProxyAdmin);
+            chainJson =
+                vm.serializeAddress(chainKey, "erc20Implementation", deployment.chains[i].erc20Implementation);
             chainJson = vm.serializeAddress(chainKey, "oftAdapter", deployment.chains[i].oftAdapter);
             chainJson =
                 vm.serializeAddress(chainKey, "oftAdapterProxyAdmin", deployment.chains[i].oftAdapterProxyAdmin);
+            chainJson = vm.serializeAddress(
+                chainKey, "oftAdapterImplementation", deployment.chains[i].oftAdapterImplementation
+            );
             chainJson =
                 vm.serializeAddress(chainKey, "oftAdapterTimelock", deployment.chains[i].oftAdapterTimelock);
 
@@ -308,9 +315,13 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
             chains[i].erc20Address = vm.parseJsonAddress(json, string(abi.encodePacked(chainKey, ".erc20Address")));
             chains[i].erc20ProxyAdmin =
                 vm.parseJsonAddress(json, string(abi.encodePacked(chainKey, ".erc20ProxyAdmin")));
+            chains[i].erc20Implementation =
+                vm.parseJsonAddress(json, string(abi.encodePacked(chainKey, ".erc20Implementation")));
             chains[i].oftAdapter = vm.parseJsonAddress(json, string(abi.encodePacked(chainKey, ".oftAdapter")));
             chains[i].oftAdapterProxyAdmin =
                 vm.parseJsonAddress(json, string(abi.encodePacked(chainKey, ".oftAdapterProxyAdmin")));
+            chains[i].oftAdapterImplementation =
+                vm.parseJsonAddress(json, string(abi.encodePacked(chainKey, ".oftAdapterImplementation")));
             chains[i].oftAdapterTimelock =
                 vm.parseJsonAddress(json, string(abi.encodePacked(chainKey, ".oftAdapterTimelock")));
 
