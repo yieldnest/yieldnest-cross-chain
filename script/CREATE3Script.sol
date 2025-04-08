@@ -18,7 +18,7 @@ abstract contract CREATE3Script {
     function deployProxy(
         bytes32 _salt,
         address _implementation,
-        address _controller,
+        address _initialOwner,
         bytes memory _initializeArgs
     )
         public
@@ -98,8 +98,9 @@ abstract contract CREATE3Script {
     {
         bytes memory _initializeArgs =
             abi.encodeWithSelector(L2YnERC20Upgradeable.initialize.selector, _name, _symbol, _decimals, _owner);
-        bytes memory _contractCode = type(L2YnERC20Upgradeable).creationCode;
-        deployedContract =
-            deployContractAndProxy(_implSalt, _proxySalt, _proxyController, _contractCode, _initializeArgs);
+        bytes memory _implementationContractCode = type(L2YnERC20Upgradeable).creationCode;
+        deployedContract = deployContractAndProxy(
+            _implSalt, _proxySalt, _proxyController, _implementationContractCode, _initializeArgs
+        );
     }
 }
