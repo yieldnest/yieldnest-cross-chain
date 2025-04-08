@@ -170,21 +170,21 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
 
     function _loadPredictions() internal {
         {
-            bytes32 proxySalt = createL1YnOFTAdapterUpgradeableProxySalt(msg.sender);
+            bytes32 proxySalt = createL1YnOFTAdapterUpgradeableProxySalt();
 
             address predictedAddress = CREATE3_FACTORY.getDeployed(msg.sender, proxySalt);
             predictions.l1OFTAdapter = predictedAddress;
         }
 
         {
-            bytes32 salt = createL2YnOFTAdapterUpgradeableProxySalt(msg.sender);
+            bytes32 salt = createL2YnOFTAdapterUpgradeableProxySalt();
 
             address predictedAddress = CREATE3_FACTORY.getDeployed(msg.sender, salt);
             predictions.l2OFTAdapter = predictedAddress;
         }
 
         {
-            bytes32 salt = createL2YnERC20UpgradeableProxySalt(msg.sender);
+            bytes32 salt = createL2YnERC20UpgradeableProxySalt();
 
             address predictedAddress = CREATE3_FACTORY.getDeployed(msg.sender, salt);
             predictions.l2ERC20 = predictedAddress;
@@ -342,63 +342,42 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
         baseInput.rateLimitConfig.window = vm.parseJsonUint(json, ".rateLimitConfig.window");
     }
 
-    function createImmutableMultiChainDeployerSalt(address _deployerAddress)
-        internal
-        view
-        returns (bytes32 _salt)
-    {
-        _salt = createSalt(_deployerAddress, "MultiChainDeployer");
+    function createL1YnOFTAdapterUpgradeableProxySalt() internal view returns (bytes32 _salt) {
+        _salt = createSalt("L1YnOFTAdapterProxy");
     }
 
-    function createL1YnOFTAdapterUpgradeableProxySalt(address _deployerAddress)
-        internal
-        view
-        returns (bytes32 _salt)
-    {
-        _salt = createSalt(_deployerAddress, "L1YnOFTAdapterProxy");
+    function createL1YnOFTAdapterUpgradeableSalt() internal view returns (bytes32 _salt) {
+        _salt = createSalt("L1YnOFTAdapter");
     }
 
-    function createL1YnOFTAdapterUpgradeableSalt(address _deployerAddress) internal view returns (bytes32 _salt) {
-        _salt = createSalt(_deployerAddress, "L1YnOFTAdapter");
+    function createL2YnOFTAdapterUpgradeableProxySalt() internal view returns (bytes32 _salt) {
+        _salt = createSalt("L2YnOFTAdapterProxy");
     }
 
-    function createL2YnOFTAdapterUpgradeableProxySalt(address _deployerAddress)
-        internal
-        view
-        returns (bytes32 _salt)
-    {
-        _salt = createSalt(_deployerAddress, "L2YnOFTAdapterProxy");
+    function createL2YnOFTAdapterUpgradeableSalt() internal view returns (bytes32 _salt) {
+        _salt = createSalt("L2YnOFTAdapter");
     }
 
-    function createL2YnOFTAdapterUpgradeableSalt(address _deployerAddress) internal view returns (bytes32 _salt) {
-        _salt = createSalt(_deployerAddress, "L2YnOFTAdapter");
+    function createL2YnERC20UpgradeableProxySalt() internal view returns (bytes32 _salt) {
+        _salt = createSalt("L2YnERC20Proxy");
     }
 
-    function createL2YnERC20UpgradeableProxySalt(address _deployerAddress) internal view returns (bytes32 _salt) {
-        _salt = createSalt(_deployerAddress, "L2YnERC20Proxy");
+    function createL2YnERC20UpgradeableSalt() internal view returns (bytes32 _salt) {
+        _salt = createSalt("L2YnERC20");
     }
 
-    function createL2YnERC20UpgradeableSalt(address _deployerAddress) internal view returns (bytes32 _salt) {
-        _salt = createSalt(_deployerAddress, "L2YnERC20");
+    function createL1YnOFTAdapterTimelockSalt() internal view returns (bytes32 _salt) {
+        _salt = createSalt("L1YnOFTTimelock");
     }
 
-    function createL1YnOFTAdapterTimelockSalt(address _deployerAddress) internal view returns (bytes32 _salt) {
-        _salt = createSalt(_deployerAddress, "L1YnOFTTimelock");
+    function createL2YnOFTAdapterTimelockSalt() internal view returns (bytes32 _salt) {
+        _salt = createSalt("L2YnOFTTimelock");
     }
 
-    function createL2YnOFTAdapterTimelockSalt(address _deployerAddress) internal view returns (bytes32 _salt) {
-        _salt = createSalt(_deployerAddress, "L2YnOFTTimelock");
-    }
-
-    function createSalt(address _deployerAddress, string memory _label) internal view returns (bytes32 _salt) {
+    function createSalt(string memory _label) internal view returns (bytes32 _salt) {
         require(bytes(baseInput.erc20Symbol).length > 0, "Invalid ERC20 Symbol");
 
-        _salt = bytes32(
-            abi.encodePacked(
-                bytes20(_deployerAddress),
-                bytes12(bytes32(keccak256(abi.encode(_label, baseInput.erc20Symbol, VERSION))))
-            )
-        );
+        _salt = bytes32(keccak256(abi.encode(_label, baseInput.erc20Symbol, VERSION)));
     }
 
     function addressToBytes32(address _addr) internal pure returns (bytes32) {

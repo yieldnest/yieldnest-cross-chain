@@ -27,9 +27,9 @@ contract DeployL2OFTAdapter is BaseScript {
 
         require(currentDeployment.isL1 != true, "Must be L2 deployment");
 
-        bytes32 proxySalt = createL2YnERC20UpgradeableProxySalt(msg.sender);
-        bytes32 implementationSalt = createL2YnERC20UpgradeableSalt(msg.sender);
-        bytes32 timelockSalt = createL2YnOFTAdapterTimelockSalt(msg.sender);
+        bytes32 proxySalt = createL2YnERC20UpgradeableProxySalt();
+        bytes32 implementationSalt = createL2YnERC20UpgradeableSalt();
+        bytes32 timelockSalt = createL2YnOFTAdapterTimelockSalt();
 
         address deployer = msg.sender;
 
@@ -74,8 +74,8 @@ contract DeployL2OFTAdapter is BaseScript {
         currentDeployment.erc20ProxyAdmin = getTransparentUpgradeableProxyAdminAddress(address(l2ERC20));
         currentDeployment.erc20Address = address(l2ERC20);
 
-        proxySalt = createL2YnOFTAdapterUpgradeableProxySalt(msg.sender);
-        implementationSalt = createL2YnOFTAdapterUpgradeableSalt(msg.sender);
+        proxySalt = createL2YnOFTAdapterUpgradeableProxySalt();
+        implementationSalt = createL2YnOFTAdapterUpgradeableSalt();
 
         address predictedOFTAdapter = CREATE3_FACTORY.getDeployed(msg.sender, proxySalt);
         require(predictedOFTAdapter == predictions.l2OFTAdapter, "Prediction mismatch");
