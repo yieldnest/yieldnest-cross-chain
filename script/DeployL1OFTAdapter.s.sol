@@ -25,14 +25,13 @@ contract DeployL1OFTAdapter is BaseScript {
         _loadInput(_jsonPath);
 
         require(currentDeployment.isL1 == true, "Must be L1 deployment");
-
-        bytes32 proxySalt = createL1YnOFTAdapterUpgradeableProxySalt(msg.sender);
-        bytes32 implementationSalt = createL1YnOFTAdapterUpgradeableSalt(msg.sender);
-        bytes32 timelockSalt = createL1YnOFTAdapterTimelockSalt(msg.sender);
-
         address deployer = msg.sender;
 
-        address timelock = _predictTimelockController(timelockSalt, block.chainid);
+        bytes32 proxySalt = createL1YnOFTAdapterUpgradeableProxySalt();
+        bytes32 implementationSalt = createL1YnOFTAdapterUpgradeableSalt();
+        bytes32 timelockSalt = createL1YnOFTAdapterTimelockSalt();
+
+        address timelock = _predictTimelockController(deployer, timelockSalt);
 
         if (!isContract(timelock)) {
             vm.startBroadcast();

@@ -3,6 +3,7 @@
 @openzeppelin/contracts-upgradeable/=node_modules/@openzeppelin/contracts-upgradeable/
 solidity-bytes-utils/=node_modules/solidity-bytes-utils/
 hardhat-deploy/=node_modules/hardhat-deploy/
+@create3-factory/=lib/create3-factory/src/
 
 @/=src/
 
