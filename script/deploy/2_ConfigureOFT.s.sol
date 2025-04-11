@@ -34,6 +34,7 @@ contract ConfigureOFT is BaseScript {
             configureEnforcedOptions(dstChainIds);
             configureDVNs(dstChainIds);
             configureExecutor(dstChainIds);
+            configureDelegate();
         }
     }
 }

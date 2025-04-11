@@ -36,6 +36,10 @@ interface IOFTRateLimiter {
     function setRateLimits(RateLimiter.RateLimitConfig[] calldata _rateLimitConfigs) external;
 }
 
+interface ILZEndpointDelegates {
+    function delegates(address) external view returns (address);
+}
+
 struct RateLimitConfig {
     uint256 limit;
     uint256 window;
@@ -604,5 +608,17 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
         Data storage data = getData(block.chainid);
 
         _executorConfig = ExecutorConfig({maxMessageSize: DEFAULT_MAX_MESSAGE_SIZE, executor: data.LZ_EXECUTOR});
+    }
+
+    function configureDelegate() internal {
+        Data storage data = getData(block.chainid);
+        OFTAdapterUpgradeable oftAdapter = OFTAdapterUpgradeable(currentDeployment.oftAdapter);
+        ILZEndpointDelegates _lzEndpoint = ILZEndpointDelegates(data.LZ_ENDPOINT);
+        // verify delegate
+        if (_lzEndpoint.delegates(currentDeployment.oftAdapter) != getData(block.chainid).OFT_OWNER) {
+            vm.startBroadcast();
+            oftAdapter.setDelegate(data.OFT_OWNER);
+            vm.stopBroadcast();
+        }
     }
 }
