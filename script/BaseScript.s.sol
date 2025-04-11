@@ -447,28 +447,40 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
         console.log("Configuring enforced options...");
 
         OFTAdapterUpgradeable oftAdapter = OFTAdapterUpgradeable(currentDeployment.oftAdapter);
-        EnforcedOptionParam[] memory enforcedOptions = new EnforcedOptionParam[](dstChainIds.length * 2);
         for (uint256 i = 0; i < dstChainIds.length; i++) {
             uint256 chainId = dstChainIds[i];
-            uint32 dstEid = getEID(chainId);
-            enforcedOptions[2 * i] = EnforcedOptionParam({
-                eid: dstEid,
-                msgType: 1,
-                options: OptionsBuilder.newOptions().addExecutorLzReceiveOption(170_000, 0)
-            });
-            enforcedOptions[2 * i + 1] = EnforcedOptionParam({
-                eid: dstEid,
-                msgType: 2,
-                options: OptionsBuilder.newOptions().addExecutorLzReceiveOption(170_000, 0).addExecutorLzComposeOption(
-                    0, 170_000, 0
-                )
-            });
-        }
 
-        vm.startBroadcast();
-        oftAdapter.setEnforcedOptions(enforcedOptions);
-        console.log("Set enforced options");
-        vm.stopBroadcast();
+            EnforcedOptionParam[] memory enforcedOptions = new EnforcedOptionParam[](2);
+            enforcedOptions = _getEnforcedOptions(chainId);
+
+            vm.startBroadcast();
+            oftAdapter.setEnforcedOptions(enforcedOptions);
+            console.log("Set enforced options for chainid %d", chainId);
+            vm.stopBroadcast();
+        }
+    }
+
+    function _getEnforcedOptions(uint256 dstChainId)
+        internal
+        view
+        returns (EnforcedOptionParam[] memory _enforcedOptions)
+    {
+        uint32 dstEid = getEID(dstChainId);
+
+        _enforcedOptions = new EnforcedOptionParam[](2);
+        _enforcedOptions[0] = EnforcedOptionParam({
+            eid: dstEid,
+            msgType: 1,
+            options: OptionsBuilder.newOptions().addExecutorLzReceiveOption(170_000, 0)
+        });
+
+        _enforcedOptions[1] = EnforcedOptionParam({
+            eid: dstEid,
+            msgType: 2,
+            options: OptionsBuilder.newOptions().addExecutorLzReceiveOption(170_000, 0).addExecutorLzComposeOption(
+                0, 170_000, 0
+            )
+        });
     }
 
     function configureDVNs(uint256[] memory dstChainIds) internal {
@@ -477,45 +489,51 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
         Data storage data = getData(block.chainid);
         ILayerZeroEndpointV2 lzEndpoint = ILayerZeroEndpointV2(data.LZ_ENDPOINT);
 
-        bool isTestnet = isTestnetChainId(block.chainid);
-        uint64 confirmations = isTestnet ? 8 : 32;
-        uint8 requiredDVNCount = isTestnet ? 1 : 2;
-
         for (uint256 i = 0; i < dstChainIds.length; i++) {
             uint256 chainId = dstChainIds[i];
             uint32 dstEid = getEID(chainId);
-            address[] memory requiredDVNs = new address[](isTestnet ? 1 : 2);
 
-            if (isTestnet) {
-                requiredDVNs[0] = data.LZ_DVN;
-            } else {
-                if (data.LZ_DVN > data.NETHERMIND_DVN) {
-                    requiredDVNs[0] = data.NETHERMIND_DVN;
-                    requiredDVNs[1] = data.LZ_DVN;
-                } else {
-                    requiredDVNs[0] = data.LZ_DVN;
-                    requiredDVNs[1] = data.NETHERMIND_DVN;
-                }
-            }
-
-            UlnConfig memory ulnConfig = UlnConfig({
-                confirmations: confirmations,
-                requiredDVNCount: requiredDVNCount,
-                optionalDVNCount: 0,
-                optionalDVNThreshold: 0,
-                requiredDVNs: requiredDVNs,
-                optionalDVNs: new address[](0)
-            });
+            UlnConfig memory ulnConfig = _getUlnConfig();
 
             SetConfigParam[] memory params = new SetConfigParam[](1);
             params[0] = SetConfigParam(dstEid, CONFIG_TYPE_ULN, abi.encode(ulnConfig));
+
             vm.startBroadcast();
-            console.log("SENDER", msg.sender);
             lzEndpoint.setConfig(currentDeployment.oftAdapter, data.LZ_SEND_LIB, params);
             lzEndpoint.setConfig(currentDeployment.oftAdapter, data.LZ_RECEIVE_LIB, params);
             vm.stopBroadcast();
             console.log("Set DVNs for chainid %d", chainId);
         }
+    }
+
+    function _getUlnConfig() internal view returns (UlnConfig memory _ulnConfig) {
+        Data storage data = getData(block.chainid);
+        bool isTestnet = isTestnetChainId(block.chainid);
+
+        address[] memory requiredDVNs = new address[](isTestnet ? 1 : 2);
+        uint64 confirmations = isTestnet ? 8 : 32;
+        uint8 requiredDVNCount = isTestnet ? 1 : 2;
+
+        if (isTestnet) {
+            requiredDVNs[0] = data.LZ_DVN;
+        } else {
+            if (data.LZ_DVN > data.NETHERMIND_DVN) {
+                requiredDVNs[0] = data.NETHERMIND_DVN;
+                requiredDVNs[1] = data.LZ_DVN;
+            } else {
+                requiredDVNs[0] = data.LZ_DVN;
+                requiredDVNs[1] = data.NETHERMIND_DVN;
+            }
+        }
+
+        _ulnConfig = UlnConfig({
+            confirmations: confirmations,
+            requiredDVNCount: requiredDVNCount,
+            optionalDVNCount: 0,
+            optionalDVNThreshold: 0,
+            requiredDVNs: requiredDVNs,
+            optionalDVNs: new address[](0)
+        });
     }
 
     function configureExecutor(uint256[] memory dstChainIds) internal {
@@ -528,16 +546,22 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
             uint256 chainId = dstChainIds[i];
             uint32 dstEid = getEID(chainId);
 
-            ExecutorConfig memory executorConfig =
-                ExecutorConfig({maxMessageSize: DEFAULT_MAX_MESSAGE_SIZE, executor: data.LZ_EXECUTOR});
+            ExecutorConfig memory executorConfig = _getExecutorConfig();
 
             SetConfigParam[] memory params = new SetConfigParam[](1);
             params[0] = SetConfigParam(dstEid, CONFIG_TYPE_EXECUTOR, abi.encode(executorConfig));
+
             vm.startBroadcast();
             lzEndpoint.setConfig(currentDeployment.oftAdapter, data.LZ_SEND_LIB, params);
             vm.stopBroadcast();
 
             console.log("Set executor for chainid %d", chainId);
         }
+    }
+
+    function _getExecutorConfig() internal view returns (ExecutorConfig memory _executorConfig) {
+        Data storage data = getData(block.chainid);
+
+        _executorConfig = ExecutorConfig({maxMessageSize: DEFAULT_MAX_MESSAGE_SIZE, executor: data.LZ_EXECUTOR});
     }
 }
