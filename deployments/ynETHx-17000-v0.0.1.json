@@ -1,5 +1,18 @@
 {
   "chains": {
+    "11155111": {
+      "chainId": 11155111,
+      "erc20Address": "0x0ce01De4e7C4Dc6531f251ee6A64A4D449bc1576",
+      "erc20Implementation": "0x7eabf2da68B2Cb26F0672f64D1adA9E548786c16",
+      "erc20ProxyAdmin": "0x56434eA185c6e6AC7716963DD1E1de0E446db6b8",
+      "isL1": false,
+      "lzEID": 40161,
+      "lzEndpoint": "0x6EDCE65403992e310A62460808c4b910D972f10f",
+      "oftAdapter": "0xD47e06ed020F86197193781260B2e2913BFF65AB",
+      "oftAdapterImplementation": "0x72BF9fCfC92b6049C28838130CB4Eb6f840D692B",
+      "oftAdapterProxyAdmin": "0x7828374563FCbc632CBf069F9Fd467Db4dAf4567",
+      "oftAdapterTimelock": "0x45845F54bCFca8AC9F8EBFC9857937cCb4182d22"
+    },
     "17000": {
       "chainId": 17000,
       "erc20Address": "0xfd930060e51C10CCBc36F512676B4FD3E7026a1E",
@@ -8,7 +21,6 @@
       "isL1": true,
       "lzEID": 40217,
       "lzEndpoint": "0x6EDCE65403992e310A62460808c4b910D972f10f",
-      "multiChainDeployer": "0x0000000000000000000000000000000000000000",
       "oftAdapter": "0x1D4855Cc4caa06Ec1982acFE53d68Bc830156a70",
       "oftAdapterImplementation": "0x41838e28BCA289c3aE1CE128DB9e7dEF70Bfa2DD",
       "oftAdapterProxyAdmin": "0x17B4cfDdc0d64C6948F4E47285B33C284E092Ccb",
@@ -22,7 +34,6 @@
       "isL1": false,
       "lzEID": 40255,
       "lzEndpoint": "0x6EDCE65403992e310A62460808c4b910D972f10f",
-      "multiChainDeployer": "0xDE21c853BA39e77251a90dBB0b4C3d94463EbCfA",
       "oftAdapter": "0xBe82CBe217Bf4E0A87DD88C552e93054f4EF2C7C",
       "oftAdapterImplementation": "0xa6d3F9E893604Dd77c773e8cdb4040c060aE5884",
       "oftAdapterProxyAdmin": "0xe4bFF824F5B89005424902637a9269Dc9aD5AE38",
@@ -36,7 +47,6 @@
       "isL1": false,
       "lzEID": 40322,
       "lzEndpoint": "0x6C7Ab2202C98C4227C5c46f1417D81144DA716Ff",
-      "multiChainDeployer": "0xDE21c853BA39e77251a90dBB0b4C3d94463EbCfA",
       "oftAdapter": "0xBe82CBe217Bf4E0A87DD88C552e93054f4EF2C7C",
       "oftAdapterImplementation": "0xa6d3F9E893604Dd77c773e8cdb4040c060aE5884",
       "oftAdapterProxyAdmin": "0xe4bFF824F5B89005424902637a9269Dc9aD5AE38",

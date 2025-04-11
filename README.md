@@ -47,16 +47,14 @@ This repository includes:
 
 - **Main Contracts**:
   - `L2YnERC20Upgradeable.sol`: Layer 2 upgradeable ERC20 token contract.
-  - `ImmutableMultiChainDeployer.sol`: Handles multi-chain deployment of contracts.
   - `L1YnOFTAdapterUpgradeable.sol`: Adapter for Layer 1 OFT (Omnichain Fungible Token).
   - `L2YnOFTAdapterUpgradeable.sol`: Adapter for Layer 2 OFT.
 
 - **Deployment Scripts**:
-  - `deploy.sh`: The main deployment script that handles deployments across multiple chains.
-  - `DeployL2OFTAdapter.s.sol`: Deploys the Layer 2 ERC20 token and OFT Adapter.
-  - `DeployL1OFTAdapter.s.sol`: Deploys the Layer 1 OFT Adapter.
-  - `VerifyL2OFTAdapter.s.sol`: Verifys the Layer 2 ERC20 token and OFT Adapter.
-  - `VerifyL1OFTAdapter.s.sol`: Verifys the Layer 1 OFT Adapter.
+  - `script/deploy/1_DeployOFT.s.sol`: Deploys the OFT Adapter.
+  - `script/deploy/2_ConfigureOFT.s.sol`: Configures the OFT Adapter.
+  - `script/deploy/3_TransferOFTOwnership.s.sol`: Transfers the ownership of the OFT Adapter to the admin.
+  - `script/deploy/4_VerifyOFT.s.sol`: Verifies the OFT Adapter.
 
 ## Prerequisites
 
@@ -125,83 +123,92 @@ You can format your Solidity code using:
 yarn format
 ```
 
-### Scripts
-
-For most users, it is recommended to use the `yarn deploy` command (outlined in the following section), as it simplifies the deployment process and ensures all necessary configurations are handled across multiple chains. Running the Forge scripts manually should only be done if you have a deep understanding of the deployment steps.
-
-However, if you need to run a script manually (e.g., `DeployL1OFTAdapter`), you can use the following command pattern:
-
-```bash
-forge script script/DeployL1OFTAdapter.s.sol:DeployL1OFTAdapter \
-  --rpc-url ${rpc} --sig "run(string calldata)" ${path} \
-  --account ${deployerAccountName} --sender ${deployer} \
-  --broadcast --etherscan-api-key ${api} --verify
-```
-
-Replace `DeployL1OFTAdapter` with the relevant contract name for other scripts if needed. But again, for ease and accuracy, the `yarn deploy` command is recommended.
-
 ### Deployment
 
-To deploy Yieldnest tokens to new chains, you can use the `yarn deploy` command, which runs the `script/deploy.sh` script. This script accepts an input JSON file that specifies the token and chain configurations for deployment.
+To deploy Yieldnest tokens to new chains, follow the sequence of commands below. Each step is idempotent and can be safely re-run.
 
-For example, to deploy the `ynETH` token to the specified networks, use the following command:
+1. **Deploy**
 
 ```bash
 yarn deploy script/inputs/mainnet-ynETH.json
 ```
 
-You can find template JSON files for reference in the `script/inputs/` directory. Below is an example of a typical input file:
+This step deploys the OFT adapters (and ERC20 contracts for L2 chains). If already deployed for a chain, it will skip deployment for that chain.
 
-```json
-{
-  "erc20Name": "ynETH",
-  "erc20Symbol": "ynETH",
-  "l1ChainId": 1,
-  "l2ChainIds": [
-    10,
-    8453
-  ],
-  "l1ERC20Address": "0x09db87A538BD693E9d08544577d5cCfAA6373A48",
-  "rateLimitConfig": {
-    "limit": "100000000000000000000",
-    "window": "86400"
-  }
-}
+2. **Configure**
+
+```bash
+yarn configure script/inputs/mainnet-ynETH.json deployments/ynETH-1-v0.0.1.json
 ```
 
-This script will deploy all the necessary contracts across the chains specified in the JSON file, including both the Layer 1 and all Layer 2 chains.
+This step configures the deployed OFT contracts. It will only apply necessary changes.
+
+3. **Transfer Ownership**
+
+```bash
+yarn transfer-ownership script/inputs/mainnet-ynETH.json deployments/ynETH-1-v0.0.1.json
+```
+
+Transfers ownership of the OFT contracts from the deployer to the admin address.
+
+4. **Verify**
+
+```bash
+yarn verify script/inputs/mainnet-ynETH.json deployments/ynETH-1-v0.0.1.json
+```
+
+Verifies the full OFT setup. This will output any differences or issues found.
 
 ### Adding a New L2 Chain
 
 To add a new L2 chain to an existing deployment, follow these steps using Morph Testnet as an example:
 
-1. Update the `BaseData.s.sol` file:
-   - Add the new testnet chain's ID to the `ChainIds` struct:
-     ```solidity
-     struct ChainIds {
-         // ... existing chain IDs
-         uint256 morphTestnet;
-     }
-     ```
-   - Initialize the new testnet chain ID in the `__chainIds` variable:
-     ```solidity
-     __chainIds = ChainIds({
-         // ... existing chain IDs
-         morphTestnet: 2810
-     });
-     ```
-   - Add the testnet chain-specific data to the `setUp()` function:
-     ```solidity
-     __chainIdToData[__chainIds.morphTestnet] = Data({
-         OFT_OWNER: TEMP_GNOSIS_SAFE,
-         TOKEN_ADMIN: TEMP_GNOSIS_SAFE,
-         PROXY_ADMIN: TEMP_PROXY_CONTROLLER,
-         LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c,
-         LZ_EID: 30210 // LayerZero Endpoint ID for Morph Testnet
-     });
+1. **Add support for the new chain**:
+   - a) Update the `foundry.toml` file to include the RPC endpoint:
+     ```toml
+     [rpc_endpoints]
+     // ... existing networks
+     morph_testnet = "${MORPH_TESTNET_RPC_URL}"
      ```
 
-2. Update the deployment input JSON file for testnets (e.g., `script/inputs/holesky-ynETH.json`):
+   - b) Update `script/BaseData.s.sol`:
+     - Add the new chain ID to the `ChainIds` struct:
+       ```solidity
+       struct ChainIds {
+           // ... existing chain IDs
+           uint256 morphTestnet;
+       }
+       ```
+     - Initialize it in the `__chainIds` assignment:
+       ```solidity
+       __chainIds = ChainIds({
+           // ... existing
+           morphTestnet: 2810
+       });
+       ```
+     - Add to `setUp()`:
+       ```solidity
+       __chainIdToData[__chainIds.morphTestnet] = Data({
+           OFT_OWNER: TEMP_GNOSIS_SAFE,
+           TOKEN_ADMIN: TEMP_GNOSIS_SAFE,
+           PROXY_ADMIN: TEMP_PROXY_CONTROLLER,
+           LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c,
+           LZ_EID: 30210,
+           // .. add other config
+       });
+       ```
+
+   - c) Update `script/BatchScript.s.sol`:
+     ```solidity
+     } else if (chainId == 2810) {
+         SAFE_API_BASE_URL = "";
+         SAFE_MULTISEND_ADDRESS = 0x998739BFdAAdde7C933B942a68053933098f9EDa;
+     }
+     ```
+
+   - d) Update `script/bash/network_config.sh` and add support for the new chain.
+
+2. **Update the deployment input JSON file** (e.g., `script/inputs/holesky-ynETH.json`):
    - Add the new testnet chain ID to the `l2ChainIds` array:
      ```json
      {
@@ -209,33 +216,40 @@ To add a new L2 chain to an existing deployment, follow these steps using Morph 
          2522,
          2810
        ],
-       // ... other existing configuration
+       // ... other config
      }
      ```
 
-3. Add the new testnet chain's RPC URL to the `.env` file:
+3. **Add the testnet RPC URL to the `.env` file**:
    ```
    MORPH_TESTNET_RPC_URL=https://rpc-testnet.morphl2.io
    ```
 
-4. Update the `foundry.toml` file to include the new testnet RPC endpoint:
-   ```toml
-   [rpc_endpoints]
-   morph_testnet = "${MORPH_TESTNET_RPC_URL}"
-   ```
-
-5. Run the deployment script for the testnet environment:
+4. **Run the deployment script**:
    ```bash
    yarn deploy script/inputs/holesky-ynETH.json
    ```
+   This step deploys the necessary contracts on the new Morph Testnet chain.
 
-   This will deploy the necessary contracts on the new Morph Testnet chain and update the existing contracts on other testnet chains to recognize the new L2 testnet.
+5. **Run the configuration script**:
+   ```bash
+   yarn configure script/inputs/holesky-ynETH.json deployments/ynETH-17000-v0.0.1.json
+   ```
+   Configures the OFT contracts on all chains listed in the input file.
 
-6. After deployment, verify that the new testnet chain has been properly added:
-   - Check that the L2YnOFTAdapter on Morph Testnet has the correct peers set for all other testnet chains.
-   - Verify that all other L2YnOFTAdapters and the L1YnOFTAdapter on testnets have been updated to include Morph Testnet as a peer.
+6. **Transfer ownership**:
+   ```bash
+   yarn transfer-ownership script/inputs/holesky-ynETH.json deployments/ynETH-17000-v0.0.1.json
+   ```
 
-7. Update any front-end applications or scripts to include support for the new Morph Testnet chain, such as adding it to the list of supported testnet networks and including its contract addresses.
+7. **Verify the setup**:
+   ```bash
+   yarn verify script/inputs/holesky-ynETH.json deployments/ynETH-17000-v0.0.1.json
+   ```
+   The verification script will console log any manual configurations that still need to be set. Be sure to execute those steps manually.
+
+8. **Test bridging to/from the new chain**:  
+   Run `script/commands/BridgeAsset.s.sol` to test bridging the asset to and from the new chain. This ensures the deployment and configuration are working correctly end-to-end.
 
 By following these steps, you can successfully add Morph Testnet (or any other new L2 testnet chain) to your existing multi-chain testnet deployment.
 
