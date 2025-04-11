@@ -167,8 +167,8 @@ delimiter
 
 CALLDATA=$(cast calldata "run(string,string)" "/$INPUT_PATH" "/$OUTPUT_PATH")
 
-echo "Verifying L1 Adapter for $L1_RPC ($L1_CHAIN_ID)"
-simulate script/VerifyL1OFTAdapter.s.sol:VerifyL1OFTAdapter $CALLDATA $L1_RPC $L1_ETHERSCAN_API_KEY
+echo "Verifying L1 OFTAdapter for $L1_RPC ($L1_CHAIN_ID)"
+simulate VerifyOFT $CALLDATA $L1_RPC $L1_ETHERSCAN_API_KEY
 
 delimiter
 
@@ -178,8 +178,8 @@ for L2_CHAIN_ID in $L2_CHAIN_IDS_ARRAY; do
         echo "No RPC found for $L2_CHAIN_ID"
         exit 1
     fi
-    echo "Verifying L2 Adapter for $L2_RPC ($L2_CHAIN_ID)"
-    simulate script/VerifyL2OFTAdapter.s.sol:VerifyL2OFTAdapter $CALLDATA $L2_RPC
+    echo "Verifying L2 OFTAdapter for $L2_RPC ($L2_CHAIN_ID)"
+    simulate VerifyOFT $CALLDATA $L2_RPC $L1_ETHERSCAN_API_KEY
 
     delimiter
 done

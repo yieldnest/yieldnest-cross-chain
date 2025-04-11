@@ -2,23 +2,23 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {BaseScript} from "./BaseScript.s.sol";
+import {BaseScript} from "../BaseScript.s.sol";
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 import {console} from "forge-std/console.sol";
 
-// forge script script/TransferOFTOwnership.s.sol:TransferOFTOwnership \
-// --rpc-url ${rpc} --sig "run(string calldata)" ${path} \
-// --account ${deployerAccountName} --sender ${deployer} \
-// --broadcast --etherscan-api-key ${api} --verify
+// forge script TransferOFTOwnership --rpc-url ${rpc} \
+// --sig "run(string calldata,string calldata)" ${input_path} ${deployment_path} \
+// --account ${deployerAccountName} --sender ${deployer} --broadcast
 
 contract TransferOFTOwnership is BaseScript {
     error InvalidDeployment();
     error NotOwner();
 
-    function run(string calldata _jsonPath) public {
-        _loadInput(_jsonPath);
+    function run(string calldata _jsonPath, string calldata _deploymentPath) public {
+        string memory _fullDeploymentPath = string(abi.encodePacked(vm.projectRoot(), _deploymentPath));
+        _loadInput(_jsonPath, _fullDeploymentPath);
 
         if (currentDeployment.oftAdapter == address(0)) {
             revert InvalidDeployment();
