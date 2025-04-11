@@ -8,27 +8,13 @@ dotenv.config();
 // TODO: Fill in the correct addresses for the implementation contracts for each new deployment
 function getERC20ImplementationAddress(deployment) {
 
-    if (deployment.erc20Implementation) {
-        return deployment.erc20Implementation;
-    }
-
-    if (deployment.chainId === 1) {
-        return '0xe50aecb1bbffaba835366ca8264539c30ed6e1d9';
-    }
-    
-    return '0x01029eE5670dd5cc1294410588cacC43a49f8fF1';
+    return deployment.erc20Implementation;
 }
-function getOFTAdapterImplementationAddress(chainId) {
-    if (chainId === 1) {
-        return '0xe6d9b54c31f6d5e31022be36593d39a6991e22c2';
-    }
-    return '0xa6d3F9E893604Dd77c773e8cdb4040c060aE5884';
+function getOFTAdapterImplementationAddress(deployment) {
+    return deployment.oftAdapterImplementation;
 }
-function getL1OFTImplementationAddress(chainId) {
-    if (chainId === 56) {
-        return '0xF7ea8CD8BC536192d0c94f4cef8e5f0BFF934757';
-    }
-    return '0x09564BE5E4933586DC89B2a2Ac5790c6ba636003';
+function getL1OFTImplementationAddress(deployment) {
+    return deployment.oftAdapterImplementation;
 }
 
 
@@ -157,7 +143,7 @@ async function verifyERC20ProxyBytecode(deployment) {
 async function verifyOFTAdapterBytecode(deployment) {
     console.log('\nVerifying OFT Adapter implementation bytecode...');
     console.log('Chain ID:', deployment.chainId);
-    const oftImplAddress = await getOFTAdapterImplementationAddress(deployment.chainId);
+    const oftImplAddress = await getOFTAdapterImplementationAddress(deployment);
     console.log('OFT Adapter Implementation Address:', oftImplAddress);
     const rpc = getRpcUrl(deployment.chainId);
     const bytecode = await getBytecode(rpc, oftImplAddress);
