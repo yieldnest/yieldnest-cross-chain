@@ -102,6 +102,9 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
 
     uint32 internal constant CONFIG_TYPE_EXECUTOR = 1;
     uint32 internal constant CONFIG_TYPE_ULN = 2;
+    uint16 internal constant MSG_TYPE_SEND = 1;
+    uint16 internal constant MSG_TYPE_SEND_AND_CALL = 2;
+
     uint32 internal constant DEFAULT_MAX_MESSAGE_SIZE = 10000;
 
     function _getRateLimitConfigs() internal view returns (RateLimiter.RateLimitConfig[] memory) {
@@ -459,8 +462,10 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
             enforcedOptions = _getEnforcedOptions(chainId);
 
             if (
-                keccak256(oftAdapter.enforcedOptions(dstEid, 1)) == keccak256(enforcedOptions[0].options)
-                    && keccak256(oftAdapter.enforcedOptions(dstEid, 2)) == keccak256(enforcedOptions[1].options)
+                keccak256(oftAdapter.enforcedOptions(dstEid, MSG_TYPE_SEND))
+                    == keccak256(enforcedOptions[0].options)
+                    && keccak256(oftAdapter.enforcedOptions(dstEid, MSG_TYPE_SEND_AND_CALL))
+                        == keccak256(enforcedOptions[1].options)
             ) {
                 console.log("Already set enforced options for chainid %d", chainId);
                 continue;
@@ -482,13 +487,13 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
         _enforcedOptions = new EnforcedOptionParam[](2);
         _enforcedOptions[0] = EnforcedOptionParam({
             eid: dstEid,
-            msgType: 1,
+            msgType: MSG_TYPE_SEND,
             options: OptionsBuilder.newOptions().addExecutorLzReceiveOption(170_000, 0)
         });
 
         _enforcedOptions[1] = EnforcedOptionParam({
             eid: dstEid,
-            msgType: 2,
+            msgType: MSG_TYPE_SEND_AND_CALL,
             options: OptionsBuilder.newOptions().addExecutorLzReceiveOption(170_000, 0).addExecutorLzComposeOption(
                 0, 170_000, 0
             )

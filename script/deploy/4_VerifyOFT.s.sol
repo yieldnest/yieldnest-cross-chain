@@ -217,10 +217,16 @@ contract VerifyOFT is BaseScript, BatchScript {
                 // verify enforced options
                 EnforcedOptionParam[] memory enforcedOptions = _getEnforcedOptions(chainId);
                 if (
-                    keccak256(OAppOptionsType3Upgradeable(currentDeployment.oftAdapter).enforcedOptions(eid, 1))
-                        != keccak256(enforcedOptions[0].options)
-                        || keccak256(OAppOptionsType3Upgradeable(currentDeployment.oftAdapter).enforcedOptions(eid, 2))
-                            != keccak256(enforcedOptions[1].options)
+                    keccak256(
+                        OAppOptionsType3Upgradeable(currentDeployment.oftAdapter).enforcedOptions(
+                            eid, MSG_TYPE_SEND
+                        )
+                    ) != keccak256(enforcedOptions[0].options)
+                        || keccak256(
+                            OAppOptionsType3Upgradeable(currentDeployment.oftAdapter).enforcedOptions(
+                                eid, MSG_TYPE_SEND_AND_CALL
+                            )
+                        ) != keccak256(enforcedOptions[1].options)
                 ) {
                     needsUpdate = true;
                     newEnforcedOptions.push(getConfigureEnforcedOptionsTX(chainId));
