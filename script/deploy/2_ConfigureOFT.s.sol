@@ -87,9 +87,9 @@ contract GetConfigTx is BaseScript, BatchScript {
                 (_toAddress, _encodedTX) = getConfigureExecutorTX(dstChainIds[i]);
                 _addToBatch(_toAddress, _encodedTX);
             }
-
+            console.log("Encoded Config Transactions.");
             for (uint256 i = 0; i < encodedTxns.length; i++) {
-                console.log("Encoded Config Transactions for chain: ", encodedTxns[i]);
+                console.logBytes(encodedTxns[i]);
             }
         }
     }
