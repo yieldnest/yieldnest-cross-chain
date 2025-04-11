@@ -259,8 +259,10 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
         }
 
         if (!vm.isFile(filePath)) {
+            console.log("No deployment file found at %s", filePath);
             return;
         }
+        console.log("Loading deployment from %s", filePath);
 
         string memory json = vm.readFile(filePath);
 
@@ -299,6 +301,7 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
 
     function _loadJson(string calldata _path) internal {
         string memory filePath = string(abi.encodePacked(vm.projectRoot(), _path));
+        console.log("Loading input from %s", filePath);
         string memory json = vm.readFile(filePath);
 
         // Reset the baseInput struct
@@ -324,16 +327,8 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
         _salt = createSalt("OFTAdapterProxy");
     }
 
-    function createOFTAdapterImplementationSalt() internal view returns (bytes32 _salt) {
-        _salt = createSalt("OFTAdapterImplementation");
-    }
-
     function createERC20ProxySalt() internal view returns (bytes32 _salt) {
         _salt = createSalt("ERC20Proxy");
-    }
-
-    function createERC20ImplementationSalt() internal view returns (bytes32 _salt) {
-        _salt = createSalt("ERC20Implementation");
     }
 
     function createTimelockSalt() internal view returns (bytes32 _salt) {
