@@ -54,6 +54,11 @@ contract VerifyOFT is BaseScript, BatchScript {
             if (proxyAdmin != currentDeployment.oftAdapterProxyAdmin) {
                 revert(string.concat("OFT Adapter proxy admin is not correct for ", vm.toString(block.chainid)));
             }
+            address implementation =
+                getTransparentUpgradeableProxyImplementationAddress(currentDeployment.oftAdapter);
+            if (implementation != currentDeployment.oftAdapterImplementation) {
+                revert(string.concat("OFT Adapter implementation is not correct for ", vm.toString(block.chainid)));
+            }
             address proxyAdminOwner = ProxyAdmin(proxyAdmin).owner();
             if (proxyAdminOwner != currentDeployment.oftAdapterTimelock) {
                 revert(
@@ -104,6 +109,11 @@ contract VerifyOFT is BaseScript, BatchScript {
             address proxyAdmin = getTransparentUpgradeableProxyAdminAddress(currentDeployment.erc20Address);
             if (proxyAdmin != currentDeployment.erc20ProxyAdmin) {
                 revert(string.concat("ERC20 proxy admin is not correct for ", vm.toString(block.chainid)));
+            }
+            address implementation =
+                getTransparentUpgradeableProxyImplementationAddress(currentDeployment.erc20Address);
+            if (implementation != currentDeployment.erc20Implementation) {
+                revert(string.concat("ERC20 implementation is not correct for ", vm.toString(block.chainid)));
             }
             address proxyAdminOwner = ProxyAdmin(proxyAdmin).owner();
             if (proxyAdminOwner != currentDeployment.oftAdapterTimelock) {
@@ -174,6 +184,10 @@ contract VerifyOFT is BaseScript, BatchScript {
             console.log("Expected ownership: %s", getData(block.chainid).OFT_OWNER);
 
             if (needsUpdate) {
+                console.log(
+                    "Please run the configure script to complete configuration followed by the transfer ownership script for ",
+                    vm.toString(block.chainid)
+                );
                 revert(
                     string.concat(
                         "OFT Adapter ownership is not correct & config needs to be updated for ",
