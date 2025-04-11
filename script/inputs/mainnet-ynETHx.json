@@ -13,7 +13,9 @@
     42161,
     252,
     167000,
-    56
+    56,
+    43111,
+    57073
   ],
   "l1ERC20Address": "0x657d9ABA1DBb59e53f9F3eCAA878447dCfC96dCb",
   "rateLimitConfig": {
