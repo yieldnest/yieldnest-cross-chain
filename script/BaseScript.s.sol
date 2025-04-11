@@ -8,10 +8,10 @@ import {Utils} from "./Utils.sol";
 
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
 
+import {OFTAdapterUpgradeable} from "@layerzerolabs/oft-evm-upgradeable/contracts/oft/OFTAdapterUpgradeable.sol";
 import {IERC20Metadata as IERC20} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {CREATE3Script} from "script/CREATE3Script.sol";
 import {Utils} from "script/Utils.sol";
-
 import {Bytes32AddressLib} from "solmate/utils/Bytes32AddressLib.sol";
 
 import {OptionsBuilder} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/libs/OptionsBuilder.sol";
@@ -458,7 +458,8 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
         returns (address oftAdapter, bytes memory encodedPeersTX)
     {
         uint32 eid = getEID(chainId);
-        address adapter = chainId == baseInput.l1ChainId ? predictions.l1OFTAdapter : predictions.l2OFTAdapter;
+        address adapter = currentDeployment.oftAdapter;
+        require(adapter != address(0), "Invalid adapter address");
         bytes32 adapterBytes32 = addressToBytes32(adapter);
 
         oftAdapter = currentDeployment.oftAdapter;
