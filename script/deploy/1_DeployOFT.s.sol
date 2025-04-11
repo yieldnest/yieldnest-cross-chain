@@ -55,12 +55,10 @@ contract DeployOFT is BaseScript {
             if (!isContract(currentDeployment.erc20Address)) {
                 console.log("Deploying L2ERC20");
                 bytes32 proxySalt = createERC20ProxySalt();
-                bytes32 implementationSalt = createERC20ImplementationSalt();
                 address predictedERC20 = CREATE3_FACTORY.getDeployed(deployer, proxySalt);
 
                 vm.startBroadcast();
                 currentDeployment.erc20Address = deployL2YnERC20(
-                    implementationSalt,
                     proxySalt,
                     baseInput.erc20Name,
                     baseInput.erc20Symbol,
@@ -86,13 +84,11 @@ contract DeployOFT is BaseScript {
             console.log("Deploying OFTAdapter");
 
             bytes32 proxySalt = createOFTAdapterProxySalt();
-            bytes32 implementationSalt = createOFTAdapterImplementationSalt();
 
             address predictedOFTAdapter = CREATE3_FACTORY.getDeployed(deployer, proxySalt);
             vm.startBroadcast();
             if (currentDeployment.isL1) {
                 currentDeployment.oftAdapter = deployL1YnOFTAdapter(
-                    implementationSalt,
                     proxySalt,
                     currentDeployment.erc20Address,
                     getData(block.chainid).LZ_ENDPOINT,
@@ -101,7 +97,6 @@ contract DeployOFT is BaseScript {
                 );
             } else {
                 currentDeployment.oftAdapter = deployL2YnOFTAdapter(
-                    implementationSalt,
                     proxySalt,
                     currentDeployment.erc20Address,
                     getData(block.chainid).LZ_ENDPOINT,
