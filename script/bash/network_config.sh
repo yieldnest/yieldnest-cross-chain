@@ -65,6 +65,9 @@ function getRPC() {
     43111)
         echo "hemi"
         ;;
+    57073)
+        echo "ink"
+        ;;
     *)
         echo ""
         ;;
@@ -137,6 +140,9 @@ function getEtherscanAPIKey() {
         ;;
     43111)
         echo "$HEMI_API_KEY"
+        ;;
+    57073)
+        echo "$INK_API_KEY"
         ;;
     *)
         echo ""
