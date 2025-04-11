@@ -12,10 +12,10 @@ set -e
 function display_help() {
     delimiter
 
-    echo "This script is designed to help deploy Yieldnest tokens on all chains: "
-    echo "Please create an input and add the relative path to the script.  For example:"
+    echo "This script is designed to help transfer ownership of the OFT for Yieldnest tokens on all chains: "
+    echo "Please add the input and deployment json paths to the script.  For example:"
     echo
-    echo "yarn deploy script/inputs/mainnet-ynETH.json"
+    echo "yarn transfer-ownership script/inputs/mainnet-ynETH.json deployments/ynETH-1-v0.0.1.json"
     echo
     echo "Options:"
     echo "  -h, --help            Display this help and exit"
@@ -47,6 +47,23 @@ elif [[ -f $INPUT_PATH ]]; then
     shift
 fi
 
+
+OUTPUT_PATH=$1
+# if the first character of the path is a / trim it off
+if [[ "${OUTPUT_PATH:0:1}" == "/" ]]; then
+    OUTPUT_PATH="${OUTPUT_PATH:1}"
+fi
+
+# check that there is an arg
+if [[ -z $OUTPUT_PATH ]]; then
+    # if no file path display help
+    display_help
+    exit 1
+    #if arg is a filepath and is a file shift down 1 arg
+elif [[ -f $OUTPUT_PATH ]]; then
+    shift
+fi
+
 # unset private key as we are reading it from cast wallet
 PRIVATE_KEY=""
 DEPLOYER_ACCOUNT_NAME=${DEPLOYER_ACCOUNT_NAME:-"yieldnestDeployerKey"}
@@ -61,6 +78,7 @@ if [[ -z $ETHERSCAN_API_KEY || -z $DEPLOYER_ADDRESS ]]; then
     echo "invalid .env vars"
     exit 1
 fi
+
 ######################
 ## SCRIPT EXECUTION ##
 ######################
@@ -137,11 +155,11 @@ echo "$output"
 
 delimiter
 
-CALLDATA=$(cast calldata "run(string)" "/$INPUT_PATH")
+CALLDATA=$(cast calldata "run(string,string)" "/$INPUT_PATH" "/$OUTPUT_PATH")
 
 if [[ $SKIP_L1 == false ]]; then
-    echo "Deploying L1 OFTAdapter for $L1_RPC ($L1_CHAIN_ID)"
-    runScript DeployOFT $CALLDATA $L1_RPC $L1_ETHERSCAN_API_KEY
+    echo "Transfering OFT Ownership L1 OFTAdapter for $L1_RPC ($L1_CHAIN_ID)"
+    runScript TransferOFTOwnership $CALLDATA $L1_RPC $L1_ETHERSCAN_API_KEY
     
     delimiter
 else
@@ -160,8 +178,8 @@ for L2_CHAIN_ID in $L2_CHAIN_IDS_ARRAY; do
         echo "No Etherscan API key found for $L2_CHAIN_ID"
         exit 1
     fi
-    echo "Deploying L2 ERC20 and OFTAdapter for $L2_RPC ($L2_CHAIN_ID)"
-    runScript DeployOFT $CALLDATA $L2_RPC $L2_ETHERSCAN_API_KEY
+    echo "Transfering OFT Ownership L2 OFTAdapter for $L2_RPC ($L2_CHAIN_ID)"
+    runScript TransferOFTOwnership $CALLDATA $L2_RPC $L2_ETHERSCAN_API_KEY
 
     delimiter
 done
