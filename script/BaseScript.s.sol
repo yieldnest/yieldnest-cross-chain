@@ -449,10 +449,18 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
         OFTAdapterUpgradeable oftAdapter = OFTAdapterUpgradeable(currentDeployment.oftAdapter);
         for (uint256 i = 0; i < dstChainIds.length; i++) {
             uint256 chainId = dstChainIds[i];
+            uint32 dstEid = getEID(chainId);
 
             EnforcedOptionParam[] memory enforcedOptions = new EnforcedOptionParam[](2);
             enforcedOptions = _getEnforcedOptions(chainId);
 
+            if (
+                keccak256(oftAdapter.enforcedOptions(dstEid, 1)) == keccak256(enforcedOptions[0].options)
+                    && keccak256(oftAdapter.enforcedOptions(dstEid, 2)) == keccak256(enforcedOptions[1].options)
+            ) {
+                console.log("Already set enforced options for chainid %d", chainId);
+                continue;
+            }
             vm.startBroadcast();
             oftAdapter.setEnforcedOptions(enforcedOptions);
             console.log("Set enforced options for chainid %d", chainId);
@@ -494,6 +502,25 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
             uint32 dstEid = getEID(chainId);
 
             UlnConfig memory ulnConfig = _getUlnConfig();
+
+            if (
+                keccak256(
+                    lzEndpoint.getConfig(
+                        currentDeployment.oftAdapter,
+                        getData(block.chainid).LZ_RECEIVE_LIB,
+                        dstEid,
+                        CONFIG_TYPE_ULN
+                    )
+                ) == keccak256(abi.encode(ulnConfig))
+                    && keccak256(
+                        lzEndpoint.getConfig(
+                            currentDeployment.oftAdapter, getData(block.chainid).LZ_SEND_LIB, dstEid, CONFIG_TYPE_ULN
+                        )
+                    ) == keccak256(abi.encode(ulnConfig))
+            ) {
+                console.log("Already set DVNs for chainid %d", chainId);
+                continue;
+            }
 
             SetConfigParam[] memory params = new SetConfigParam[](1);
             params[0] = SetConfigParam(dstEid, CONFIG_TYPE_ULN, abi.encode(ulnConfig));
@@ -547,6 +574,20 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
             uint32 dstEid = getEID(chainId);
 
             ExecutorConfig memory executorConfig = _getExecutorConfig();
+
+            if (
+                keccak256(
+                    lzEndpoint.getConfig(
+                        currentDeployment.oftAdapter,
+                        getData(block.chainid).LZ_SEND_LIB,
+                        dstEid,
+                        CONFIG_TYPE_EXECUTOR
+                    )
+                ) == keccak256(abi.encode(executorConfig))
+            ) {
+                console.log("Already set executor for chainid %d", chainId);
+                continue;
+            }
 
             SetConfigParam[] memory params = new SetConfigParam[](1);
             params[0] = SetConfigParam(dstEid, CONFIG_TYPE_EXECUTOR, abi.encode(executorConfig));
