@@ -165,6 +165,44 @@ contract VerifyOFT is BaseScript, BatchScript {
                 needsUpdate = true;
                 newReceiveLibs.push(ReceiveLibConfig(eid, getData(block.chainid).LZ_RECEIVE_LIB));
             }
+            bytes memory enforcedOptions1 = OptionsBuilder.newOptions().addExecutorLzReceiveOption(170_000, 0);
+            bytes memory enforcedOptions2 = OptionsBuilder.newOptions().addExecutorLzReceiveOption(170_000, 0)
+                .addExecutorLzComposeOption(0, 170_000, 0);
+            if (
+                IOAppOptionsType3(currentDeployment.oftAdapter).enforcedOptions(eid, 1) != enforcedOptions1
+                    || IOAppOptionsType3(currentDeployment.oftAdapter).enforcedOptions(eid, 2) != enforcedOptions2
+            ) {
+                needsUpdate = true;
+                newEnforcedOptions.push(getConfigureEnforcedOptionsTX(chainIds[i]));
+            }
+
+            // configure dvns
+            bytes memory ulnConfig = abi.encode(_getUlnConfig(chainIds[i]));
+            if (
+                lzEndpoint.getConfig(
+                    currentDeployment.oftAdapter, getData(block.chainid).LZ_RECEIVE_LIB, eid, CONFIG_TYPE_ULN
+                ) != ulnConfig
+                    || lzEndpoint.getConfig(
+                        currentDeployment.oftAdapter, getData(block.chainid).LZ_SEND_LIB, eid, CONFIG_TYPE_ULN
+                    ) != ulnConfig
+            ) {
+                needsUpdate = true;
+                (bytes memory encodedSendTx, bytes memory encodedReceiveTx) = getConfigureDVNsTX(chainIds[i]);
+                newDvns.push(encodedSendTx);
+                newDvns.push(encodedReceiveTx);
+            }
+            //configure executor
+            ExecutorConfig memory executorConfig =
+                ExecutorConfig({maxMessageSize: DEFAULT_MAX_MESSAGE_SIZE, executor: data.LZ_EXECUTOR});
+            if (
+                lzEndpoint.getConfig(
+                    currentDeployment.oftAdapter, getData(block.chainid).LZ_SEND_LIB, eid, CONFIG_TYPE_EXECUTOR
+                ) != abi.encode(executorConfig)
+            ) {
+                needsUpdate = true;
+                (bytes memory encodedSendTx) = getConfigureExecutorTX(chainIds[i]);
+                newDvns.push(encodedSendTx);
+            }
         }
 
         Ownable oftAdapterOwnable = Ownable(currentDeployment.oftAdapter);
@@ -277,6 +315,39 @@ contract VerifyOFT is BaseScript, BatchScript {
                     console.logBytes(data);
 
                     addToBatch(address(lzEndpoint), data);
+                    console.log("");
+                }
+            }
+
+            if (newEnforcedOptions.length > 0) {
+                console.log("The following enforced options need to be set: ");
+                console.log("");
+                for (uint256 i = 0; i < newEnforcedOptions.length; i++) {
+                    console.log("Encoded Tx Data: ");
+                    console.logBytes(newEnforcedOptions[i]);
+                    addToBatch(address(lzEndpoint), newEnforcedOptions[i]);
+                    console.log("");
+                }
+            }
+
+            if (newDvns.length > 0) {
+                console.log("The following DVNs need to be set: ");
+                console.log("");
+                for (uint256 i = 0; i < newDvns.length; i++) {
+                    console.log("Encoded Tx Data: ");
+                    console.logBytes(newDvns[i]);
+                    addToBatch(address(lzEndpoint), newDvns[i]);
+                    console.log("");
+                }
+            }
+
+            if (newExecutor.length > 0) {
+                console.log("The following executor need to be set: ");
+                console.log("");
+                for (uint256 i = 0; i < newExecutor.length; i++) {
+                    console.log("Encoded Tx Data: ");
+                    console.logBytes(newExecutor[i]);
+                    addToBatch(address(lzEndpoint), newExecutor[i]);
                     console.log("");
                 }
             }

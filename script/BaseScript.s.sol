@@ -380,42 +380,6 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
         vm.stopBroadcast();
     }
 
-    function getConfigureRateLimitsTX()
-        internal
-        view
-        returns (address oftAdapterAddress, bytes memory encodedRateLimitConfigs)
-    {
-        RateLimiter.RateLimitConfig[] memory rateLimitConfigs = _getRateLimitConfigs();
-        RateLimiter.RateLimitConfig[] memory newRateLimitConfigs =
-            new RateLimiter.RateLimitConfig[](rateLimitConfigs.length);
-        uint256 uniqueLimits = 0;
-        RateLimiter.RateLimit memory currentLimit;
-        // check for existing rate limits
-        for (uint256 i = 0; i < rateLimitConfigs.length; i++) {
-            currentLimit = _getCurrentRateLimit(rateLimitConfigs[i].dstEid);
-            if (
-                currentLimit.limit != rateLimitConfigs[i].limit
-                    || currentLimit.window != rateLimitConfigs[i].window
-            ) {
-                newRateLimitConfigs[uniqueLimits] = rateLimitConfigs[i];
-                uniqueLimits++;
-            }
-        }
-
-        if (uniqueLimits == 0) {
-            return (address(0), "");
-        }
-
-        RateLimiter.RateLimitConfig[] memory finalRateLimitConfigs =
-            new RateLimiter.RateLimitConfig[](uniqueLimits);
-        // copy new rate limits to final rate limits
-        for (uint256 i = 0; i < uniqueLimits; i++) {
-            finalRateLimitConfigs[i] = newRateLimitConfigs[i];
-        }
-        encodedRateLimitConfigs =
-            abi.encodeWithSelector(IOFTRateLimiter.setRateLimits.selector, finalRateLimitConfigs);
-    }
-
     function _getCurrentRateLimit(uint32 _eid) internal view returns (RateLimiter.RateLimit memory) {
         IOFTRateLimiter rateLimiter = IOFTRateLimiter(currentDeployment.oftAdapter);
 
@@ -591,10 +555,8 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
     function getConfigureEnforcedOptionsTX(uint256 dstChainId)
         internal
         view
-        returns (address oftAdapter, bytes memory encodedEnforcedOptions)
+        returns (bytes memory encodedEnforcedOptions)
     {
-        oftAdapter = currentDeployment.oftAdapter;
-
         EnforcedOptionParam[] memory enforcedOptions = new EnforcedOptionParam[](2);
 
         uint32 dstEid = getEID(dstChainId);
@@ -629,28 +591,8 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
         for (uint256 i = 0; i < dstChainIds.length; i++) {
             uint256 chainId = dstChainIds[i];
             uint32 dstEid = getEID(chainId);
-            address[] memory requiredDVNs = new address[](isTestnet ? 1 : 2);
 
-            if (isTestnet) {
-                requiredDVNs[0] = data.LZ_DVN;
-            } else {
-                if (data.LZ_DVN > data.NETHERMIND_DVN) {
-                    requiredDVNs[0] = data.NETHERMIND_DVN;
-                    requiredDVNs[1] = data.LZ_DVN;
-                } else {
-                    requiredDVNs[0] = data.LZ_DVN;
-                    requiredDVNs[1] = data.NETHERMIND_DVN;
-                }
-            }
-
-            UlnConfig memory ulnConfig = UlnConfig({
-                confirmations: confirmations,
-                requiredDVNCount: requiredDVNCount,
-                optionalDVNCount: 0,
-                optionalDVNThreshold: 0,
-                requiredDVNs: requiredDVNs,
-                optionalDVNs: new address[](0)
-            });
+            UlnConfig memory ulnConfig = _getUlnConfig(chainId);
 
             SetConfigParam[] memory params = new SetConfigParam[](1);
             params[0] = SetConfigParam(dstEid, CONFIG_TYPE_ULN, abi.encode(ulnConfig));
@@ -666,8 +608,25 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
     function getConfigureDVNsTX(uint256 dstChainId)
         internal
         view
-        returns (address lzEndpoint, bytes memory encodedSendTx, bytes memory encodedReceiveTx)
+        returns (bytes memory encodedSendTx, bytes memory encodedReceiveTx)
     {
+        Data storage data = getData(block.chainid);
+        uint32 dstEid = getEID(dstChainId);
+
+        UlnConfig memory ulnConfig = _getUlnConfig(dstChainId);
+
+        SetConfigParam[] memory params = new SetConfigParam[](1);
+        params[0] = SetConfigParam(dstEid, CONFIG_TYPE_ULN, abi.encode(ulnConfig));
+
+        encodedSendTx = abi.encodeWithSelector(
+            IMessageLibManager.setConfig.selector, currentDeployment.oftAdapter, data.LZ_SEND_LIB, params
+        );
+        encodedReceiveTx = abi.encodeWithSelector(
+            IMessageLibManager.setConfig.selector, currentDeployment.oftAdapter, data.LZ_RECEIVE_LIB, params
+        );
+    }
+
+    function _getUlnConfig(uint256 dstChainId) internal view returns (UlnConfig memory _ulnConfig) {
         Data storage data = getData(block.chainid);
         uint32 dstEid = getEID(dstChainId);
         bool isTestnet = isTestnetChainId(block.chainid);
@@ -688,7 +647,7 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
             }
         }
 
-        UlnConfig memory ulnConfig = UlnConfig({
+        _ulnConfig = UlnConfig({
             confirmations: confirmations,
             requiredDVNCount: requiredDVNCount,
             optionalDVNCount: 0,
@@ -696,17 +655,6 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
             requiredDVNs: requiredDVNs,
             optionalDVNs: new address[](0)
         });
-
-        SetConfigParam[] memory params = new SetConfigParam[](1);
-        params[0] = SetConfigParam(dstEid, CONFIG_TYPE_ULN, abi.encode(ulnConfig));
-
-        lzEndpoint = getData(block.chainid).LZ_ENDPOINT;
-        encodedSendTx = abi.encodeWithSelector(
-            IMessageLibManager.setConfig.selector, currentDeployment.oftAdapter, data.LZ_SEND_LIB, params
-        );
-        encodedReceiveTx = abi.encodeWithSelector(
-            IMessageLibManager.setConfig.selector, currentDeployment.oftAdapter, data.LZ_RECEIVE_LIB, params
-        );
     }
 
     function configureExecutor(uint256[] memory dstChainIds) internal {
@@ -732,11 +680,7 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
         }
     }
 
-    function getConfigureExecutorTX(uint256 dstChainId)
-        internal
-        view
-        returns (address lzEndpoint, bytes memory encodedExecutorTx)
-    {
+    function getConfigureExecutorTX(uint256 dstChainId) internal view returns (bytes memory encodedExecutorTx) {
         Data storage data = getData(block.chainid);
         uint32 dstEid = getEID(dstChainId);
         ExecutorConfig memory executorConfig =
