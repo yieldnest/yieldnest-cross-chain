@@ -5,7 +5,8 @@
   "l1ChainId": 17000,
   "l2ChainIds": [
     2522,
-    2810
+    2810,
+    11155111
   ],
   "l1ERC20Address": "0xfd930060e51C10CCBc36F512676B4FD3E7026a1E",
   "rateLimitConfig": {
