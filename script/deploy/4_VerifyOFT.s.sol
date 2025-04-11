@@ -4,19 +4,25 @@ pragma solidity ^0.8.24;
 
 import {BaseScript, ChainDeployment, PeerConfig, ReceiveLibConfig, SendLibConfig} from "../BaseScript.s.sol";
 import {BatchScript} from "../BatchScript.s.sol";
+
+import {L2YnERC20Upgradeable} from "@/L2YnERC20Upgradeable.sol";
+import {L2YnOFTAdapterUpgradeable} from "@/L2YnOFTAdapterUpgradeable.sol";
+import {ExecutorConfig} from "@layerzerolabs/lz-evm-messagelib-v2/contracts/SendLibBase.sol";
+
+import {IOAppCore} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/interfaces/IOAppCore.sol";
+import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
 import {
     ILayerZeroEndpointV2,
     IMessageLibManager
 } from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroEndpointV2.sol";
 
-import {L2YnERC20Upgradeable} from "@/L2YnERC20Upgradeable.sol";
-import {L2YnOFTAdapterUpgradeable} from "@/L2YnOFTAdapterUpgradeable.sol";
-
-import {IOAppCore} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/interfaces/IOAppCore.sol";
-import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
+import {EnforcedOptionParam} from "@layerzerolabs/oapp-evm/contracts/oapp/interfaces/IOAppOptionsType3.sol";
 import {TimelockController} from "@openzeppelin/contracts/governance/TimelockController.sol";
 import {ProxyAdmin} from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 import {console} from "forge-std/console.sol";
+import {OAppOptionsType3Upgradeable} from
+    "lib/LayerZero-v2/oapp/contracts/oapp/libs/OAppOptionsType3Upgradeable.sol";
+import {OptionsBuilder} from "lib/LayerZero-v2/oapp/contracts/oapp/libs/OptionsBuilder.sol";
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
@@ -29,6 +35,9 @@ contract VerifyOFT is BaseScript, BatchScript {
     PeerConfig[] public newPeers;
     SendLibConfig[] public newSendLibs;
     ReceiveLibConfig[] public newReceiveLibs;
+    bytes[] public newEnforcedOptions;
+    bytes[] public newDvns;
+    bytes[] public newExecutor;
 
     function run(
         string calldata _jsonPath,
@@ -165,39 +174,47 @@ contract VerifyOFT is BaseScript, BatchScript {
                 needsUpdate = true;
                 newReceiveLibs.push(ReceiveLibConfig(eid, getData(block.chainid).LZ_RECEIVE_LIB));
             }
-            bytes memory enforcedOptions1 = OptionsBuilder.newOptions().addExecutorLzReceiveOption(170_000, 0);
-            bytes memory enforcedOptions2 = OptionsBuilder.newOptions().addExecutorLzReceiveOption(170_000, 0)
-                .addExecutorLzComposeOption(0, 170_000, 0);
+            EnforcedOptionParam[] memory enforcedOptions = _getEnforcedOptions(chainId);
             if (
-                IOAppOptionsType3(currentDeployment.oftAdapter).enforcedOptions(eid, 1) != enforcedOptions1
-                    || IOAppOptionsType3(currentDeployment.oftAdapter).enforcedOptions(eid, 2) != enforcedOptions2
+                keccak256(OAppOptionsType3Upgradeable(currentDeployment.oftAdapter).enforcedOptions(eid, 1))
+                    != keccak256(enforcedOptions[0].options)
+                    || keccak256(OAppOptionsType3Upgradeable(currentDeployment.oftAdapter).enforcedOptions(eid, 2))
+                        != keccak256(enforcedOptions[1].options)
             ) {
                 needsUpdate = true;
-                newEnforcedOptions.push(getConfigureEnforcedOptionsTX(chainIds[i]));
+                newEnforcedOptions.push(getConfigureEnforcedOptionsTX(chainId));
             }
 
             // configure dvns
-            bytes memory ulnConfig = abi.encode(_getUlnConfig(chainIds[i]));
+            bytes memory ulnConfig = abi.encode(_getUlnConfig(chainId));
             if (
-                lzEndpoint.getConfig(
-                    currentDeployment.oftAdapter, getData(block.chainid).LZ_RECEIVE_LIB, eid, CONFIG_TYPE_ULN
-                ) != ulnConfig
-                    || lzEndpoint.getConfig(
-                        currentDeployment.oftAdapter, getData(block.chainid).LZ_SEND_LIB, eid, CONFIG_TYPE_ULN
-                    ) != ulnConfig
+                keccak256(
+                    lzEndpoint.getConfig(
+                        currentDeployment.oftAdapter, getData(block.chainid).LZ_RECEIVE_LIB, eid, CONFIG_TYPE_ULN
+                    )
+                ) != keccak256(ulnConfig)
+                    || keccak256(
+                        lzEndpoint.getConfig(
+                            currentDeployment.oftAdapter, getData(block.chainid).LZ_SEND_LIB, eid, CONFIG_TYPE_ULN
+                        )
+                    ) != keccak256(ulnConfig)
             ) {
                 needsUpdate = true;
-                (bytes memory encodedSendTx, bytes memory encodedReceiveTx) = getConfigureDVNsTX(chainIds[i]);
+                (bytes memory encodedSendTx, bytes memory encodedReceiveTx) = getConfigureDVNsTX(chainId);
                 newDvns.push(encodedSendTx);
                 newDvns.push(encodedReceiveTx);
             }
             //configure executor
-            ExecutorConfig memory executorConfig =
-                ExecutorConfig({maxMessageSize: DEFAULT_MAX_MESSAGE_SIZE, executor: data.LZ_EXECUTOR});
+            ExecutorConfig memory executorConfig = ExecutorConfig({
+                maxMessageSize: DEFAULT_MAX_MESSAGE_SIZE,
+                executor: getData(block.chainid).LZ_EXECUTOR
+            });
             if (
-                lzEndpoint.getConfig(
-                    currentDeployment.oftAdapter, getData(block.chainid).LZ_SEND_LIB, eid, CONFIG_TYPE_EXECUTOR
-                ) != abi.encode(executorConfig)
+                keccak256(
+                    lzEndpoint.getConfig(
+                        currentDeployment.oftAdapter, getData(block.chainid).LZ_SEND_LIB, eid, CONFIG_TYPE_EXECUTOR
+                    )
+                ) != keccak256(abi.encode(executorConfig))
             ) {
                 needsUpdate = true;
                 (bytes memory encodedSendTx) = getConfigureExecutorTX(chainIds[i]);

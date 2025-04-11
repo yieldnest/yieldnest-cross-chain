@@ -557,25 +557,33 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
         view
         returns (bytes memory encodedEnforcedOptions)
     {
-        EnforcedOptionParam[] memory enforcedOptions = new EnforcedOptionParam[](2);
+        EnforcedOptionParam[] memory enforcedOptions = _getEnforcedOptions(dstChainId);
+
+        encodedEnforcedOptions =
+            abi.encodeWithSelector(IOAppOptionsType3.setEnforcedOptions.selector, enforcedOptions);
+    }
+
+    function _getEnforcedOptions(uint256 dstChainId)
+        internal
+        view
+        returns (EnforcedOptionParam[] memory _enforcedOptions)
+    {
+        _enforcedOptions = new EnforcedOptionParam[](2);
 
         uint32 dstEid = getEID(dstChainId);
-        enforcedOptions[0] = EnforcedOptionParam({
+        _enforcedOptions[0] = EnforcedOptionParam({
             eid: dstEid,
             msgType: 1,
             options: OptionsBuilder.newOptions().addExecutorLzReceiveOption(170_000, 0)
         });
 
-        enforcedOptions[1] = EnforcedOptionParam({
+        _enforcedOptions[1] = EnforcedOptionParam({
             eid: dstEid,
             msgType: 2,
             options: OptionsBuilder.newOptions().addExecutorLzReceiveOption(170_000, 0).addExecutorLzComposeOption(
                 0, 170_000, 0
             )
         });
-
-        encodedEnforcedOptions =
-            abi.encodeWithSelector(IOAppOptionsType3.setEnforcedOptions.selector, enforcedOptions);
     }
 
     function configureDVNs(uint256[] memory dstChainIds) internal {
@@ -689,7 +697,6 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
         SetConfigParam[] memory params = new SetConfigParam[](1);
         params[0] = SetConfigParam(dstEid, CONFIG_TYPE_EXECUTOR, abi.encode(executorConfig));
 
-        lzEndpoint = getData(block.chainid).LZ_ENDPOINT;
         encodedExecutorTx = abi.encodeWithSelector(
             IMessageLibManager.setConfig.selector, currentDeployment.oftAdapter, data.LZ_SEND_LIB, params
         );
