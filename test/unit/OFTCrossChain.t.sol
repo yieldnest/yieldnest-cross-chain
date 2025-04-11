@@ -38,6 +38,12 @@ contract OFTCrossChainTest is CrossChainBaseTest {
         vm.stopPrank();
     }
 
+    function test_create3() public view {
+        assertEq(address(optimismOFTAdapter), address(mainnetOFTAdapter), "All three adapters should be the same");
+        assertEq(address(optimismOFTAdapter), address(arbitrumOFTAdapter), "All three adapters should be the same");
+        assertEq(address(optimismERC20), address(arbitrumERC20), "ERC20s on L2 should be the same");
+    }
+
     function wireMultichainOApps() public {
         vm.startPrank(_owner);
         vm.selectFork(mainnetFork);

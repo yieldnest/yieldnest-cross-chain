@@ -3,26 +3,33 @@
 pragma solidity ^0.8.24;
 
 import {BaseData} from "./BaseData.s.sol";
+import {CREATE3Script} from "./CREATE3Script.sol";
+import {Utils} from "./Utils.sol";
 
-import {L1YnOFTAdapterUpgradeable} from "@/L1YnOFTAdapterUpgradeable.sol";
-import {ImmutableMultiChainDeployer} from "@/factory/ImmutableMultiChainDeployer.sol";
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
-import {OFTAdapterUpgradeable} from "@layerzerolabs/oft-evm-upgradeable/contracts/oft/OFTAdapterUpgradeable.sol";
 
-import {TimelockController} from "@openzeppelin/contracts/governance/TimelockController.sol";
-import {TransparentUpgradeableProxy} from
-    "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {IERC20Metadata as IERC20} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {CREATE3Script} from "script/CREATE3Script.sol";
 import {Utils} from "script/Utils.sol";
 
 import {Bytes32AddressLib} from "solmate/utils/Bytes32AddressLib.sol";
+
 
 import {ILayerZeroEndpointV2} from
     "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroEndpointV2.sol";
 import {IMessageLibManager} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/IMessageLibManager.sol";
 import {IOAppCore} from "@layerzerolabs/oapp-evm/contracts/oapp/interfaces/IOAppCore.sol";
 import {IOAppOptionsType3} from "@layerzerolabs/oapp-evm/contracts/oapp/interfaces/IOAppOptionsType3.sol";
+
+import {OptionsBuilder} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/libs/OptionsBuilder.sol";
+
+import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
+
 import {console} from "forge-std/console.sol";
+
+import {ILayerZeroEndpointV2} from
+    "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroEndpointV2.sol";
+import {OFTAdapterUpgradeable} from "@layerzerolabs/oft-evm-upgradeable/contracts/oft/OFTAdapterUpgradeable.sol";
 
 import {EnforcedOptionParam} from "@layerzerolabs/oapp-evm/contracts/oapp/interfaces/IOAppOptionsType3.sol";
 
@@ -31,8 +38,6 @@ import {SetConfigParam} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interf
 import {UlnConfig} from "@layerzerolabs/lz-evm-messagelib-v2/contracts/uln/UlnBase.sol";
 
 import {ExecutorConfig} from "@layerzerolabs/lz-evm-messagelib-v2/contracts/SendLibBase.sol";
-
-import {OptionsBuilder} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/libs/OptionsBuilder.sol";
 
 interface IOFTRateLimiter {
     function setRateLimits(RateLimiter.RateLimitConfig[] calldata _rateLimitConfigs) external;
@@ -57,28 +62,20 @@ struct BaseInput {
 struct Deployment {
     ChainDeployment[] chains;
     address deployerAddress;
-    string erc20Name;
-    string erc20Symbol;
 }
 
 struct ChainDeployment {
     uint256 chainId;
     address erc20Address;
     address erc20ProxyAdmin;
+    address erc20Implementation;
     bool isL1;
     address lzEndpoint;
     uint32 lzEID;
-    address multiChainDeployer;
     address oftAdapter;
     address oftAdapterProxyAdmin;
+    address oftAdapterImplementation;
     address oftAdapterTimelock;
-}
-
-struct PredictedAddresses {
-    address l1OFTAdapter;
-    address l2MultiChainDeployer;
-    address l2ERC20;
-    address l2OFTAdapter;
 }
 
 struct PeerConfig {
@@ -96,14 +93,13 @@ struct ReceiveLibConfig {
     address lib;
 }
 
-contract BaseScript is BaseData, Utils {
+contract BaseScript is BaseData, CREATE3Script, Utils {
     using Bytes32AddressLib for bytes32;
     using OptionsBuilder for bytes;
 
     BaseInput public baseInput;
     Deployment public deployment;
     ChainDeployment public currentDeployment;
-    PredictedAddresses public predictions;
     string private constant VERSION = "v0.0.1";
 
     error InvalidDVN();
@@ -144,6 +140,7 @@ contract BaseScript is BaseData, Utils {
                 break;
             }
         }
+
         currentDeployment.chainId = block.chainid;
         currentDeployment.isL1 = isL1;
         if (isL1) {
@@ -165,71 +162,10 @@ contract BaseScript is BaseData, Utils {
         }
         currentDeployment.lzEndpoint = getData(block.chainid).LZ_ENDPOINT;
         currentDeployment.lzEID = getEID(block.chainid);
-        _loadPredictions();
         require(
             deployment.deployerAddress == address(0) || deployment.deployerAddress == msg.sender,
             "Invalid Deployer Address"
         );
-    }
-
-    function _computeCreate3Address(bytes32 _salt, address _deployer) internal pure returns (address) {
-        bytes memory proxyByteCode = hex"67363d3d37363d34f03d5260086018f3";
-
-        bytes32 proxyByteCodeHash = keccak256(proxyByteCode);
-        address proxy =
-            keccak256(abi.encodePacked(bytes1(0xFF), _deployer, _salt, proxyByteCodeHash)).fromLast20Bytes();
-
-        return keccak256(abi.encodePacked(hex"d694", proxy, hex"01")).fromLast20Bytes();
-    }
-
-    function _loadPredictions() internal {
-        {
-            bytes32 salt = createImmutableMultiChainDeployerSalt(msg.sender);
-
-            address predictedAddress =
-                vm.computeCreate2Address(salt, keccak256(type(ImmutableMultiChainDeployer).creationCode));
-            predictions.l2MultiChainDeployer = predictedAddress;
-        }
-
-        {
-            bytes32 proxySalt = createL1YnOFTAdapterUpgradeableProxySalt(msg.sender);
-            bytes32 implementationSalt = createL1YnOFTAdapterUpgradeableSalt(msg.sender);
-
-            bytes memory implBytecode = bytes.concat(
-                type(L1YnOFTAdapterUpgradeable).creationCode,
-                abi.encode(baseInput.l1ERC20Address, getData(baseInput.l1ChainId).LZ_ENDPOINT)
-            );
-
-            address predictedImplementation = vm.computeCreate2Address(implementationSalt, keccak256(implBytecode));
-
-            bytes memory initializeData =
-                abi.encodeWithSelector(L1YnOFTAdapterUpgradeable.initialize.selector, msg.sender);
-
-            bytes32 timelockSalt = createL1YnOFTAdapterTimelockSalt(msg.sender);
-
-            address predictedTimelock = _predictTimelockController(timelockSalt, baseInput.l1ChainId);
-
-            bytes memory proxyBytecode = bytes.concat(
-                type(TransparentUpgradeableProxy).creationCode,
-                abi.encode(predictedImplementation, predictedTimelock, initializeData)
-            );
-
-            address predictedAddress = vm.computeCreate2Address(proxySalt, keccak256(proxyBytecode));
-            predictions.l1OFTAdapter = predictedAddress;
-        }
-
-        {
-            bytes32 salt = createL2YnOFTAdapterUpgradeableProxySalt(msg.sender);
-
-            address predictedAddress = _computeCreate3Address(salt, predictions.l2MultiChainDeployer);
-            predictions.l2OFTAdapter = predictedAddress;
-        }
-
-        {
-            bytes32 salt = createL2YnERC20UpgradeableProxySalt(msg.sender);
-            address predictedAddress = _computeCreate3Address(salt, predictions.l2MultiChainDeployer);
-            predictions.l2ERC20 = predictedAddress;
-        }
     }
 
     function _validateInput() internal view {
@@ -300,13 +236,16 @@ contract BaseScript is BaseData, Utils {
             chainJson = vm.serializeUint(chainKey, "chainId", deployment.chains[i].chainId);
             chainJson = vm.serializeAddress(chainKey, "lzEndpoint", deployment.chains[i].lzEndpoint);
             chainJson = vm.serializeUint(chainKey, "lzEID", deployment.chains[i].lzEID);
-            chainJson =
-                vm.serializeAddress(chainKey, "multiChainDeployer", deployment.chains[i].multiChainDeployer);
             chainJson = vm.serializeAddress(chainKey, "erc20Address", deployment.chains[i].erc20Address);
             chainJson = vm.serializeAddress(chainKey, "erc20ProxyAdmin", deployment.chains[i].erc20ProxyAdmin);
+            chainJson =
+                vm.serializeAddress(chainKey, "erc20Implementation", deployment.chains[i].erc20Implementation);
             chainJson = vm.serializeAddress(chainKey, "oftAdapter", deployment.chains[i].oftAdapter);
             chainJson =
                 vm.serializeAddress(chainKey, "oftAdapterProxyAdmin", deployment.chains[i].oftAdapterProxyAdmin);
+            chainJson = vm.serializeAddress(
+                chainKey, "oftAdapterImplementation", deployment.chains[i].oftAdapterImplementation
+            );
             chainJson =
                 vm.serializeAddress(chainKey, "oftAdapterTimelock", deployment.chains[i].oftAdapterTimelock);
 
@@ -348,14 +287,16 @@ contract BaseScript is BaseData, Utils {
             chains[i].chainId = vm.parseJsonUint(json, string(abi.encodePacked(chainKey, ".chainId")));
             chains[i].lzEndpoint = vm.parseJsonAddress(json, string(abi.encodePacked(chainKey, ".lzEndpoint")));
             chains[i].lzEID = uint32(vm.parseJsonUint(json, string(abi.encodePacked(chainKey, ".lzEID"))));
-            chains[i].multiChainDeployer =
-                vm.parseJsonAddress(json, string(abi.encodePacked(chainKey, ".multiChainDeployer")));
             chains[i].erc20Address = vm.parseJsonAddress(json, string(abi.encodePacked(chainKey, ".erc20Address")));
             chains[i].erc20ProxyAdmin =
                 vm.parseJsonAddress(json, string(abi.encodePacked(chainKey, ".erc20ProxyAdmin")));
+            chains[i].erc20Implementation =
+                vm.parseJsonAddress(json, string(abi.encodePacked(chainKey, ".erc20Implementation")));
             chains[i].oftAdapter = vm.parseJsonAddress(json, string(abi.encodePacked(chainKey, ".oftAdapter")));
             chains[i].oftAdapterProxyAdmin =
                 vm.parseJsonAddress(json, string(abi.encodePacked(chainKey, ".oftAdapterProxyAdmin")));
+            chains[i].oftAdapterImplementation =
+                vm.parseJsonAddress(json, string(abi.encodePacked(chainKey, ".oftAdapterImplementation")));
             chains[i].oftAdapterTimelock =
                 vm.parseJsonAddress(json, string(abi.encodePacked(chainKey, ".oftAdapterTimelock")));
 
@@ -387,63 +328,30 @@ contract BaseScript is BaseData, Utils {
         baseInput.rateLimitConfig.window = vm.parseJsonUint(json, ".rateLimitConfig.window");
     }
 
-    function createImmutableMultiChainDeployerSalt(address _deployerAddress)
-        internal
-        view
-        returns (bytes32 _salt)
-    {
-        _salt = createSalt(_deployerAddress, "MultiChainDeployer");
+    function createOFTAdapterProxySalt() internal view returns (bytes32 _salt) {
+        _salt = createSalt("OFTAdapterProxy");
     }
 
-    function createL1YnOFTAdapterUpgradeableProxySalt(address _deployerAddress)
-        internal
-        view
-        returns (bytes32 _salt)
-    {
-        _salt = createSalt(_deployerAddress, "L1YnOFTAdapterProxy");
+    function createOFTAdapterImplementationSalt() internal view returns (bytes32 _salt) {
+        _salt = createSalt("OFTAdapterImplementation");
     }
 
-    function createL1YnOFTAdapterUpgradeableSalt(address _deployerAddress) internal view returns (bytes32 _salt) {
-        _salt = createSalt(_deployerAddress, "L1YnOFTAdapter");
+    function createERC20ProxySalt() internal view returns (bytes32 _salt) {
+        _salt = createSalt("ERC20Proxy");
     }
 
-    function createL2YnOFTAdapterUpgradeableProxySalt(address _deployerAddress)
-        internal
-        view
-        returns (bytes32 _salt)
-    {
-        _salt = createSalt(_deployerAddress, "L2YnOFTAdapterProxy");
+    function createERC20ImplementationSalt() internal view returns (bytes32 _salt) {
+        _salt = createSalt("ERC20Implementation");
     }
 
-    function createL2YnOFTAdapterUpgradeableSalt(address _deployerAddress) internal view returns (bytes32 _salt) {
-        _salt = createSalt(_deployerAddress, "L2YnOFTAdapter");
+    function createTimelockSalt() internal view returns (bytes32 _salt) {
+        _salt = createSalt("OFTTimelock");
     }
 
-    function createL2YnERC20UpgradeableProxySalt(address _deployerAddress) internal view returns (bytes32 _salt) {
-        _salt = createSalt(_deployerAddress, "L2YnERC20Proxy");
-    }
-
-    function createL2YnERC20UpgradeableSalt(address _deployerAddress) internal view returns (bytes32 _salt) {
-        _salt = createSalt(_deployerAddress, "L2YnERC20");
-    }
-
-    function createL1YnOFTAdapterTimelockSalt(address _deployerAddress) internal view returns (bytes32 _salt) {
-        _salt = createSalt(_deployerAddress, "L1YnOFTTimelock");
-    }
-
-    function createL2YnOFTAdapterTimelockSalt(address _deployerAddress) internal view returns (bytes32 _salt) {
-        _salt = createSalt(_deployerAddress, "L2YnOFTTimelock");
-    }
-
-    function createSalt(address _deployerAddress, string memory _label) internal view returns (bytes32 _salt) {
+    function createSalt(string memory _label) internal view returns (bytes32 _salt) {
         require(bytes(baseInput.erc20Symbol).length > 0, "Invalid ERC20 Symbol");
 
-        _salt = bytes32(
-            abi.encodePacked(
-                bytes20(_deployerAddress),
-                bytes12(bytes32(keccak256(abi.encode(_label, baseInput.erc20Symbol, VERSION))))
-            )
-        );
+        _salt = bytes32(keccak256(abi.encode(_label, baseInput.erc20Symbol, VERSION)));
     }
 
     function addressToBytes32(address _addr) internal pure returns (bytes32) {
@@ -459,51 +367,13 @@ contract BaseScript is BaseData, Utils {
         return (size > 0);
     }
 
-    function _predictTimelockController(
-        bytes32 timelockSalt,
-        uint256 chainId
-    )
-        internal
-        virtual
-        returns (address)
-    {
-        address admin = getData(chainId).PROXY_ADMIN;
-
-        address[] memory proposers = new address[](1);
-        proposers[0] = admin;
-
-        address[] memory executors = new address[](1);
-        executors[0] = admin;
-
-        uint256 minDelay = getMinDelay(chainId);
-
-        bytes memory timelockBytecode =
-            bytes.concat(type(TimelockController).creationCode, abi.encode(minDelay, proposers, executors, admin));
-
-        address predictedTimelock = vm.computeCreate2Address(timelockSalt, keccak256(timelockBytecode));
-
-        return predictedTimelock;
-    }
-
-    function _deployTimelockController(
-        bytes32 timelockSalt,
-        uint256 chainId
-    )
-        internal
-        virtual
-        returns (address timelock)
-    {
-        address admin = getData(chainId).PROXY_ADMIN;
-
-        address[] memory proposers = new address[](1);
-        proposers[0] = admin;
-
-        address[] memory executors = new address[](1);
-        executors[0] = admin;
-
-        uint256 minDelay = getMinDelay(chainId);
-
-        timelock = address(new TimelockController{salt: timelockSalt}(minDelay, proposers, executors, admin));
+    function findChainDeployment(uint256 chainId) internal view returns (ChainDeployment memory) {
+        for (uint256 i = 0; i < deployment.chains.length; i++) {
+            if (deployment.chains[i].chainId == chainId) {
+                return deployment.chains[i];
+            }
+        }
+        revert(string.concat("Deployment for chain ", vm.toString(chainId), " not found"));
     }
 
     function configureRateLimits() internal {
@@ -570,7 +440,9 @@ contract BaseScript is BaseData, Utils {
         for (uint256 i = 0; i < dstChainIds.length; i++) {
             uint256 chainId = dstChainIds[i];
             uint32 eid = getEID(chainId);
-            address adapter = chainId == baseInput.l1ChainId ? predictions.l1OFTAdapter : predictions.l2OFTAdapter;
+
+            ChainDeployment memory chainDeployment = findChainDeployment(chainId);
+            address adapter = chainDeployment.oftAdapter;
             bytes32 adapterBytes32 = addressToBytes32(adapter);
             if (oftAdapter.peers(eid) == adapterBytes32) {
                 console.log("Already set peer for chainid %d", chainId);

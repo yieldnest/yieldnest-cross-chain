@@ -3,36 +3,42 @@
     "17000": {
       "chainId": 17000,
       "erc20Address": "0xfd930060e51C10CCBc36F512676B4FD3E7026a1E",
-      "erc20ProxyAdmin": "0x0000000000000000000000000000000000000000",
+      "erc20Implementation": "0x9974391FE4196fBEa310d3fE01A3d2b8299266e5",
+      "erc20ProxyAdmin": "0x995B08478A19e0BfDb2232804A742477654120a0",
       "isL1": true,
       "lzEID": 40217,
       "lzEndpoint": "0x6EDCE65403992e310A62460808c4b910D972f10f",
       "multiChainDeployer": "0x0000000000000000000000000000000000000000",
       "oftAdapter": "0x1D4855Cc4caa06Ec1982acFE53d68Bc830156a70",
+      "oftAdapterImplementation": "0x41838e28BCA289c3aE1CE128DB9e7dEF70Bfa2DD",
       "oftAdapterProxyAdmin": "0x17B4cfDdc0d64C6948F4E47285B33C284E092Ccb",
       "oftAdapterTimelock": "0x1e820aD1a67Fc878663c9325A88D515A7686a31F"
     },
     "2522": {
       "chainId": 2522,
       "erc20Address": "0xE231DB5F348d709239Ef1741EA30961B3B635a61",
+      "erc20Implementation": "0x01029eE5670dd5cc1294410588cacC43a49f8fF1",
       "erc20ProxyAdmin": "0x6a34Cc8949b26c9f9d8933E475273259a49b6672",
       "isL1": false,
       "lzEID": 40255,
       "lzEndpoint": "0x6EDCE65403992e310A62460808c4b910D972f10f",
       "multiChainDeployer": "0xDE21c853BA39e77251a90dBB0b4C3d94463EbCfA",
       "oftAdapter": "0xBe82CBe217Bf4E0A87DD88C552e93054f4EF2C7C",
+      "oftAdapterImplementation": "0xa6d3F9E893604Dd77c773e8cdb4040c060aE5884",
       "oftAdapterProxyAdmin": "0xe4bFF824F5B89005424902637a9269Dc9aD5AE38",
       "oftAdapterTimelock": "0x3e7B8C6d89B35637759FEEcE2A52ADb7042115BD"
     },
     "2810": {
       "chainId": 2810,
       "erc20Address": "0xE231DB5F348d709239Ef1741EA30961B3B635a61",
+      "erc20Implementation": "0x01029eE5670dd5cc1294410588cacC43a49f8fF1",
       "erc20ProxyAdmin": "0x6a34Cc8949b26c9f9d8933E475273259a49b6672",
       "isL1": false,
       "lzEID": 40322,
       "lzEndpoint": "0x6C7Ab2202C98C4227C5c46f1417D81144DA716Ff",
       "multiChainDeployer": "0xDE21c853BA39e77251a90dBB0b4C3d94463EbCfA",
       "oftAdapter": "0xBe82CBe217Bf4E0A87DD88C552e93054f4EF2C7C",
+      "oftAdapterImplementation": "0xa6d3F9E893604Dd77c773e8cdb4040c060aE5884",
       "oftAdapterProxyAdmin": "0xe4bFF824F5B89005424902637a9269Dc9aD5AE38",
       "oftAdapterTimelock": "0x3e7B8C6d89B35637759FEEcE2A52ADb7042115BD"
     }

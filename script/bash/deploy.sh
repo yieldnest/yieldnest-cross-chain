@@ -58,6 +58,7 @@ DEPLOYER_ACCOUNT_NAME=${DEPLOYER_ACCOUNT_NAME:-"yieldnestDeployerKey"}
 L1_CHAIN_ID=$(jq -r ".l1ChainId" "$INPUT_PATH")
 ERC20_NAME=$(jq -r ".erc20Name" "$INPUT_PATH")
 ERC20_SYMBOL=$(jq -r ".erc20Symbol" "$INPUT_PATH")
+ERC20_DECIMALS=$(jq -r ".erc20Decimals" "$INPUT_PATH")
 L2_CHAIN_IDS_ARRAY=$(jq -r ".l2ChainIds" "$INPUT_PATH" | jq -r ".[]")
 
 # verify env variables
@@ -87,6 +88,8 @@ function broadcast() {
         forge script "$1" "${defaultArgs[@]}" --verifier etherscan --verifier-url "https://api.bscscan.com/api" --verifier-api-key "$BSCSCAN_API_KEY" --chain 56
     elif [[ $3 == "hemi" ]]; then
         forge script "$1" "${defaultArgs[@]}" --verifier blockscout --verifier-url "https://explorer.hemi.xyz/api" --chain 43111
+    elif [[ $3 == "ink" ]]; then
+        forge script "$1" "${defaultArgs[@]}" --verifier blockscout --verifier-url "https://explorer.inkonchain.com/api" --chain 57073
     else
         forge script "$1" "${defaultArgs[@]}" --etherscan-api-key "$4"
     fi
@@ -225,8 +228,8 @@ delimiter
 CALLDATA=$(cast calldata "run(string)" "/$INPUT_PATH")
 
 if [[ $SKIP_L1 == false ]]; then
-    echo "Deploying L1 Adapter for $L1_RPC ($L1_CHAIN_ID)"
-    runScript script/DeployL1OFTAdapter.s.sol:DeployL1OFTAdapter $CALLDATA $L1_RPC $L1_ETHERSCAN_API_KEY
+    echo "Deploying L1 OFTAdapter for $L1_RPC ($L1_CHAIN_ID)"
+    runScript DeployOFT $CALLDATA $L1_RPC $L1_ETHERSCAN_API_KEY
     
     delimiter
 else
@@ -245,8 +248,8 @@ for L2_CHAIN_ID in $L2_CHAIN_IDS_ARRAY; do
         echo "No Etherscan API key found for $L2_CHAIN_ID"
         exit 1
     fi
-    echo "Deploying L2 Adapter for $L2_RPC ($L2_CHAIN_ID)"
-    runScript script/DeployL2OFTAdapter.s.sol:DeployL2OFTAdapter $CALLDATA $L2_RPC $L2_ETHERSCAN_API_KEY
+    echo "Deploying L2 ERC20 and OFTAdapter for $L2_RPC ($L2_CHAIN_ID)"
+    runScript DeployOFT $CALLDATA $L2_RPC $L2_ETHERSCAN_API_KEY
 
     delimiter
 done

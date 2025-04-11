@@ -34,6 +34,7 @@ contract BaseData is Script {
         uint256 bera;
         uint256 binance;
         uint256 hemi;
+        uint256 ink;
         // testnets
         uint256 holesky;
         uint256 sepolia;
@@ -61,6 +62,7 @@ contract BaseData is Script {
         bera: 80094,
         binance: 56,
         hemi: 43111,
+        ink: 57073,
         // testnets
         holesky: 17000,
         sepolia: 11155111,
@@ -255,6 +257,18 @@ contract BaseData is Script {
             LZ_EXECUTOR: 0x4208D6E27538189bB48E603D6123A94b8Abe0A0b,
             LZ_EID: 30329
         });
+        __chainIdToData[__chainIds.ink] = Data({
+            OFT_OWNER: 0x5848af047b56F7FCc9DFEAC2F535d4800069E9E1,
+            TOKEN_ADMIN: 0x5848af047b56F7FCc9DFEAC2F535d4800069E9E1,
+            PROXY_ADMIN: 0x5848af047b56F7FCc9DFEAC2F535d4800069E9E1,
+            LZ_ENDPOINT: 0xca29f3A6f966Cb2fc0dE625F8f325c0C46dbE958,
+            LZ_SEND_LIB: 0x76111DE813F83AAAdBD62773Bf41247634e2319a,
+            LZ_RECEIVE_LIB: 0x473132bb594caEF281c68718F4541f73FE14Dc89,
+            LZ_DVN: 0x174F2bA26f8ADeAfA82663bcf908288d5DbCa649,
+            NETHERMIND_DVN: 0xDd7B5E1dB4AaFd5C8EC3b764eFB8ed265Aa5445B,
+            LZ_EXECUTOR: 0xFEbCF17b11376C724AB5a5229803C6e838b6eAe5,
+            LZ_EID: 30339
+        });
 
         // testnets
         __chainIdToData[__chainIds.holesky] = Data({
@@ -360,6 +374,7 @@ contract BaseData is Script {
             || chainId == __chainIds.taiko || chainId == __chainIds.scroll || chainId == __chainIds.fantom
             || chainId == __chainIds.mantle || chainId == __chainIds.blast || chainId == __chainIds.linea
             || chainId == __chainIds.bera || chainId == __chainIds.binance || chainId == __chainIds.hemi
+            || chainId == __chainIds.ink
         // testnets
         || chainId == __chainIds.holesky || chainId == __chainIds.fraxtalTestnet || chainId == __chainIds.sepolia
             || chainId == __chainIds.morphTestnet || chainId == __chainIds.hemiTestnet
