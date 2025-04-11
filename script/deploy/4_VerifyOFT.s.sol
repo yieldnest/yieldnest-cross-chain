@@ -271,16 +271,15 @@ contract VerifyOFT is BaseScript, BatchScript {
 
             if (needsUpdate) {
                 console.log(
-                    "Please run the configure script to complete configuration followed by the transfer ownership script for ",
+                    "Please run the configure script to complete configuration for ", vm.toString(block.chainid)
+                );
+            } else {
+                console.log(
+                    "Please run the transfer ownership script to complete ownership transfer for %s",
                     vm.toString(block.chainid)
                 );
-                revert(
-                    string.concat(
-                        "OFT Adapter ownership is not correct & config needs to be updated for ",
-                        vm.toString(block.chainid)
-                    )
-                );
             }
+            return;
         }
 
         if (needsUpdate) {
