@@ -1,18 +1,13 @@
 #!/bin/bash
 source .env
 source script/bash/network_config.sh
+source script/bash/utils.sh
 
 set -e
 
 ##########
 ## HELP ##
 ##########
-
-function delimiter() {
-    echo ""
-    echo "###################################################"
-    echo ""
-}
 
 function display_help() {
     delimiter
@@ -73,45 +68,6 @@ L2_CHAIN_IDS_ARRAY=$(jq -r ".l2ChainIds" "$INPUT_PATH" | jq -r ".[]")
 ###############
 ## FUNCTIONS ##
 ###############
-
-function simulate() {
-    forge script $1 --sig $2 --rpc-url $3 --account $DEPLOYER_ACCOUNT_NAME --sender $DEPLOYER_ADDRESS
-}
-
-
-# Function to handle errors
-function error_exit() {
-    echo "Error: $1" >&2
-    usage
-    exit 1
-}
-
-function runScript() {
-    local SCRIPT=$1
-    local CALLDATA=$2
-    local RPC=$3
-    local ETHERSCAN_API_KEY=$4
-
-    if [[ $BROADCAST == true ]]; then
-        broadcast $SCRIPT $CALLDATA $RPC $ETHERSCAN_API_KEY
-        return
-    fi
-
-    simulate $SCRIPT $CALLDATA $RPC
-}
-
-function checkInput() {
-    if [[ -z $2 || $2 == -* ]]; then
-        error_exit "Missing value for parameter $1"
-    fi
-}
-
-function getRPCs() {
-    local ids=("$@")
-    for i in "${ids[@]}"; do
-        echo "$(getRPC $i)"
-    done
-}
 
 ######################
 ## SCRIPT EXECUTION ##
