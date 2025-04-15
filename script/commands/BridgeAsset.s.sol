@@ -340,3 +340,87 @@ contract BridgeAssetYnCoBTCk is BaseData {
         return bytes32(uint256(uint160(_addr)));
     }
 }
+
+/**
+ * @notice This script bridges ynBNBx tokens between chains using LayerZero OFT protocol
+ *
+ * @dev How it works:
+ * 1. User provides destination chain ID via prompt
+ * 2. If on base chain (L1):
+ *    - Wraps ETH to WETH by sending ETH to WETH contract
+ * 3. Bridges tokens via OFT adapter's sendFrom()
+ *
+ * Usage:
+ * ```
+ * forge script script/commands/BridgeAsset.s.sol:BridgeAssetYnBNBx --rpc-url <RPC_URL> --broadcast
+ * ```
+ */
+contract BridgeAssetYnBNBx is BaseData {
+    using OptionsBuilder for bytes;
+
+    // Amount to bridge
+    uint256 public constant BRIDGE_AMOUNT = 0.00001 ether;
+
+    function run() external {
+        uint256 sourceChainId = block.chainid;
+        uint256 baseChainId = 56; //bsc
+
+        // Load deployment config
+        string memory json =
+            vm.readFile(string.concat("deployments/ynBNBx-", vm.toString(baseChainId), "-v0.0.1.json"));
+
+        address oftAdapter = abi.decode(
+            vm.parseJson(json, string.concat(".chains.", vm.toString(sourceChainId), ".oftAdapter")), (address)
+        );
+
+        uint256 destinationChainId =
+            vm.parseUint(vm.prompt("Enter destination chain ID (e.g. 1 for eth mainnet):"));
+        require(isSupportedChainId(destinationChainId), "Unsupported destination chain ID");
+        uint32 destinationEid = getEID(destinationChainId);
+
+        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+
+        address sender = vm.addr(deployerPrivateKey);
+
+        // Get the ynBNBx contract address
+        address ynBNBx = abi.decode(
+            vm.parseJson(json, string.concat(".chains.", vm.toString(sourceChainId), ".erc20Address")), (address)
+        );
+
+        address refundAddress = sender;
+
+        console.log("Chain ID: %s", block.chainid);
+        console.log("Sender: %s", sender);
+        console.log("ynBNBx Balance: %s", IERC20(ynBNBx).balanceOf(sender));
+        console.log("Destination Chain ID: %s", destinationChainId);
+        console.log("Destination EID: %s", destinationEid);
+
+        vm.startBroadcast(deployerPrivateKey);
+
+        uint256 extraYnBNBx = BRIDGE_AMOUNT;
+
+        if (extraYnBNBx > IERC20(ynBNBx).balanceOf(sender)) {
+            extraYnBNBx = IERC20(ynBNBx).balanceOf(sender);
+        }
+
+        // Prepare bridge params
+        bytes memory options = OptionsBuilder.newOptions().addExecutorLzReceiveOption(170000, 0);
+        SendParam memory sendParam =
+            SendParam(destinationEid, addressToBytes32(sender), extraYnBNBx, extraYnBNBx / 2, options, "", "");
+
+        // Get messaging fee
+        MessagingFee memory fee = IOFT(oftAdapter).quoteSend(sendParam, false);
+        console.log("Fee: %s", fee.nativeFee);
+        // Approve ynBNBx spending on OFT adapter
+        IERC20(ynBNBx).approve(oftAdapter, extraYnBNBx);
+
+        // Bridge tokens
+        IOFT(oftAdapter).send{value: fee.nativeFee}(sendParam, fee, payable(refundAddress));
+
+        vm.stopBroadcast();
+    }
+
+    function addressToBytes32(address _addr) internal pure returns (bytes32) {
+        return bytes32(uint256(uint160(_addr)));
+    }
+}
