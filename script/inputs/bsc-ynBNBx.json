@@ -1,0 +1,15 @@
+{
+    "erc20Name": "YieldNest Restaked BNB - MAX",
+    "erc20Symbol": "ynBNBx",
+    "erc20Decimals": 18,
+    "l1ChainId": 56,
+    "l2ChainIds": [
+        43111
+    ],
+    "l1ERC20Address": "0x32C830f5c34122C6afB8aE87ABA541B7900a2C5F",
+    "rateLimitConfig": {
+      "limit": "3000000000000000000000",
+      "window": "3600"
+    }
+  }
+  
