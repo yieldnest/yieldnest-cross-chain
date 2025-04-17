@@ -161,7 +161,7 @@ async function verifyOFTAdapterBytecode(deployment) {
 async function verifyL1OFTBytecode(deployment) {
     console.log('\nVerifying L1 OFT implementation bytecode...');
     console.log('Chain ID:', deployment.chainId);
-    const l1OftImplAddress = await getL1OFTImplementationAddress(deployment.chainId);
+    const l1OftImplAddress = await getL1OFTImplementationAddress(deployment);
     console.log('L1 OFT Implementation Address:', l1OftImplAddress);
     const rpc = getRpcUrl(deployment.chainId);
     // Verify bytecode using forge verify-bytecode
