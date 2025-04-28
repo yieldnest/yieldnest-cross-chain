@@ -362,6 +362,8 @@ contract VerifyOFT is BaseScript, BatchScript {
                 for (uint256 i = 0; i < newPeers.length; i++) {
                     console.log("Contract: %s", currentDeployment.oftAdapter);
                     console.log("Method: setPeer");
+                    console.log("Sets the peer for the OFT Adapter on the specified EID");
+                    console.log("Args: ");
                     console.log("EID %d; Peer %s", newPeers[i].eid, newPeers[i].peer);
                     bytes memory data =
                         abi.encodeWithSelector(IOAppCore.setPeer.selector, newPeers[i].eid, newPeers[i].peer);
