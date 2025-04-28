@@ -89,6 +89,19 @@ struct ReceiveLibConfig {
     address lib;
 }
 
+struct DVNConfigs {
+    UlnConfig ulnConfig;
+    SetConfigParam param;
+    bytes encodedSendTx;
+    bytes encodedReceiveTx;
+}
+
+struct ExecutorConfigParams {
+    uint32 dstEid;
+    ExecutorConfig executorConfig;
+    bytes encodedExecutorTx;
+}
+
 contract BaseScript is BaseData, CREATE3Script, Utils {
     using Bytes32AddressLib for bytes32;
     using OptionsBuilder for bytes;
