@@ -84,6 +84,17 @@ struct PeerRecord {
     PeerConfig config;
 }
 
+enum DVNTxType {
+    SEND,
+    RECEIVE
+}
+
+struct DVNRecord {
+    uint256 chainId;
+    bytes dvn;
+    DVNTxType txType;
+}
+
 struct SendLibConfig {
     uint32 eid;
     address lib;
