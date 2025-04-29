@@ -5,6 +5,8 @@ pragma solidity ^0.8.24;
 import {
     BaseScript,
     ChainDeployment,
+    DVNConfigs,
+    ExecutorConfigParams,
     ILZEndpointDelegates,
     PeerConfig,
     ReceiveLibConfig,
@@ -50,8 +52,8 @@ contract VerifyOFT is BaseScript, BatchScript {
     SendLibConfig[] public newSendLibs;
     ReceiveLibConfig[] public newReceiveLibs;
     bytes[] public newEnforcedOptions;
-    bytes[] public newDVNs;
-    bytes[] public newExecutor;
+    DVNConfigs[] public newDVNs;
+    ExecutorConfigParams[] public newExecutors;
     bool public newDelegate;
 
     function run(
@@ -252,9 +254,8 @@ contract VerifyOFT is BaseScript, BatchScript {
                         ) != keccak256(ulnConfig)
                 ) {
                     needsUpdate = true;
-                    (bytes memory encodedSendTx, bytes memory encodedReceiveTx) = getConfigureDVNsTX(chainId);
-                    newDVNs.push(encodedSendTx);
-                    newDVNs.push(encodedReceiveTx);
+                    DVNConfigs memory dvnConfigs = getConfigureDVNsTX(chainId);
+                    newDVNs.push(dvnConfigs);
                 }
             }
             {
@@ -271,8 +272,8 @@ contract VerifyOFT is BaseScript, BatchScript {
                     ) != keccak256(abi.encode(executorConfig))
                 ) {
                     needsUpdate = true;
-                    (bytes memory encodedSendTx) = getConfigureExecutorTX(chainIds[i]);
-                    newDVNs.push(encodedSendTx);
+                    ExecutorConfigParams memory executorConfigParams = getConfigureExecutorTX(chainIds[i]);
+                    newExecutors.push(executorConfigParams);
                 }
             }
             {
@@ -315,9 +316,10 @@ contract VerifyOFT is BaseScript, BatchScript {
 
             if (newDelegate) {
                 console.log("The oft delegate needs to be updated to %s", getData(block.chainid).OFT_OWNER);
-
-                console.log("Method: setDelegate");
+                console.log("");
                 console.log("Contract: %s", currentDeployment.oftAdapter);
+                console.log("Method: setDelegate");
+                console.log("New Delegate: %s", getData(block.chainid).OFT_OWNER);
                 bytes memory data = abi.encodeWithSelector(
                     ILayerZeroEndpointV2.setDelegate.selector, getData(block.chainid).OFT_OWNER
                 );
@@ -332,6 +334,10 @@ contract VerifyOFT is BaseScript, BatchScript {
                 console.log("The following rate limits need to be set: ");
                 console.log("");
                 for (uint256 i = 0; i < newRateLimitConfigs.length; i++) {
+                    console.log("Contract: %s", currentDeployment.oftAdapter);
+                    console.log("Method: setRateLimits");
+                    console.log("Sets the rate limits for the OFT Adapter on the specified EID");
+                    console.log("Args: ");
                     console.log(
                         "EID %d: Limit %d, Window %d",
                         newRateLimitConfigs[i].dstEid,
@@ -340,8 +346,7 @@ contract VerifyOFT is BaseScript, BatchScript {
                     );
                 }
                 console.log("");
-                console.log("Method: setRateLimits");
-                console.log("Contract: %s", currentDeployment.oftAdapter);
+
                 bytes memory data =
                     abi.encodeWithSelector(L2YnOFTAdapterUpgradeable.setRateLimits.selector, newRateLimitConfigs);
                 console.log("Encoded Tx Data: ");
@@ -352,12 +357,14 @@ contract VerifyOFT is BaseScript, BatchScript {
             }
 
             if (newPeers.length > 0) {
-                console.log("The following peers need to be set: ");
+                console.log("The following %s peers need to be set: ", newPeers.length);
                 console.log("");
                 for (uint256 i = 0; i < newPeers.length; i++) {
-                    console.log("EID %d; Peer %s", newPeers[i].eid, newPeers[i].peer);
-                    console.log("Method: setPeer");
                     console.log("Contract: %s", currentDeployment.oftAdapter);
+                    console.log("Method: setPeer");
+                    console.log("Sets the peer for the OFT Adapter on the specified EID");
+                    console.log("Args: ");
+                    console.log("EID %d; Peer %s", newPeers[i].eid, newPeers[i].peer);
                     bytes memory data =
                         abi.encodeWithSelector(IOAppCore.setPeer.selector, newPeers[i].eid, newPeers[i].peer);
                     console.log("Encoded Tx Data: ");
@@ -371,15 +378,18 @@ contract VerifyOFT is BaseScript, BatchScript {
                 console.log("The following send libraries need to be set: ");
                 console.log("");
                 for (uint256 i = 0; i < newSendLibs.length; i++) {
+                    console.log("");
+                    console.log("Contract: %s", address(lzEndpoint));
+                    console.log("Method: setSendLibrary");
+                    console.log("Sets the send library for the OFT Adapter on the specified EID");
+                    console.log("Args: ");
                     console.log(
-                        "OFTAdapter %s; EID %d; Send Library %s",
+                        "OFTAdapter address: %s; EID: %d; Send Library Address: %s",
                         currentDeployment.oftAdapter,
                         newSendLibs[i].eid,
                         newSendLibs[i].lib
                     );
                     console.log("");
-                    console.log("Method: setSendLibrary");
-                    console.log("Contract: %s", address(lzEndpoint));
                     bytes memory data = abi.encodeWithSelector(
                         IMessageLibManager.setSendLibrary.selector,
                         currentDeployment.oftAdapter,
@@ -398,15 +408,18 @@ contract VerifyOFT is BaseScript, BatchScript {
                 console.log("The following receive libraries need to be set: ");
                 console.log("");
                 for (uint256 i = 0; i < newReceiveLibs.length; i++) {
+                    console.log("");
+                    console.log("Chain ID: %d", block.chainid);
+                    console.log("Contract: %s", address(lzEndpoint));
+                    console.log("Method: setReceiveLibrary");
+                    console.log("Sets the receive library for the OFT Adapter on the specified EID");
+                    console.log("Args: ");
                     console.log(
-                        "OFTAdapter %s; EID %d; Receive Library %s; Expiry 0",
+                        "OFTAdapter address: %s; EID: %d; Receive Library Address: %s; Expiry: 0",
                         currentDeployment.oftAdapter,
                         newReceiveLibs[i].eid,
                         newReceiveLibs[i].lib
                     );
-                    console.log("");
-                    console.log("Method: setReceiveLibrary");
-                    console.log("Contract: %s", address(lzEndpoint));
                     bytes memory data = abi.encodeWithSelector(
                         IMessageLibManager.setReceiveLibrary.selector,
                         currentDeployment.oftAdapter,
@@ -424,10 +437,15 @@ contract VerifyOFT is BaseScript, BatchScript {
 
             if (newEnforcedOptions.length > 0) {
                 console.log("The following enforced options need to be set: ");
+                console.log("Chain ID: %d", block.chainid);
                 console.log("");
                 for (uint256 i = 0; i < newEnforcedOptions.length; i++) {
-                    console.log("Method: setEnforcedOptions");
                     console.log("Contract: %s", currentDeployment.oftAdapter);
+                    console.log("Method: setEnforcedOptions");
+                    console.log(
+                        "EnforcedOptions is an array of Options structs that set gas limits for various message types"
+                    );
+                    console.log("Number of Options: %s", newEnforcedOptions[i].length);
                     console.log("Encoded Tx Data: ");
                     console.logBytes(newEnforcedOptions[i]);
                     addToBatch(currentDeployment.oftAdapter, newEnforcedOptions[i]);
@@ -436,27 +454,53 @@ contract VerifyOFT is BaseScript, BatchScript {
             }
 
             if (newDVNs.length > 0) {
-                console.log("The following DVNs need to be set: ");
+                console.log("The following %s DVNs need to be set: ", newDVNs.length);
+                console.log("Chain ID: %d", block.chainid);
                 console.log("");
                 for (uint256 i = 0; i < newDVNs.length; i++) {
-                    console.log("Method: setConfig");
                     console.log("Contract: %s", address(lzEndpoint));
-                    console.log("Encoded Tx Data: ");
-                    console.logBytes(newDVNs[i]);
-                    addToBatch(address(lzEndpoint), newDVNs[i]);
+                    console.log("Method: setConfig");
+                    console.log("Sets the DVN for the OFT Adapter on the specified EID");
+                    console.log("Destination Chain EID: %d", newDVNs[i].param.eid);
+                    console.log("ULN Config params: ");
+                    console.log("confirmations: %d", newDVNs[i].ulnConfig.confirmations);
+                    console.log("requiredDVNCount: %d", newDVNs[i].ulnConfig.requiredDVNCount);
+                    console.log("optionalDVNCount: %d", newDVNs[i].ulnConfig.optionalDVNCount);
+                    console.log("optionalDVNThreshold: %d", newDVNs[i].ulnConfig.optionalDVNThreshold);
+                    for (uint256 j = 0; j < newDVNs[i].ulnConfig.requiredDVNs.length; j++) {
+                        console.log("requiredDVNs[%d]: %s", j, newDVNs[i].ulnConfig.requiredDVNs[j]);
+                    }
+                    for (uint256 j = 0; j < newDVNs[i].ulnConfig.optionalDVNs.length; j++) {
+                        console.log("optionalDVNs[%d]: %s", j, newDVNs[i].ulnConfig.optionalDVNs[j]);
+                    }
+                    console.log("");
+                    console.log("Encoded Send Tx Data: ");
+                    console.logBytes(newDVNs[i].encodedSendTx);
+                    addToBatch(address(lzEndpoint), newDVNs[i].encodedSendTx);
+                    console.log("");
+                    console.log("Encoded Receive Tx Data: ");
+                    console.logBytes(newDVNs[i].encodedReceiveTx);
+                    addToBatch(address(lzEndpoint), newDVNs[i].encodedReceiveTx);
                     console.log("");
                 }
             }
 
-            if (newExecutor.length > 0) {
-                console.log("The following executor need to be set: ");
+            if (newExecutors.length > 0) {
+                console.log("The following %s executors need to be set: ", newExecutors.length);
+                console.log("Chain ID: %d", block.chainid);
                 console.log("");
-                for (uint256 i = 0; i < newExecutor.length; i++) {
-                    console.log("Method: setConfig");
+                for (uint256 i = 0; i < newExecutors.length; i++) {
                     console.log("Contract: %s", address(lzEndpoint));
+                    console.log("Method: setConfig");
+                    console.log("Sets the executor for the OFT Adapter on the specified EID");
+                    console.log("Destination Chain EID: %d", newExecutors[i].dstEid);
+                    console.log("Executor Config: ");
+                    console.log("maxMessageSize: %d", newExecutors[i].executorConfig.maxMessageSize);
+                    console.log("executor: %s", newExecutors[i].executorConfig.executor);
+                    console.log("");
                     console.log("Encoded Tx Data: ");
-                    console.logBytes(newExecutor[i]);
-                    addToBatch(address(lzEndpoint), newExecutor[i]);
+                    console.logBytes(newExecutors[i].encodedExecutorTx);
+                    addToBatch(address(lzEndpoint), newExecutors[i].encodedExecutorTx);
                     console.log("");
                 }
             }
@@ -476,11 +520,7 @@ contract VerifyOFT is BaseScript, BatchScript {
             abi.encodeWithSelector(IOAppOptionsType3.setEnforcedOptions.selector, enforcedOptions);
     }
 
-    function getConfigureDVNsTX(uint256 dstChainId)
-        internal
-        view
-        returns (bytes memory encodedSendTx, bytes memory encodedReceiveTx)
-    {
+    function getConfigureDVNsTX(uint256 dstChainId) internal view returns (DVNConfigs memory dvnConfigs) {
         Data storage data = getData(block.chainid);
         uint32 dstEid = getEID(dstChainId);
 
@@ -489,15 +529,22 @@ contract VerifyOFT is BaseScript, BatchScript {
         SetConfigParam[] memory params = new SetConfigParam[](1);
         params[0] = SetConfigParam(dstEid, CONFIG_TYPE_ULN, abi.encode(ulnConfig));
 
-        encodedSendTx = abi.encodeWithSelector(
+        dvnConfigs.ulnConfig = ulnConfig;
+        dvnConfigs.param = params[0];
+
+        dvnConfigs.encodedSendTx = abi.encodeWithSelector(
             IMessageLibManager.setConfig.selector, currentDeployment.oftAdapter, data.LZ_SEND_LIB, params
         );
-        encodedReceiveTx = abi.encodeWithSelector(
+        dvnConfigs.encodedReceiveTx = abi.encodeWithSelector(
             IMessageLibManager.setConfig.selector, currentDeployment.oftAdapter, data.LZ_RECEIVE_LIB, params
         );
     }
 
-    function getConfigureExecutorTX(uint256 dstChainId) internal view returns (bytes memory encodedExecutorTx) {
+    function getConfigureExecutorTX(uint256 dstChainId)
+        internal
+        view
+        returns (ExecutorConfigParams memory executorConfigParams)
+    {
         Data storage data = getData(block.chainid);
         uint32 dstEid = getEID(dstChainId);
         ExecutorConfig memory executorConfig = _getExecutorConfig();
@@ -505,7 +552,10 @@ contract VerifyOFT is BaseScript, BatchScript {
         SetConfigParam[] memory params = new SetConfigParam[](1);
         params[0] = SetConfigParam(dstEid, CONFIG_TYPE_EXECUTOR, abi.encode(executorConfig));
 
-        encodedExecutorTx = abi.encodeWithSelector(
+        executorConfigParams.dstEid = dstEid;
+        executorConfigParams.executorConfig = executorConfig;
+
+        executorConfigParams.encodedExecutorTx = abi.encodeWithSelector(
             IMessageLibManager.setConfig.selector, currentDeployment.oftAdapter, data.LZ_SEND_LIB, params
         );
     }
