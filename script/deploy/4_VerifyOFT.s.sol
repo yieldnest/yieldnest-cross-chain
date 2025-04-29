@@ -9,6 +9,7 @@ import {
     ExecutorConfigParams,
     ILZEndpointDelegates,
     PeerConfig,
+    PeerRecord,
     ReceiveLibConfig,
     SendLibConfig
 } from "../BaseScript.s.sol";
@@ -48,7 +49,7 @@ import {ExecutorConfig} from "@layerzerolabs/lz-evm-messagelib-v2/contracts/Send
 
 contract VerifyOFT is BaseScript, BatchScript {
     RateLimiter.RateLimitConfig[] public newRateLimitConfigs;
-    PeerConfig[] public newPeers;
+    PeerRecord[] public newPeers;
     SendLibConfig[] public newSendLibs;
     ReceiveLibConfig[] public newReceiveLibs;
     bytes[] public newEnforcedOptions;
@@ -194,7 +195,7 @@ contract VerifyOFT is BaseScript, BatchScript {
                 bytes32 adapterBytes32 = addressToBytes32(chainDeployment.oftAdapter);
                 if (IOAppCore(currentDeployment.oftAdapter).peers(eid) != adapterBytes32) {
                     needsUpdate = true;
-                    newPeers.push(PeerConfig(eid, chainDeployment.oftAdapter));
+                    newPeers.push(PeerRecord(chainId, PeerConfig(eid, chainDeployment.oftAdapter)));
                 }
             }
             {
@@ -360,13 +361,15 @@ contract VerifyOFT is BaseScript, BatchScript {
                 console.log("The following %s peers need to be set: ", newPeers.length);
                 console.log("");
                 for (uint256 i = 0; i < newPeers.length; i++) {
-                    console.log("Contract: %s", currentDeployment.oftAdapter);
+                    uint256 chainId = newPeers[i].chainId;
+                    string memory chainName = getChainRecord(chainId).name;
+                    console.log("Chain ID: %d; Chain Name: %s", chainId, chainName);
+                    console.log("EID %d; Peer %s", newPeers[i].config.eid, newPeers[i].config.peer);
                     console.log("Method: setPeer");
-                    console.log("Sets the peer for the OFT Adapter on the specified EID");
-                    console.log("Args: ");
-                    console.log("EID %d; Peer %s", newPeers[i].eid, newPeers[i].peer);
-                    bytes memory data =
-                        abi.encodeWithSelector(IOAppCore.setPeer.selector, newPeers[i].eid, newPeers[i].peer);
+                    console.log("Contract: %s", currentDeployment.oftAdapter);
+                    bytes memory data = abi.encodeWithSelector(
+                        IOAppCore.setPeer.selector, newPeers[i].config.eid, newPeers[i].config.peer
+                    );
                     console.log("Encoded Tx Data: ");
                     console.logBytes(data);
                     addToBatch(currentDeployment.oftAdapter, data);

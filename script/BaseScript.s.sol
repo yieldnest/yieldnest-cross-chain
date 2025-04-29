@@ -79,6 +79,11 @@ struct PeerConfig {
     address peer;
 }
 
+struct PeerRecord {
+    uint256 chainId;
+    PeerConfig config;
+}
+
 struct SendLibConfig {
     uint32 eid;
     address lib;

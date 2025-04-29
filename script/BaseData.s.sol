@@ -44,7 +44,13 @@ contract BaseData is Script {
         uint256 binanceTestnet;
     }
 
+    struct ChainRecord {
+        uint256 chainId;
+        string name;
+    }
+
     mapping(uint256 => Data) private __chainIdToData;
+    mapping(uint256 => ChainRecord) private chainRecords; // for display purposes
 
     ChainIds private __chainIds = ChainIds({
         mainnet: 1,
@@ -344,6 +350,44 @@ contract BaseData is Script {
             LZ_EXECUTOR: 0x31894b190a8bAbd9A067Ce59fde0BfCFD2B18470,
             LZ_EID: 40102
         });
+
+        fillChainRecords();
+    }
+
+    function fillChainRecords() internal {
+        // Mainnets
+        chainRecords[__chainIds.mainnet] = ChainRecord({chainId: __chainIds.mainnet, name: "Ethereum"});
+        chainRecords[__chainIds.base] = ChainRecord({chainId: __chainIds.base, name: "Base"});
+        chainRecords[__chainIds.optimism] = ChainRecord({chainId: __chainIds.optimism, name: "Optimism"});
+        chainRecords[__chainIds.arbitrum] = ChainRecord({chainId: __chainIds.arbitrum, name: "Arbitrum"});
+        chainRecords[__chainIds.fraxtal] = ChainRecord({chainId: __chainIds.fraxtal, name: "Fraxtal"});
+        chainRecords[__chainIds.manta] = ChainRecord({chainId: __chainIds.manta, name: "Manta"});
+        chainRecords[__chainIds.taiko] = ChainRecord({chainId: __chainIds.taiko, name: "Taiko"});
+        chainRecords[__chainIds.scroll] = ChainRecord({chainId: __chainIds.scroll, name: "Scroll"});
+        chainRecords[__chainIds.fantom] = ChainRecord({chainId: __chainIds.fantom, name: "Fantom"});
+        chainRecords[__chainIds.mantle] = ChainRecord({chainId: __chainIds.mantle, name: "Mantle"});
+        chainRecords[__chainIds.blast] = ChainRecord({chainId: __chainIds.blast, name: "Blast"});
+        chainRecords[__chainIds.linea] = ChainRecord({chainId: __chainIds.linea, name: "Linea"});
+        chainRecords[__chainIds.bera] = ChainRecord({chainId: __chainIds.bera, name: "Bera"});
+        chainRecords[__chainIds.binance] = ChainRecord({chainId: __chainIds.binance, name: "Binance"});
+        chainRecords[__chainIds.hemi] = ChainRecord({chainId: __chainIds.hemi, name: "Hemi"});
+        chainRecords[__chainIds.ink] = ChainRecord({chainId: __chainIds.ink, name: "Ink"});
+
+        // Testnets
+        chainRecords[__chainIds.holesky] = ChainRecord({chainId: __chainIds.holesky, name: "Holesky"});
+        chainRecords[__chainIds.sepolia] = ChainRecord({chainId: __chainIds.sepolia, name: "Sepolia"});
+        chainRecords[__chainIds.fraxtalTestnet] =
+            ChainRecord({chainId: __chainIds.fraxtalTestnet, name: "Fraxtal Testnet"});
+        chainRecords[__chainIds.morphTestnet] =
+            ChainRecord({chainId: __chainIds.morphTestnet, name: "Morph Testnet"});
+        chainRecords[__chainIds.hemiTestnet] = ChainRecord({chainId: __chainIds.hemiTestnet, name: "Hemi Testnet"});
+        chainRecords[__chainIds.binanceTestnet] =
+            ChainRecord({chainId: __chainIds.binanceTestnet, name: "Binance Testnet"});
+    }
+
+    function getChainRecord(uint256 chainId) internal view returns (ChainRecord memory) {
+        require(isSupportedChainId(chainId), "BaseData: unsupported chainId");
+        return chainRecords[chainId];
     }
 
     function getData(uint256 chainId) internal view returns (Data storage _data) {
