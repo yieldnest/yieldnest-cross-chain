@@ -458,7 +458,7 @@ contract VerifyOFT is BaseScript, BatchScript {
 
             if (newDVNs.length > 0) {
                 console.log("The following %s DVNs need to be set: ", newDVNs.length);
-                console.log("Chain ID: %d", block.chainid);
+                console.log("Chain ID: %d (%s)", block.chainid, getChainRecord(block.chainid).name);
                 console.log("");
                 for (uint256 i = 0; i < newDVNs.length; i++) {
                     console.log("Contract: %s", address(lzEndpoint));
