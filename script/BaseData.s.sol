@@ -49,8 +49,12 @@ contract BaseData is Script {
         string name;
     }
 
+    // Array of all supported chain IDs for easy iteration
+    uint256[] private supportedChainIds;
+    uint256[] private supportedTestnetChainIds;
     mapping(uint256 => Data) private __chainIdToData;
     mapping(uint256 => ChainRecord) private chainRecords; // for display purposes
+    mapping(uint32 => uint256) private zlEIDToChainId;
 
     ChainIds private __chainIds = ChainIds({
         mainnet: 1,
@@ -352,6 +356,41 @@ contract BaseData is Script {
         });
 
         fillChainRecords();
+        fillSupportedChainIds();
+    }
+
+    function fillSupportedChainIds() internal {
+        supportedChainIds.push(__chainIds.mainnet);
+        supportedChainIds.push(__chainIds.base);
+        supportedChainIds.push(__chainIds.fraxtal);
+        supportedChainIds.push(__chainIds.optimism);
+        supportedChainIds.push(__chainIds.arbitrum);
+        supportedChainIds.push(__chainIds.manta);
+        supportedChainIds.push(__chainIds.taiko);
+        supportedChainIds.push(__chainIds.scroll);
+        supportedChainIds.push(__chainIds.fantom);
+        supportedChainIds.push(__chainIds.mantle);
+        supportedChainIds.push(__chainIds.blast);
+        supportedChainIds.push(__chainIds.linea);
+        supportedChainIds.push(__chainIds.bera);
+        supportedChainIds.push(__chainIds.binance);
+        supportedChainIds.push(__chainIds.hemi);
+        supportedChainIds.push(__chainIds.ink);
+
+        fillSupportedTestnetChainIds();
+        // testnets
+        for (uint256 i = 0; i < supportedTestnetChainIds.length; i++) {
+            supportedChainIds.push(supportedTestnetChainIds[i]);
+        }
+    }
+
+    function fillSupportedTestnetChainIds() internal {
+        supportedTestnetChainIds.push(__chainIds.holesky);
+        supportedTestnetChainIds.push(__chainIds.fraxtalTestnet);
+        supportedTestnetChainIds.push(__chainIds.sepolia);
+        supportedTestnetChainIds.push(__chainIds.morphTestnet);
+        supportedTestnetChainIds.push(__chainIds.hemiTestnet);
+        supportedTestnetChainIds.push(__chainIds.binanceTestnet);
     }
 
     function fillChainRecords() internal {
@@ -385,9 +424,24 @@ contract BaseData is Script {
             ChainRecord({chainId: __chainIds.binanceTestnet, name: "Binance Testnet"});
     }
 
+    function fillLzEidToChainId() private {
+        // Fill mapping from LayerZero EID to chain ID for all supported chains
+        for (uint256 i = 0; i < supportedChainIds.length; i++) {
+            uint256 chainId = supportedChainIds[i];
+            uint32 eid = getData(chainId).LZ_EID;
+            zlEIDToChainId[eid] = chainId;
+        }
+    }
+
     function getChainRecord(uint256 chainId) internal view returns (ChainRecord memory) {
         require(isSupportedChainId(chainId), "BaseData: unsupported chainId");
         return chainRecords[chainId];
+    }
+
+    function getChainIdFromEID(uint32 eid) internal view returns (uint256) {
+        uint256 chainId = zlEIDToChainId[eid];
+        require(chainId != 0, "BaseData: unsupported EID");
+        return chainId;
     }
 
     function getData(uint256 chainId) internal view returns (Data storage _data) {
@@ -412,23 +466,22 @@ contract BaseData is Script {
         eid = getData(chainId).LZ_EID;
     }
 
-    function isSupportedChainId(uint256 chainId) internal view returns (bool isSupported) {
-        isSupported = chainId == __chainIds.mainnet || chainId == __chainIds.base || chainId == __chainIds.fraxtal
-            || chainId == __chainIds.optimism || chainId == __chainIds.arbitrum || chainId == __chainIds.manta
-            || chainId == __chainIds.taiko || chainId == __chainIds.scroll || chainId == __chainIds.fantom
-            || chainId == __chainIds.mantle || chainId == __chainIds.blast || chainId == __chainIds.linea
-            || chainId == __chainIds.bera || chainId == __chainIds.binance || chainId == __chainIds.hemi
-            || chainId == __chainIds.ink
-        // testnets
-        || chainId == __chainIds.holesky || chainId == __chainIds.fraxtalTestnet || chainId == __chainIds.sepolia
-            || chainId == __chainIds.morphTestnet || chainId == __chainIds.hemiTestnet
-            || chainId == __chainIds.binanceTestnet;
+    function isSupportedChainId(uint256 chainId) internal view returns (bool) {
+        for (uint256 i = 0; i < supportedChainIds.length; i++) {
+            if (chainId == supportedChainIds[i]) {
+                return true;
+            }
+        }
+        return false;
     }
 
-    function isTestnetChainId(uint256 chainId) internal view returns (bool isTestnet) {
-        isTestnet = chainId == __chainIds.holesky || chainId == __chainIds.fraxtalTestnet
-            || chainId == __chainIds.sepolia || chainId == __chainIds.morphTestnet || chainId == __chainIds.hemiTestnet
-            || chainId == __chainIds.binanceTestnet;
+    function isTestnetChainId(uint256 chainId) internal view returns (bool) {
+        for (uint256 i = 0; i < supportedTestnetChainIds.length; i++) {
+            if (chainId == supportedTestnetChainIds[i]) {
+                return true;
+            }
+        }
+        return false;
     }
 
     function getMinDelay(uint256 chainId) internal view returns (uint256 minDelay) {
