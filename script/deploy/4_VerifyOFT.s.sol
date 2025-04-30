@@ -342,6 +342,8 @@ contract VerifyOFT is BaseScript, BatchScript {
 
             addToBatch(currentDeployment.oftAdapter, data);
             console.log("");
+        } else {
+            console.log("No delegate configuration needed.");
         }
     }
 
@@ -370,6 +372,8 @@ contract VerifyOFT is BaseScript, BatchScript {
 
             addToBatch(currentDeployment.oftAdapter, data);
             console.log("");
+        } else {
+            console.log("No rate limit configuration needed.");
         }
     }
 
@@ -392,6 +396,8 @@ contract VerifyOFT is BaseScript, BatchScript {
                 addToBatch(currentDeployment.oftAdapter, data);
                 console.log("");
             }
+        } else {
+            console.log("No peer configuration needed.");
         }
     }
 
@@ -424,6 +430,8 @@ contract VerifyOFT is BaseScript, BatchScript {
                 addToBatch(address(_lzEndpoint), data);
                 console.log("");
             }
+        } else {
+            console.log("No send library configuration needed.");
         }
     }
 
@@ -457,6 +465,8 @@ contract VerifyOFT is BaseScript, BatchScript {
                 addToBatch(address(_lzEndpoint), data);
                 console.log("");
             }
+        } else {
+            console.log("No receive library configuration needed.");
         }
     }
 
@@ -477,6 +487,8 @@ contract VerifyOFT is BaseScript, BatchScript {
                 addToBatch(currentDeployment.oftAdapter, newEnforcedOptions[i]);
                 console.log("");
             }
+        } else {
+            console.log("No enforced options configuration needed.");
         }
     }
 
@@ -511,6 +523,8 @@ contract VerifyOFT is BaseScript, BatchScript {
                 addToBatch(address(_lzEndpoint), newDVNs[i].encodedReceiveTx);
                 console.log("");
             }
+        } else {
+            console.log("No DVN configuration needed.");
         }
     }
 
@@ -533,6 +547,8 @@ contract VerifyOFT is BaseScript, BatchScript {
                 addToBatch(address(_lzEndpoint), newExecutors[i].encodedExecutorTx);
                 console.log("");
             }
+        } else {
+            console.log("No executor configuration needed.");
         }
     }
 
