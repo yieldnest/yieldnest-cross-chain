@@ -70,12 +70,10 @@ contract CrossChainBaseTest is Test, CREATE3Script {
             vm.selectFork(mainnetFork);
             mainnetERC20 = new ERC20Mock("Test Token", "TEST");
 
-            bytes32 mainnetOFTAdapterSalt = createSalt(_deployer, "OFTAdapter");
             bytes32 mainnetOFTAdapterProxySalt = createSalt(_deployer, "OFTAdapterProxy");
 
             mainnetOFTAdapter = L1YnOFTAdapterUpgradeable(
                 deployL1YnOFTAdapter(
-                    mainnetOFTAdapterSalt,
                     mainnetOFTAdapterProxySalt,
                     address(mainnetERC20),
                     address(mainnetLzEndpoint),
@@ -91,18 +89,13 @@ contract CrossChainBaseTest is Test, CREATE3Script {
 
         {
             vm.selectFork(optimismFork);
-            bytes32 optimismERC20Salt = createSalt(_deployer, "ERC20");
             bytes32 optimismERC20ProxySalt = createSalt(_deployer, "ERC20Proxy");
             optimismERC20 = L2YnERC20Upgradeable(
-                deployL2YnERC20(
-                    optimismERC20Salt, optimismERC20ProxySalt, "Test Token", "TEST", 18, _owner, _controller
-                )
+                deployL2YnERC20(optimismERC20ProxySalt, "Test Token", "TEST", 18, _owner, _controller)
             );
-            bytes32 optimismOFTAdapterSalt = createSalt(_deployer, "OFTAdapter");
             bytes32 optimismOFTAdapterProxySalt = createSalt(_deployer, "OFTAdapterProxy");
             optimismOFTAdapter = L2YnOFTAdapterUpgradeable(
                 deployL2YnOFTAdapter(
-                    optimismOFTAdapterSalt,
                     optimismOFTAdapterProxySalt,
                     address(optimismERC20),
                     address(optimismLzEndpoint),
@@ -118,18 +111,13 @@ contract CrossChainBaseTest is Test, CREATE3Script {
 
         {
             vm.selectFork(arbitrumFork);
-            bytes32 arbitrumERC20Salt = createSalt(_deployer, "ERC20");
             bytes32 arbitrumERC20ProxySalt = createSalt(_deployer, "ERC20Proxy");
             arbitrumERC20 = L2YnERC20Upgradeable(
-                deployL2YnERC20(
-                    arbitrumERC20Salt, arbitrumERC20ProxySalt, "Test Token", "TEST", 18, _owner, _controller
-                )
+                deployL2YnERC20(arbitrumERC20ProxySalt, "Test Token", "TEST", 18, _owner, _controller)
             );
-            bytes32 arbitrumOFTAdapterSalt = createSalt(_deployer, "OFTAdapter");
             bytes32 arbitrumOFTAdapterProxySalt = createSalt(_deployer, "OFTAdapterProxy");
             arbitrumOFTAdapter = L2YnOFTAdapterUpgradeable(
                 deployL2YnOFTAdapter(
-                    arbitrumOFTAdapterSalt,
                     arbitrumOFTAdapterProxySalt,
                     address(arbitrumERC20),
                     address(arbitrumLzEndpoint),

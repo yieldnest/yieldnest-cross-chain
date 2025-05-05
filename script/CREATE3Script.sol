@@ -30,22 +30,7 @@ abstract contract CREATE3Script {
         proxy = CREATE3_FACTORY.deploy(_salt, _contractCode);
     }
 
-    function deployContractAndProxy(
-        bytes32 _implSalt,
-        bytes32 _proxySalt,
-        address _controller,
-        bytes memory _bytecode,
-        bytes memory _initializeArgs
-    )
-        public
-        returns (address addr)
-    {
-        address _implAddr = CREATE3_FACTORY.deploy(_implSalt, _bytecode);
-        return deployProxy(_proxySalt, _implAddr, _controller, _initializeArgs);
-    }
-
     function deployL1YnOFTAdapter(
-        bytes32 _implSalt,
         bytes32 _proxySalt,
         address _token,
         address _lzEndpoint,
@@ -55,17 +40,13 @@ abstract contract CREATE3Script {
         public
         returns (address deployedContract)
     {
-        bytes memory _constructorParams = abi.encode(_token, _lzEndpoint);
-        bytes memory _contractCode =
-            abi.encodePacked(type(L1YnOFTAdapterUpgradeable).creationCode, _constructorParams);
         bytes memory _initializeArgs =
             abi.encodeWithSelector(L1YnOFTAdapterUpgradeable.initialize.selector, _owner);
-        deployedContract =
-            deployContractAndProxy(_implSalt, _proxySalt, _proxyController, _contractCode, _initializeArgs);
+        address _implAddr = address(new L1YnOFTAdapterUpgradeable(_token, _lzEndpoint));
+        deployedContract = deployProxy(_proxySalt, _implAddr, _proxyController, _initializeArgs);
     }
 
     function deployL2YnOFTAdapter(
-        bytes32 _implSalt,
         bytes32 _proxySalt,
         address _token,
         address _lzEndpoint,
@@ -75,17 +56,13 @@ abstract contract CREATE3Script {
         public
         returns (address deployedContract)
     {
-        bytes memory _constructorParams = abi.encode(_token, _lzEndpoint);
-        bytes memory _contractCode =
-            abi.encodePacked(type(L2YnOFTAdapterUpgradeable).creationCode, _constructorParams);
         bytes memory _initializeArgs =
             abi.encodeWithSelector(L2YnOFTAdapterUpgradeable.initialize.selector, _owner);
-        deployedContract =
-            deployContractAndProxy(_implSalt, _proxySalt, _proxyController, _contractCode, _initializeArgs);
+        address _implAddr = address(new L2YnOFTAdapterUpgradeable(_token, _lzEndpoint));
+        deployedContract = deployProxy(_proxySalt, _implAddr, _proxyController, _initializeArgs);
     }
 
     function deployL2YnERC20(
-        bytes32 _implSalt,
         bytes32 _proxySalt,
         string memory _name,
         string memory _symbol,
@@ -98,9 +75,7 @@ abstract contract CREATE3Script {
     {
         bytes memory _initializeArgs =
             abi.encodeWithSelector(L2YnERC20Upgradeable.initialize.selector, _name, _symbol, _decimals, _owner);
-        bytes memory _implementationContractCode = type(L2YnERC20Upgradeable).creationCode;
-        deployedContract = deployContractAndProxy(
-            _implSalt, _proxySalt, _proxyController, _implementationContractCode, _initializeArgs
-        );
+        address _implAddr = address(new L2YnERC20Upgradeable());
+        deployedContract = deployProxy(_proxySalt, _implAddr, _proxyController, _initializeArgs);
     }
 }

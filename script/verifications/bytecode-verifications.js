@@ -17,6 +17,13 @@ function getL1OFTImplementationAddress(deployment) {
     return deployment.oftAdapterImplementation;
 }
 
+function getL1ERC20ProxyAddress(deployment) {
+    return deployment.erc20Address;
+}
+
+function getL1LZEndpointAddress(deployment) {
+    return deployment.lzEndpoint;
+}
 
 // Helper to execute curl command and get bytecode
 async function getBytecode(rpc, address) {
@@ -161,14 +168,16 @@ async function verifyOFTAdapterBytecode(deployment) {
 async function verifyL1OFTBytecode(deployment) {
     console.log('\nVerifying L1 OFT implementation bytecode...');
     console.log('Chain ID:', deployment.chainId);
-    const l1OftImplAddress = await getL1OFTImplementationAddress(deployment.chainId);
+    const l1OftImplAddress = await getL1OFTImplementationAddress(deployment);
+    const l1Erc20ProxyAddress = await getL1ERC20ProxyAddress(deployment);
+    const l1LzEndpointAddress = await getL1LZEndpointAddress(deployment);
     console.log('L1 OFT Implementation Address:', l1OftImplAddress);
     const rpc = getRpcUrl(deployment.chainId);
     // Verify bytecode using forge verify-bytecode
     const { execSync } = require('child_process');
     const scanApiKey = getScanApiKey(deployment.chainId);
-    const cmd = `forge verify-bytecode ${l1OftImplAddress} L1YnOFTAdapterUpgradeable.sol:L1YnOFTAdapterUpgradeable --rpc-url ${rpc} --etherscan-api-key ${scanApiKey}`;
-    
+    const cmd = `forge verify-bytecode ${l1OftImplAddress} L1YnOFTAdapterUpgradeable.sol:L1YnOFTAdapterUpgradeable --rpc-url ${rpc} --etherscan-api-key ${scanApiKey} --constructor-args ${l1Erc20ProxyAddress} ${l1LzEndpointAddress}`;
+
     try {
         execSync(cmd);
     } catch (error) {

@@ -3,24 +3,26 @@
 pragma solidity ^0.8.24;
 
 import {BaseData} from "./BaseData.s.sol";
+import {CREATE3Script} from "./CREATE3Script.sol";
+import {Utils} from "./Utils.sol";
 
-import {L1YnOFTAdapterUpgradeable} from "@/L1YnOFTAdapterUpgradeable.sol";
 import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
-import {OFTAdapterUpgradeable} from "@layerzerolabs/oft-evm-upgradeable/contracts/oft/OFTAdapterUpgradeable.sol";
 
-import {TimelockController} from "@openzeppelin/contracts/governance/TimelockController.sol";
-import {TransparentUpgradeableProxy} from
-    "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {IERC20Metadata as IERC20} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {CREATE3Script} from "script/CREATE3Script.sol";
 import {Utils} from "script/Utils.sol";
 
 import {Bytes32AddressLib} from "solmate/utils/Bytes32AddressLib.sol";
 
-import {ILayerZeroEndpointV2} from
-    "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroEndpointV2.sol";
+import {OptionsBuilder} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/libs/OptionsBuilder.sol";
+
+import {RateLimiter} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/utils/RateLimiter.sol";
 
 import {console} from "forge-std/console.sol";
+
+import {ILayerZeroEndpointV2} from
+    "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroEndpointV2.sol";
+import {OFTAdapterUpgradeable} from "@layerzerolabs/oft-evm-upgradeable/contracts/oft/OFTAdapterUpgradeable.sol";
 
 import {EnforcedOptionParam} from "@layerzerolabs/oapp-evm/contracts/oapp/interfaces/IOAppOptionsType3.sol";
 
@@ -30,10 +32,12 @@ import {UlnConfig} from "@layerzerolabs/lz-evm-messagelib-v2/contracts/uln/UlnBa
 
 import {ExecutorConfig} from "@layerzerolabs/lz-evm-messagelib-v2/contracts/SendLibBase.sol";
 
-import {OptionsBuilder} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/libs/OptionsBuilder.sol";
-
 interface IOFTRateLimiter {
     function setRateLimits(RateLimiter.RateLimitConfig[] calldata _rateLimitConfigs) external;
+}
+
+interface ILZEndpointDelegates {
+    function delegates(address) external view returns (address);
 }
 
 struct RateLimitConfig {
@@ -54,8 +58,6 @@ struct BaseInput {
 struct Deployment {
     ChainDeployment[] chains;
     address deployerAddress;
-    string erc20Name;
-    string erc20Symbol;
 }
 
 struct ChainDeployment {
@@ -72,15 +74,25 @@ struct ChainDeployment {
     address oftAdapterTimelock;
 }
 
-struct PredictedAddresses {
-    address l1OFTAdapter;
-    address l2ERC20;
-    address l2OFTAdapter;
-}
-
 struct PeerConfig {
     uint32 eid;
     address peer;
+}
+
+struct PeerRecord {
+    uint256 chainId;
+    PeerConfig config;
+}
+
+enum DVNTxType {
+    SEND,
+    RECEIVE
+}
+
+struct DVNRecord {
+    uint256 chainId;
+    bytes dvn;
+    DVNTxType txType;
 }
 
 struct SendLibConfig {
@@ -93,6 +105,19 @@ struct ReceiveLibConfig {
     address lib;
 }
 
+struct DVNConfigs {
+    UlnConfig ulnConfig;
+    SetConfigParam param;
+    bytes encodedSendTx;
+    bytes encodedReceiveTx;
+}
+
+struct ExecutorConfigParams {
+    uint32 dstEid;
+    ExecutorConfig executorConfig;
+    bytes encodedExecutorTx;
+}
+
 contract BaseScript is BaseData, CREATE3Script, Utils {
     using Bytes32AddressLib for bytes32;
     using OptionsBuilder for bytes;
@@ -100,13 +125,15 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
     BaseInput public baseInput;
     Deployment public deployment;
     ChainDeployment public currentDeployment;
-    PredictedAddresses public predictions;
     string private constant VERSION = "v0.0.1";
 
     error InvalidDVN();
 
     uint32 internal constant CONFIG_TYPE_EXECUTOR = 1;
     uint32 internal constant CONFIG_TYPE_ULN = 2;
+    uint16 internal constant MSG_TYPE_SEND = 1;
+    uint16 internal constant MSG_TYPE_SEND_AND_CALL = 2;
+
     uint32 internal constant DEFAULT_MAX_MESSAGE_SIZE = 10000;
 
     function _getRateLimitConfigs() internal view returns (RateLimiter.RateLimitConfig[] memory) {
@@ -163,34 +190,10 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
         }
         currentDeployment.lzEndpoint = getData(block.chainid).LZ_ENDPOINT;
         currentDeployment.lzEID = getEID(block.chainid);
-        _loadPredictions();
         require(
             deployment.deployerAddress == address(0) || deployment.deployerAddress == msg.sender,
             "Invalid Deployer Address"
         );
-    }
-
-    function _loadPredictions() internal {
-        {
-            bytes32 proxySalt = createL1YnOFTAdapterUpgradeableProxySalt();
-
-            address predictedAddress = CREATE3_FACTORY.getDeployed(msg.sender, proxySalt);
-            predictions.l1OFTAdapter = predictedAddress;
-        }
-
-        {
-            bytes32 salt = createL2YnOFTAdapterUpgradeableProxySalt();
-
-            address predictedAddress = CREATE3_FACTORY.getDeployed(msg.sender, salt);
-            predictions.l2OFTAdapter = predictedAddress;
-        }
-
-        {
-            bytes32 salt = createL2YnERC20UpgradeableProxySalt();
-
-            address predictedAddress = CREATE3_FACTORY.getDeployed(msg.sender, salt);
-            predictions.l2ERC20 = predictedAddress;
-        }
     }
 
     function _validateInput() internal view {
@@ -292,8 +295,10 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
         }
 
         if (!vm.isFile(filePath)) {
+            console.log("No deployment file found at %s", filePath);
             return;
         }
+        console.log("Loading deployment from %s", filePath);
 
         string memory json = vm.readFile(filePath);
 
@@ -332,6 +337,7 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
 
     function _loadJson(string calldata _path) internal {
         string memory filePath = string(abi.encodePacked(vm.projectRoot(), _path));
+        console.log("Loading input from %s", filePath);
         string memory json = vm.readFile(filePath);
 
         // Reset the baseInput struct
@@ -353,36 +359,16 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
         baseInput.rateLimitConfig.window = vm.parseJsonUint(json, ".rateLimitConfig.window");
     }
 
-    function createL1YnOFTAdapterUpgradeableProxySalt() internal view returns (bytes32 _salt) {
-        _salt = createSalt("L1YnOFTAdapterProxy");
+    function createOFTAdapterProxySalt() internal view returns (bytes32 _salt) {
+        _salt = createSalt("OFTAdapterProxy");
     }
 
-    function createL1YnOFTAdapterUpgradeableSalt() internal view returns (bytes32 _salt) {
-        _salt = createSalt("L1YnOFTAdapter");
+    function createERC20ProxySalt() internal view returns (bytes32 _salt) {
+        _salt = createSalt("ERC20Proxy");
     }
 
-    function createL2YnOFTAdapterUpgradeableProxySalt() internal view returns (bytes32 _salt) {
-        _salt = createSalt("L2YnOFTAdapterProxy");
-    }
-
-    function createL2YnOFTAdapterUpgradeableSalt() internal view returns (bytes32 _salt) {
-        _salt = createSalt("L2YnOFTAdapter");
-    }
-
-    function createL2YnERC20UpgradeableProxySalt() internal view returns (bytes32 _salt) {
-        _salt = createSalt("L2YnERC20Proxy");
-    }
-
-    function createL2YnERC20UpgradeableSalt() internal view returns (bytes32 _salt) {
-        _salt = createSalt("L2YnERC20");
-    }
-
-    function createL1YnOFTAdapterTimelockSalt() internal view returns (bytes32 _salt) {
-        _salt = createSalt("L1YnOFTTimelock");
-    }
-
-    function createL2YnOFTAdapterTimelockSalt() internal view returns (bytes32 _salt) {
-        _salt = createSalt("L2YnOFTTimelock");
+    function createTimelockSalt() internal view returns (bytes32 _salt) {
+        _salt = createSalt("OFTTimelock");
     }
 
     function createSalt(string memory _label) internal view returns (bytes32 _salt) {
@@ -404,38 +390,13 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
         return (size > 0);
     }
 
-    function _predictTimelockController(
-        address deployer,
-        bytes32 timelockSalt
-    )
-        internal
-        virtual
-        returns (address)
-    {
-        return CREATE3_FACTORY.getDeployed(deployer, timelockSalt);
-    }
-
-    function _deployTimelockController(
-        bytes32 timelockSalt,
-        uint256 chainId
-    )
-        internal
-        virtual
-        returns (address timelock)
-    {
-        address admin = getData(chainId).PROXY_ADMIN;
-
-        address[] memory proposers = new address[](1);
-        proposers[0] = admin;
-
-        address[] memory executors = new address[](1);
-        executors[0] = admin;
-
-        uint256 minDelay = getMinDelay(chainId);
-        bytes memory constructorParams = abi.encode(minDelay, proposers, executors, admin);
-        bytes memory contractCode = abi.encodePacked(type(TimelockController).creationCode, constructorParams);
-
-        timelock = CREATE3_FACTORY.deploy(timelockSalt, contractCode);
+    function findChainDeployment(uint256 chainId) internal view returns (ChainDeployment memory) {
+        for (uint256 i = 0; i < deployment.chains.length; i++) {
+            if (deployment.chains[i].chainId == chainId) {
+                return deployment.chains[i];
+            }
+        }
+        revert(string.concat("Deployment for chain ", vm.toString(chainId), " not found"));
     }
 
     function configureRateLimits() internal {
@@ -455,7 +416,9 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
         for (uint256 i = 0; i < dstChainIds.length; i++) {
             uint256 chainId = dstChainIds[i];
             uint32 eid = getEID(chainId);
-            address adapter = chainId == baseInput.l1ChainId ? predictions.l1OFTAdapter : predictions.l2OFTAdapter;
+
+            ChainDeployment memory chainDeployment = findChainDeployment(chainId);
+            address adapter = chainDeployment.oftAdapter;
             bytes32 adapterBytes32 = addressToBytes32(adapter);
             if (oftAdapter.peers(eid) == adapterBytes32) {
                 console.log("Already set peer for chainid %d", chainId);
@@ -515,28 +478,50 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
         console.log("Configuring enforced options...");
 
         OFTAdapterUpgradeable oftAdapter = OFTAdapterUpgradeable(currentDeployment.oftAdapter);
-        EnforcedOptionParam[] memory enforcedOptions = new EnforcedOptionParam[](dstChainIds.length * 2);
         for (uint256 i = 0; i < dstChainIds.length; i++) {
             uint256 chainId = dstChainIds[i];
             uint32 dstEid = getEID(chainId);
-            enforcedOptions[2 * i] = EnforcedOptionParam({
-                eid: dstEid,
-                msgType: 1,
-                options: OptionsBuilder.newOptions().addExecutorLzReceiveOption(170_000, 0)
-            });
-            enforcedOptions[2 * i + 1] = EnforcedOptionParam({
-                eid: dstEid,
-                msgType: 2,
-                options: OptionsBuilder.newOptions().addExecutorLzReceiveOption(170_000, 0).addExecutorLzComposeOption(
-                    0, 170_000, 0
-                )
-            });
-        }
 
-        vm.startBroadcast();
-        oftAdapter.setEnforcedOptions(enforcedOptions);
-        console.log("Set enforced options");
-        vm.stopBroadcast();
+            EnforcedOptionParam[] memory enforcedOptions = new EnforcedOptionParam[](2);
+            enforcedOptions = _getEnforcedOptions(chainId);
+
+            if (
+                keccak256(oftAdapter.enforcedOptions(dstEid, MSG_TYPE_SEND))
+                    == keccak256(enforcedOptions[0].options)
+                    && keccak256(oftAdapter.enforcedOptions(dstEid, MSG_TYPE_SEND_AND_CALL))
+                        == keccak256(enforcedOptions[1].options)
+            ) {
+                console.log("Already set enforced options for chainid %d", chainId);
+                continue;
+            }
+            vm.startBroadcast();
+            oftAdapter.setEnforcedOptions(enforcedOptions);
+            console.log("Set enforced options for chainid %d", chainId);
+            vm.stopBroadcast();
+        }
+    }
+
+    function _getEnforcedOptions(uint256 dstChainId)
+        internal
+        view
+        returns (EnforcedOptionParam[] memory _enforcedOptions)
+    {
+        uint32 dstEid = getEID(dstChainId);
+
+        _enforcedOptions = new EnforcedOptionParam[](2);
+        _enforcedOptions[0] = EnforcedOptionParam({
+            eid: dstEid,
+            msgType: MSG_TYPE_SEND,
+            options: OptionsBuilder.newOptions().addExecutorLzReceiveOption(170_000, 0)
+        });
+
+        _enforcedOptions[1] = EnforcedOptionParam({
+            eid: dstEid,
+            msgType: MSG_TYPE_SEND_AND_CALL,
+            options: OptionsBuilder.newOptions().addExecutorLzReceiveOption(170_000, 0).addExecutorLzComposeOption(
+                0, 170_000, 0
+            )
+        });
     }
 
     function configureDVNs(uint256[] memory dstChainIds) internal {
@@ -545,45 +530,70 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
         Data storage data = getData(block.chainid);
         ILayerZeroEndpointV2 lzEndpoint = ILayerZeroEndpointV2(data.LZ_ENDPOINT);
 
-        bool isTestnet = isTestnetChainId(block.chainid);
-        uint64 confirmations = isTestnet ? 8 : 32;
-        uint8 requiredDVNCount = isTestnet ? 1 : 2;
-
         for (uint256 i = 0; i < dstChainIds.length; i++) {
             uint256 chainId = dstChainIds[i];
             uint32 dstEid = getEID(chainId);
-            address[] memory requiredDVNs = new address[](isTestnet ? 1 : 2);
 
-            if (isTestnet) {
-                requiredDVNs[0] = data.LZ_DVN;
-            } else {
-                if (data.LZ_DVN > data.NETHERMIND_DVN) {
-                    requiredDVNs[0] = data.NETHERMIND_DVN;
-                    requiredDVNs[1] = data.LZ_DVN;
-                } else {
-                    requiredDVNs[0] = data.LZ_DVN;
-                    requiredDVNs[1] = data.NETHERMIND_DVN;
-                }
+            UlnConfig memory ulnConfig = _getUlnConfig();
+
+            if (
+                keccak256(
+                    lzEndpoint.getConfig(
+                        currentDeployment.oftAdapter,
+                        getData(block.chainid).LZ_RECEIVE_LIB,
+                        dstEid,
+                        CONFIG_TYPE_ULN
+                    )
+                ) == keccak256(abi.encode(ulnConfig))
+                    && keccak256(
+                        lzEndpoint.getConfig(
+                            currentDeployment.oftAdapter, getData(block.chainid).LZ_SEND_LIB, dstEid, CONFIG_TYPE_ULN
+                        )
+                    ) == keccak256(abi.encode(ulnConfig))
+            ) {
+                console.log("Already set DVNs for chainid %d", chainId);
+                continue;
             }
-
-            UlnConfig memory ulnConfig = UlnConfig({
-                confirmations: confirmations,
-                requiredDVNCount: requiredDVNCount,
-                optionalDVNCount: 0,
-                optionalDVNThreshold: 0,
-                requiredDVNs: requiredDVNs,
-                optionalDVNs: new address[](0)
-            });
 
             SetConfigParam[] memory params = new SetConfigParam[](1);
             params[0] = SetConfigParam(dstEid, CONFIG_TYPE_ULN, abi.encode(ulnConfig));
+
             vm.startBroadcast();
-            console.log("SENDER", msg.sender);
             lzEndpoint.setConfig(currentDeployment.oftAdapter, data.LZ_SEND_LIB, params);
             lzEndpoint.setConfig(currentDeployment.oftAdapter, data.LZ_RECEIVE_LIB, params);
             vm.stopBroadcast();
             console.log("Set DVNs for chainid %d", chainId);
         }
+    }
+
+    function _getUlnConfig() internal view returns (UlnConfig memory _ulnConfig) {
+        Data storage data = getData(block.chainid);
+        bool isTestnet = isTestnetChainId(block.chainid);
+
+        address[] memory requiredDVNs = new address[](isTestnet ? 1 : 2);
+        uint64 confirmations = isTestnet ? 8 : 32;
+        uint8 requiredDVNCount = isTestnet ? 1 : 2;
+
+        if (isTestnet) {
+            requiredDVNs[0] = data.LZ_DVN;
+        } else {
+            if (data.LZ_DVN > data.NETHERMIND_DVN) {
+                requiredDVNs[0] = data.NETHERMIND_DVN;
+                requiredDVNs[1] = data.LZ_DVN;
+            } else {
+                requiredDVNs[0] = data.LZ_DVN;
+                requiredDVNs[1] = data.NETHERMIND_DVN;
+            }
+        }
+
+        _ulnConfig = UlnConfig({
+            confirmations: confirmations,
+            requiredDVNCount: requiredDVNCount,
+            optionalDVNCount: 0,
+            optionalDVNThreshold: 0,
+            requiredDVNs: requiredDVNs,
+            optionalDVNs: new address[](0)
+        });
     }
 
     function configureExecutor(uint256[] memory dstChainIds) internal {
@@ -596,11 +606,25 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
             uint256 chainId = dstChainIds[i];
             uint32 dstEid = getEID(chainId);
 
-            ExecutorConfig memory executorConfig =
-                ExecutorConfig({maxMessageSize: DEFAULT_MAX_MESSAGE_SIZE, executor: data.LZ_EXECUTOR});
+            ExecutorConfig memory executorConfig = _getExecutorConfig();
+
+            if (
+                keccak256(
+                    lzEndpoint.getConfig(
+                        currentDeployment.oftAdapter,
+                        getData(block.chainid).LZ_SEND_LIB,
+                        dstEid,
+                        CONFIG_TYPE_EXECUTOR
+                    )
+                ) == keccak256(abi.encode(executorConfig))
+            ) {
+                console.log("Already set executor for chainid %d", chainId);
+                continue;
+            }
 
             SetConfigParam[] memory params = new SetConfigParam[](1);
             params[0] = SetConfigParam(dstEid, CONFIG_TYPE_EXECUTOR, abi.encode(executorConfig));
+
             vm.startBroadcast();
             lzEndpoint.setConfig(currentDeployment.oftAdapter, data.LZ_SEND_LIB, params);
             vm.stopBroadcast();
@@ -609,12 +633,21 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
         }
     }
 
-    function findChainDeployment(uint256 chainId) internal view returns (ChainDeployment memory) {
-        for (uint256 i = 0; i < deployment.chains.length; i++) {
-            if (deployment.chains[i].chainId == chainId) {
-                return deployment.chains[i];
-            }
+    function _getExecutorConfig() internal view returns (ExecutorConfig memory _executorConfig) {
+        Data storage data = getData(block.chainid);
+
+        _executorConfig = ExecutorConfig({maxMessageSize: DEFAULT_MAX_MESSAGE_SIZE, executor: data.LZ_EXECUTOR});
+    }
+
+    function configureDelegate() internal {
+        Data storage data = getData(block.chainid);
+        OFTAdapterUpgradeable oftAdapter = OFTAdapterUpgradeable(currentDeployment.oftAdapter);
+        ILZEndpointDelegates _lzEndpoint = ILZEndpointDelegates(data.LZ_ENDPOINT);
+        // verify delegate
+        if (_lzEndpoint.delegates(currentDeployment.oftAdapter) != getData(block.chainid).OFT_OWNER) {
+            vm.startBroadcast();
+            oftAdapter.setDelegate(data.OFT_OWNER);
+            vm.stopBroadcast();
         }
-        revert(string.concat("Deployment for chain ", vm.toString(chainId), " not found"));
     }
 }

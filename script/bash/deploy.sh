@@ -228,8 +228,8 @@ delimiter
 CALLDATA=$(cast calldata "run(string)" "/$INPUT_PATH")
 
 if [[ $SKIP_L1 == false ]]; then
-    echo "Deploying L1 Adapter for $L1_RPC ($L1_CHAIN_ID)"
-    runScript script/DeployL1OFTAdapter.s.sol:DeployL1OFTAdapter $CALLDATA $L1_RPC $L1_ETHERSCAN_API_KEY
+    echo "Deploying L1 OFTAdapter for $L1_RPC ($L1_CHAIN_ID)"
+    runScript DeployOFT $CALLDATA $L1_RPC $L1_ETHERSCAN_API_KEY
     
     delimiter
 else
@@ -248,8 +248,8 @@ for L2_CHAIN_ID in $L2_CHAIN_IDS_ARRAY; do
         echo "No Etherscan API key found for $L2_CHAIN_ID"
         exit 1
     fi
-    echo "Deploying L2 Adapter for $L2_RPC ($L2_CHAIN_ID)"
-    runScript script/DeployL2OFTAdapter.s.sol:DeployL2OFTAdapter $CALLDATA $L2_RPC $L2_ETHERSCAN_API_KEY
+    echo "Deploying L2 ERC20 and OFTAdapter for $L2_RPC ($L2_CHAIN_ID)"
+    runScript DeployOFT $CALLDATA $L2_RPC $L2_ETHERSCAN_API_KEY
 
     delimiter
 done

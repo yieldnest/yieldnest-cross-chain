@@ -44,7 +44,17 @@ contract BaseData is Script {
         uint256 binanceTestnet;
     }
 
+    struct ChainRecord {
+        uint256 chainId;
+        string name;
+    }
+
+    // Array of all supported chain IDs for easy iteration
+    uint256[] private supportedChainIds;
+    uint256[] private supportedTestnetChainIds;
     mapping(uint256 => Data) private __chainIdToData;
+    mapping(uint256 => ChainRecord) private chainRecords; // for display purposes
+    mapping(uint32 => uint256) private zlEIDToChainId;
 
     ChainIds private __chainIds = ChainIds({
         mainnet: 1,
@@ -344,6 +354,94 @@ contract BaseData is Script {
             LZ_EXECUTOR: 0x31894b190a8bAbd9A067Ce59fde0BfCFD2B18470,
             LZ_EID: 40102
         });
+
+        fillChainRecords();
+        fillSupportedChainIds();
+    }
+
+    function fillSupportedChainIds() internal {
+        supportedChainIds.push(__chainIds.mainnet);
+        supportedChainIds.push(__chainIds.base);
+        supportedChainIds.push(__chainIds.fraxtal);
+        supportedChainIds.push(__chainIds.optimism);
+        supportedChainIds.push(__chainIds.arbitrum);
+        supportedChainIds.push(__chainIds.manta);
+        supportedChainIds.push(__chainIds.taiko);
+        supportedChainIds.push(__chainIds.scroll);
+        supportedChainIds.push(__chainIds.fantom);
+        supportedChainIds.push(__chainIds.mantle);
+        supportedChainIds.push(__chainIds.blast);
+        supportedChainIds.push(__chainIds.linea);
+        supportedChainIds.push(__chainIds.bera);
+        supportedChainIds.push(__chainIds.binance);
+        supportedChainIds.push(__chainIds.hemi);
+        supportedChainIds.push(__chainIds.ink);
+
+        fillSupportedTestnetChainIds();
+        // testnets
+        for (uint256 i = 0; i < supportedTestnetChainIds.length; i++) {
+            supportedChainIds.push(supportedTestnetChainIds[i]);
+        }
+    }
+
+    function fillSupportedTestnetChainIds() internal {
+        supportedTestnetChainIds.push(__chainIds.holesky);
+        supportedTestnetChainIds.push(__chainIds.fraxtalTestnet);
+        supportedTestnetChainIds.push(__chainIds.sepolia);
+        supportedTestnetChainIds.push(__chainIds.morphTestnet);
+        supportedTestnetChainIds.push(__chainIds.hemiTestnet);
+        supportedTestnetChainIds.push(__chainIds.binanceTestnet);
+    }
+
+    function fillChainRecords() internal {
+        // Mainnets
+        chainRecords[__chainIds.mainnet] = ChainRecord({chainId: __chainIds.mainnet, name: "Ethereum"});
+        chainRecords[__chainIds.base] = ChainRecord({chainId: __chainIds.base, name: "Base"});
+        chainRecords[__chainIds.optimism] = ChainRecord({chainId: __chainIds.optimism, name: "Optimism"});
+        chainRecords[__chainIds.arbitrum] = ChainRecord({chainId: __chainIds.arbitrum, name: "Arbitrum"});
+        chainRecords[__chainIds.fraxtal] = ChainRecord({chainId: __chainIds.fraxtal, name: "Fraxtal"});
+        chainRecords[__chainIds.manta] = ChainRecord({chainId: __chainIds.manta, name: "Manta"});
+        chainRecords[__chainIds.taiko] = ChainRecord({chainId: __chainIds.taiko, name: "Taiko"});
+        chainRecords[__chainIds.scroll] = ChainRecord({chainId: __chainIds.scroll, name: "Scroll"});
+        chainRecords[__chainIds.fantom] = ChainRecord({chainId: __chainIds.fantom, name: "Fantom"});
+        chainRecords[__chainIds.mantle] = ChainRecord({chainId: __chainIds.mantle, name: "Mantle"});
+        chainRecords[__chainIds.blast] = ChainRecord({chainId: __chainIds.blast, name: "Blast"});
+        chainRecords[__chainIds.linea] = ChainRecord({chainId: __chainIds.linea, name: "Linea"});
+        chainRecords[__chainIds.bera] = ChainRecord({chainId: __chainIds.bera, name: "Bera"});
+        chainRecords[__chainIds.binance] = ChainRecord({chainId: __chainIds.binance, name: "Binance"});
+        chainRecords[__chainIds.hemi] = ChainRecord({chainId: __chainIds.hemi, name: "Hemi"});
+        chainRecords[__chainIds.ink] = ChainRecord({chainId: __chainIds.ink, name: "Ink"});
+
+        // Testnets
+        chainRecords[__chainIds.holesky] = ChainRecord({chainId: __chainIds.holesky, name: "Holesky"});
+        chainRecords[__chainIds.sepolia] = ChainRecord({chainId: __chainIds.sepolia, name: "Sepolia"});
+        chainRecords[__chainIds.fraxtalTestnet] =
+            ChainRecord({chainId: __chainIds.fraxtalTestnet, name: "Fraxtal Testnet"});
+        chainRecords[__chainIds.morphTestnet] =
+            ChainRecord({chainId: __chainIds.morphTestnet, name: "Morph Testnet"});
+        chainRecords[__chainIds.hemiTestnet] = ChainRecord({chainId: __chainIds.hemiTestnet, name: "Hemi Testnet"});
+        chainRecords[__chainIds.binanceTestnet] =
+            ChainRecord({chainId: __chainIds.binanceTestnet, name: "Binance Testnet"});
+    }
+
+    function fillLzEidToChainId() private {
+        // Fill mapping from LayerZero EID to chain ID for all supported chains
+        for (uint256 i = 0; i < supportedChainIds.length; i++) {
+            uint256 chainId = supportedChainIds[i];
+            uint32 eid = getData(chainId).LZ_EID;
+            zlEIDToChainId[eid] = chainId;
+        }
+    }
+
+    function getChainRecord(uint256 chainId) internal view returns (ChainRecord memory) {
+        require(isSupportedChainId(chainId), "BaseData: unsupported chainId");
+        return chainRecords[chainId];
+    }
+
+    function getChainIdFromEID(uint32 eid) internal view returns (uint256) {
+        uint256 chainId = zlEIDToChainId[eid];
+        require(chainId != 0, "BaseData: unsupported EID");
+        return chainId;
     }
 
     function getData(uint256 chainId) internal view returns (Data storage _data) {
@@ -368,23 +466,22 @@ contract BaseData is Script {
         eid = getData(chainId).LZ_EID;
     }
 
-    function isSupportedChainId(uint256 chainId) internal view returns (bool isSupported) {
-        isSupported = chainId == __chainIds.mainnet || chainId == __chainIds.base || chainId == __chainIds.fraxtal
-            || chainId == __chainIds.optimism || chainId == __chainIds.arbitrum || chainId == __chainIds.manta
-            || chainId == __chainIds.taiko || chainId == __chainIds.scroll || chainId == __chainIds.fantom
-            || chainId == __chainIds.mantle || chainId == __chainIds.blast || chainId == __chainIds.linea
-            || chainId == __chainIds.bera || chainId == __chainIds.binance || chainId == __chainIds.hemi
-            || chainId == __chainIds.ink
-        // testnets
-        || chainId == __chainIds.holesky || chainId == __chainIds.fraxtalTestnet || chainId == __chainIds.sepolia
-            || chainId == __chainIds.morphTestnet || chainId == __chainIds.hemiTestnet
-            || chainId == __chainIds.binanceTestnet;
+    function isSupportedChainId(uint256 chainId) internal view returns (bool) {
+        for (uint256 i = 0; i < supportedChainIds.length; i++) {
+            if (chainId == supportedChainIds[i]) {
+                return true;
+            }
+        }
+        return false;
     }
 
-    function isTestnetChainId(uint256 chainId) internal view returns (bool isTestnet) {
-        isTestnet = chainId == __chainIds.holesky || chainId == __chainIds.fraxtalTestnet
-            || chainId == __chainIds.sepolia || chainId == __chainIds.morphTestnet || chainId == __chainIds.hemiTestnet
-            || chainId == __chainIds.binanceTestnet;
+    function isTestnetChainId(uint256 chainId) internal view returns (bool) {
+        for (uint256 i = 0; i < supportedTestnetChainIds.length; i++) {
+            if (chainId == supportedTestnetChainIds[i]) {
+                return true;
+            }
+        }
+        return false;
     }
 
     function getMinDelay(uint256 chainId) internal view returns (uint256 minDelay) {
