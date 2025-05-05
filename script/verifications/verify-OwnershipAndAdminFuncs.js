@@ -17,7 +17,8 @@ const chainMultisigs = {
     "optimism": "0xCb343bF07E72548349f506593336b6CB698Ad6dA",
     "bera": "0xae495b70D00C724e5a9E23F4613d5e8139677503",
     "mainnet": "0xfcad670592a3b24869C0b51a6c6FDED4F95D6975",
-    "hemi": "0x54d4F70a7a8f4E5209F8B21cC4e88440B9192160"
+    "hemi": "0x54d4F70a7a8f4E5209F8B21cC4e88440B9192160",
+    "ink": "0x5848af047b56F7FCc9DFEAC2F535d4800069E9E1"
 };
 
 
@@ -89,7 +90,7 @@ async function verifyRolesAndOwnership(deployment, sourceNetwork) {
 
     // Check multisig owners
     const owners = await multisig.getOwners();
-    const expectedOwners = networkName === 'bera' || networkName === 'mainnet' || networkName === 'hemi' ? deployNo2Owners : deployNo1Owners;
+    const expectedOwners = networkName === 'bera' || networkName === 'mainnet' || networkName === 'hemi' || networkName === 'ink' ? deployNo2Owners : deployNo1Owners;
     
     console.log(`\nVerifying multisig owners for ${networkName}...`);
     
