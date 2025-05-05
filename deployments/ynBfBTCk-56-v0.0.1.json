@@ -1,0 +1,31 @@
+{
+  "chains": {
+    "43111": {
+      "chainId": 43111,
+      "erc20Address": "0x472Ac3Bd4C130290137467EF24719F28788A79e5",
+      "erc20Implementation": "0x212827Bf478f646C86538e17AEdd9Faaac78eb89",
+      "erc20ProxyAdmin": "0x37F4F1A927e9034b2F5b089ce7a2a20B3a8372A1",
+      "isL1": false,
+      "lzEID": 30329,
+      "lzEndpoint": "0x6F475642a6e85809B1c36Fa62763669b1b48DD5B",
+      "oftAdapter": "0x59f1f7C4A003c2aE7c4C6DB24A831c92bb7EF9Ae",
+      "oftAdapterImplementation": "0x43940682495B62ff6171452397008583f35E9584",
+      "oftAdapterProxyAdmin": "0x9f843218137cE628A6517d34c7E38196AaA26e4E",
+      "oftAdapterTimelock": "0x3e6034baDa828f5D87B38F40875EA06fe5Fa9ccf"
+    },
+    "56": {
+      "chainId": 56,
+      "erc20Address": "0x1B015705214bdcAAf43E8EDeCa13023143224Ab7",
+      "erc20Implementation": "0x0E64643d8073b82ac6D6a9e7d1D6b6689a05Acb3",
+      "erc20ProxyAdmin": "0x80538bCcfd751374F2e585A1d5CEF84200f7C7B9",
+      "isL1": true,
+      "lzEID": 30102,
+      "lzEndpoint": "0x1a44076050125825900e736c501f859c50fE728c",
+      "oftAdapter": "0x59f1f7C4A003c2aE7c4C6DB24A831c92bb7EF9Ae",
+      "oftAdapterImplementation": "0x0Cbe18F280d092906fDA2081e97696B6598F380F",
+      "oftAdapterProxyAdmin": "0x9f843218137cE628A6517d34c7E38196AaA26e4E",
+      "oftAdapterTimelock": "0x3e6034baDa828f5D87B38F40875EA06fe5Fa9ccf"
+    }
+  },
+  "deployerAddress": "0x4C51Ce7B2546e18449fbE16738A8D55bc195a4dd"
+}
