@@ -33,7 +33,7 @@ contract TransferOFTOwnership is BaseScript {
 
             vm.broadcast();
             Ownable(currentDeployment.oftAdapter).transferOwnership(getData(block.chainid).OFT_OWNER);
-            console.log("OFT Ownership transferred");
+            console.log("OFT Ownership transferred to:", oftAdapter.owner());
         } else {
             console.log("OFT Ownership already transferred");
         }

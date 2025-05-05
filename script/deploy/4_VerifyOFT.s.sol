@@ -9,6 +9,7 @@ import {
     ExecutorConfigParams,
     ILZEndpointDelegates,
     PeerConfig,
+    PeerRecord,
     ReceiveLibConfig,
     SendLibConfig
 } from "../BaseScript.s.sol";
@@ -48,7 +49,7 @@ import {ExecutorConfig} from "@layerzerolabs/lz-evm-messagelib-v2/contracts/Send
 
 contract VerifyOFT is BaseScript, BatchScript {
     RateLimiter.RateLimitConfig[] public newRateLimitConfigs;
-    PeerConfig[] public newPeers;
+    PeerRecord[] public newPeers;
     SendLibConfig[] public newSendLibs;
     ReceiveLibConfig[] public newReceiveLibs;
     bytes[] public newEnforcedOptions;
@@ -194,7 +195,7 @@ contract VerifyOFT is BaseScript, BatchScript {
                 bytes32 adapterBytes32 = addressToBytes32(chainDeployment.oftAdapter);
                 if (IOAppCore(currentDeployment.oftAdapter).peers(eid) != adapterBytes32) {
                     needsUpdate = true;
-                    newPeers.push(PeerConfig(eid, chainDeployment.oftAdapter));
+                    newPeers.push(PeerRecord(chainId, PeerConfig(eid, chainDeployment.oftAdapter)));
                 }
             }
             {
@@ -314,198 +315,240 @@ contract VerifyOFT is BaseScript, BatchScript {
             console.log("OFT Adapter: %s", currentDeployment.oftAdapter);
             console.log("");
 
-            if (newDelegate) {
-                console.log("The oft delegate needs to be updated to %s", getData(block.chainid).OFT_OWNER);
-                console.log("");
+            addToBatch_configureDelegate();
+            addToBatch_configureRateLimits();
+            addToBatch_configurePeers();
+            addToBatch_configureSendLibs(lzEndpoint);
+            addtoBatch_configureReceiveLibs(lzEndpoint);
+            addToBatch_configureEnforcedOptions();
+            addToBatch_configureDVNs(lzEndpoint);
+            addToBatch_configureExecutor(lzEndpoint);
+
+            displayBatch();
+        }
+    }
+
+    function addToBatch_configureDelegate() internal {
+        if (newDelegate) {
+            console.log("The oft delegate needs to be updated to %s", getData(block.chainid).OFT_OWNER);
+            console.log("");
+            console.log("Contract: %s", currentDeployment.oftAdapter);
+            console.log("Method: setDelegate");
+            console.log("New Delegate: %s", getData(block.chainid).OFT_OWNER);
+            bytes memory data =
+                abi.encodeWithSelector(ILayerZeroEndpointV2.setDelegate.selector, getData(block.chainid).OFT_OWNER);
+            console.log("Encoded Tx Data: ");
+            console.logBytes(data);
+
+            addToBatch(currentDeployment.oftAdapter, data);
+            console.log("");
+        } else {
+            console.log("No delegate configuration needed.");
+        }
+    }
+
+    function addToBatch_configureRateLimits() internal {
+        if (newRateLimitConfigs.length > 0) {
+            console.log("The following rate limits need to be set: ");
+            console.log("");
+            for (uint256 i = 0; i < newRateLimitConfigs.length; i++) {
                 console.log("Contract: %s", currentDeployment.oftAdapter);
-                console.log("Method: setDelegate");
-                console.log("New Delegate: %s", getData(block.chainid).OFT_OWNER);
+                console.log("Method: setRateLimits");
+                console.log("Sets the rate limits for the OFT Adapter on the specified EID");
+                console.log("Args: ");
+                console.log(
+                    "EID %d: Limit %d, Window %d",
+                    newRateLimitConfigs[i].dstEid,
+                    newRateLimitConfigs[i].limit,
+                    newRateLimitConfigs[i].window
+                );
+            }
+            console.log("");
+
+            bytes memory data =
+                abi.encodeWithSelector(L2YnOFTAdapterUpgradeable.setRateLimits.selector, newRateLimitConfigs);
+            console.log("Encoded Tx Data: ");
+            console.logBytes(data);
+
+            addToBatch(currentDeployment.oftAdapter, data);
+            console.log("");
+        } else {
+            console.log("No rate limit configuration needed.");
+        }
+    }
+
+    function addToBatch_configurePeers() internal {
+        if (newPeers.length > 0) {
+            console.log("The following %s peers need to be set: ", newPeers.length);
+            console.log("");
+            for (uint256 i = 0; i < newPeers.length; i++) {
+                uint256 chainId = newPeers[i].chainId;
+                string memory chainName = getChainRecord(chainId).name;
+                console.log("Chain ID: %d; Chain Name: %s", chainId, chainName);
+                console.log("EID %d; Peer %s", newPeers[i].config.eid, newPeers[i].config.peer);
+                console.log("Method: setPeer");
+                console.log("Contract: %s", currentDeployment.oftAdapter);
                 bytes memory data = abi.encodeWithSelector(
-                    ILayerZeroEndpointV2.setDelegate.selector, getData(block.chainid).OFT_OWNER
+                    IOAppCore.setPeer.selector, newPeers[i].config.eid, newPeers[i].config.peer
+                );
+                console.log("Encoded Tx Data: ");
+                console.logBytes(data);
+                addToBatch(currentDeployment.oftAdapter, data);
+                console.log("");
+            }
+        } else {
+            console.log("No peer configuration needed.");
+        }
+    }
+
+    function addToBatch_configureSendLibs(ILayerZeroEndpointV2 _lzEndpoint) internal {
+        if (newSendLibs.length > 0) {
+            console.log("The following send libraries need to be set: ");
+            console.log("");
+            for (uint256 i = 0; i < newSendLibs.length; i++) {
+                console.log("");
+                console.log("Contract: %s", address(_lzEndpoint));
+                console.log("Method: setSendLibrary");
+                console.log("Sets the send library for the OFT Adapter on the specified EID");
+                console.log("Args: ");
+                console.log(
+                    "OFTAdapter address: %s; EID: %d; Send Library Address: %s",
+                    currentDeployment.oftAdapter,
+                    newSendLibs[i].eid,
+                    newSendLibs[i].lib
+                );
+                console.log("");
+                bytes memory data = abi.encodeWithSelector(
+                    IMessageLibManager.setSendLibrary.selector,
+                    currentDeployment.oftAdapter,
+                    newSendLibs[i].eid,
+                    newSendLibs[i].lib
                 );
                 console.log("Encoded Tx Data: ");
                 console.logBytes(data);
 
-                addToBatch(currentDeployment.oftAdapter, data);
+                addToBatch(address(_lzEndpoint), data);
                 console.log("");
             }
+        } else {
+            console.log("No send library configuration needed.");
+        }
+    }
 
-            if (newRateLimitConfigs.length > 0) {
-                console.log("The following rate limits need to be set: ");
+    function addtoBatch_configureReceiveLibs(ILayerZeroEndpointV2 _lzEndpoint) internal {
+        if (newReceiveLibs.length > 0) {
+            console.log("The following receive libraries need to be set: ");
+            console.log("");
+            for (uint256 i = 0; i < newReceiveLibs.length; i++) {
                 console.log("");
-                for (uint256 i = 0; i < newRateLimitConfigs.length; i++) {
-                    console.log("Contract: %s", currentDeployment.oftAdapter);
-                    console.log("Method: setRateLimits");
-                    console.log("Sets the rate limits for the OFT Adapter on the specified EID");
-                    console.log("Args: ");
-                    console.log(
-                        "EID %d: Limit %d, Window %d",
-                        newRateLimitConfigs[i].dstEid,
-                        newRateLimitConfigs[i].limit,
-                        newRateLimitConfigs[i].window
-                    );
-                }
-                console.log("");
-
-                bytes memory data =
-                    abi.encodeWithSelector(L2YnOFTAdapterUpgradeable.setRateLimits.selector, newRateLimitConfigs);
+                console.log("Chain ID: %d", block.chainid);
+                console.log("Contract: %s", address(_lzEndpoint));
+                console.log("Method: setReceiveLibrary");
+                console.log("Sets the receive library for the OFT Adapter on the specified EID");
+                console.log("Args: ");
+                console.log(
+                    "OFTAdapter address: %s; EID: %d; Receive Library Address: %s; Expiry: 0",
+                    currentDeployment.oftAdapter,
+                    newReceiveLibs[i].eid,
+                    newReceiveLibs[i].lib
+                );
+                bytes memory data = abi.encodeWithSelector(
+                    IMessageLibManager.setReceiveLibrary.selector,
+                    currentDeployment.oftAdapter,
+                    newReceiveLibs[i].eid,
+                    newReceiveLibs[i].lib,
+                    0
+                );
                 console.log("Encoded Tx Data: ");
                 console.logBytes(data);
 
-                addToBatch(currentDeployment.oftAdapter, data);
+                addToBatch(address(_lzEndpoint), data);
                 console.log("");
             }
+        } else {
+            console.log("No receive library configuration needed.");
+        }
+    }
 
-            if (newPeers.length > 0) {
-                console.log("The following %s peers need to be set: ", newPeers.length);
+    function addToBatch_configureEnforcedOptions() internal {
+        if (newEnforcedOptions.length > 0) {
+            console.log("The following enforced options need to be set: ");
+            console.log("Chain ID: %d", block.chainid);
+            console.log("");
+            for (uint256 i = 0; i < newEnforcedOptions.length; i++) {
+                console.log("Contract: %s", currentDeployment.oftAdapter);
+                console.log("Method: setEnforcedOptions");
+                console.log(
+                    "EnforcedOptions is an array of Options structs that set gas limits for various message types"
+                );
+                console.log("Number of Options: %s", newEnforcedOptions[i].length);
+                console.log("Encoded Tx Data: ");
+                console.logBytes(newEnforcedOptions[i]);
+                addToBatch(currentDeployment.oftAdapter, newEnforcedOptions[i]);
                 console.log("");
-                for (uint256 i = 0; i < newPeers.length; i++) {
-                    console.log("Contract: %s", currentDeployment.oftAdapter);
-                    console.log("Method: setPeer");
-                    console.log("Sets the peer for the OFT Adapter on the specified EID");
-                    console.log("Args: ");
-                    console.log("EID %d; Peer %s", newPeers[i].eid, newPeers[i].peer);
-                    bytes memory data =
-                        abi.encodeWithSelector(IOAppCore.setPeer.selector, newPeers[i].eid, newPeers[i].peer);
-                    console.log("Encoded Tx Data: ");
-                    console.logBytes(data);
-                    addToBatch(currentDeployment.oftAdapter, data);
-                    console.log("");
+            }
+        } else {
+            console.log("No enforced options configuration needed.");
+        }
+    }
+
+    function addToBatch_configureDVNs(ILayerZeroEndpointV2 _lzEndpoint) internal {
+        if (newDVNs.length > 0) {
+            console.log("The following %s DVNs need to be set: ", newDVNs.length);
+            console.log("Chain ID: %d (%s)", block.chainid, getChainRecord(block.chainid).name);
+            console.log("");
+            for (uint256 i = 0; i < newDVNs.length; i++) {
+                console.log("Contract: %s", address(_lzEndpoint));
+                console.log("Method: setConfig");
+                console.log("Sets the DVN for the OFT Adapter on the specified EID");
+                console.log("Destination Chain EID: %d", newDVNs[i].param.eid);
+                console.log("ULN Config params: ");
+                console.log("confirmations: %d", newDVNs[i].ulnConfig.confirmations);
+                console.log("requiredDVNCount: %d", newDVNs[i].ulnConfig.requiredDVNCount);
+                console.log("optionalDVNCount: %d", newDVNs[i].ulnConfig.optionalDVNCount);
+                console.log("optionalDVNThreshold: %d", newDVNs[i].ulnConfig.optionalDVNThreshold);
+                for (uint256 j = 0; j < newDVNs[i].ulnConfig.requiredDVNs.length; j++) {
+                    console.log("requiredDVNs[%d]: %s", j, newDVNs[i].ulnConfig.requiredDVNs[j]);
                 }
-            }
-
-            if (newSendLibs.length > 0) {
-                console.log("The following send libraries need to be set: ");
-                console.log("");
-                for (uint256 i = 0; i < newSendLibs.length; i++) {
-                    console.log("");
-                    console.log("Contract: %s", address(lzEndpoint));
-                    console.log("Method: setSendLibrary");
-                    console.log("Sets the send library for the OFT Adapter on the specified EID");
-                    console.log("Args: ");
-                    console.log(
-                        "OFTAdapter address: %s; EID: %d; Send Library Address: %s",
-                        currentDeployment.oftAdapter,
-                        newSendLibs[i].eid,
-                        newSendLibs[i].lib
-                    );
-                    console.log("");
-                    bytes memory data = abi.encodeWithSelector(
-                        IMessageLibManager.setSendLibrary.selector,
-                        currentDeployment.oftAdapter,
-                        newSendLibs[i].eid,
-                        newSendLibs[i].lib
-                    );
-                    console.log("Encoded Tx Data: ");
-                    console.logBytes(data);
-
-                    addToBatch(address(lzEndpoint), data);
-                    console.log("");
+                for (uint256 j = 0; j < newDVNs[i].ulnConfig.optionalDVNs.length; j++) {
+                    console.log("optionalDVNs[%d]: %s", j, newDVNs[i].ulnConfig.optionalDVNs[j]);
                 }
-            }
-
-            if (newReceiveLibs.length > 0) {
-                console.log("The following receive libraries need to be set: ");
                 console.log("");
-                for (uint256 i = 0; i < newReceiveLibs.length; i++) {
-                    console.log("");
-                    console.log("Chain ID: %d", block.chainid);
-                    console.log("Contract: %s", address(lzEndpoint));
-                    console.log("Method: setReceiveLibrary");
-                    console.log("Sets the receive library for the OFT Adapter on the specified EID");
-                    console.log("Args: ");
-                    console.log(
-                        "OFTAdapter address: %s; EID: %d; Receive Library Address: %s; Expiry: 0",
-                        currentDeployment.oftAdapter,
-                        newReceiveLibs[i].eid,
-                        newReceiveLibs[i].lib
-                    );
-                    bytes memory data = abi.encodeWithSelector(
-                        IMessageLibManager.setReceiveLibrary.selector,
-                        currentDeployment.oftAdapter,
-                        newReceiveLibs[i].eid,
-                        newReceiveLibs[i].lib,
-                        0
-                    );
-                    console.log("Encoded Tx Data: ");
-                    console.logBytes(data);
-
-                    addToBatch(address(lzEndpoint), data);
-                    console.log("");
-                }
-            }
-
-            if (newEnforcedOptions.length > 0) {
-                console.log("The following enforced options need to be set: ");
-                console.log("Chain ID: %d", block.chainid);
+                console.log("Encoded Send Tx Data: ");
+                console.logBytes(newDVNs[i].encodedSendTx);
+                addToBatch(address(_lzEndpoint), newDVNs[i].encodedSendTx);
                 console.log("");
-                for (uint256 i = 0; i < newEnforcedOptions.length; i++) {
-                    console.log("Contract: %s", currentDeployment.oftAdapter);
-                    console.log("Method: setEnforcedOptions");
-                    console.log(
-                        "EnforcedOptions is an array of Options structs that set gas limits for various message types"
-                    );
-                    console.log("Number of Options: %s", newEnforcedOptions[i].length);
-                    console.log("Encoded Tx Data: ");
-                    console.logBytes(newEnforcedOptions[i]);
-                    addToBatch(currentDeployment.oftAdapter, newEnforcedOptions[i]);
-                    console.log("");
-                }
-            }
-
-            if (newDVNs.length > 0) {
-                console.log("The following %s DVNs need to be set: ", newDVNs.length);
-                console.log("Chain ID: %d", block.chainid);
+                console.log("Encoded Receive Tx Data: ");
+                console.logBytes(newDVNs[i].encodedReceiveTx);
+                addToBatch(address(_lzEndpoint), newDVNs[i].encodedReceiveTx);
                 console.log("");
-                for (uint256 i = 0; i < newDVNs.length; i++) {
-                    console.log("Contract: %s", address(lzEndpoint));
-                    console.log("Method: setConfig");
-                    console.log("Sets the DVN for the OFT Adapter on the specified EID");
-                    console.log("Destination Chain EID: %d", newDVNs[i].param.eid);
-                    console.log("ULN Config params: ");
-                    console.log("confirmations: %d", newDVNs[i].ulnConfig.confirmations);
-                    console.log("requiredDVNCount: %d", newDVNs[i].ulnConfig.requiredDVNCount);
-                    console.log("optionalDVNCount: %d", newDVNs[i].ulnConfig.optionalDVNCount);
-                    console.log("optionalDVNThreshold: %d", newDVNs[i].ulnConfig.optionalDVNThreshold);
-                    for (uint256 j = 0; j < newDVNs[i].ulnConfig.requiredDVNs.length; j++) {
-                        console.log("requiredDVNs[%d]: %s", j, newDVNs[i].ulnConfig.requiredDVNs[j]);
-                    }
-                    for (uint256 j = 0; j < newDVNs[i].ulnConfig.optionalDVNs.length; j++) {
-                        console.log("optionalDVNs[%d]: %s", j, newDVNs[i].ulnConfig.optionalDVNs[j]);
-                    }
-                    console.log("");
-                    console.log("Encoded Send Tx Data: ");
-                    console.logBytes(newDVNs[i].encodedSendTx);
-                    addToBatch(address(lzEndpoint), newDVNs[i].encodedSendTx);
-                    console.log("");
-                    console.log("Encoded Receive Tx Data: ");
-                    console.logBytes(newDVNs[i].encodedReceiveTx);
-                    addToBatch(address(lzEndpoint), newDVNs[i].encodedReceiveTx);
-                    console.log("");
-                }
             }
+        } else {
+            console.log("No DVN configuration needed.");
+        }
+    }
 
-            if (newExecutors.length > 0) {
-                console.log("The following %s executors need to be set: ", newExecutors.length);
-                console.log("Chain ID: %d", block.chainid);
+    function addToBatch_configureExecutor(ILayerZeroEndpointV2 _lzEndpoint) internal {
+        if (newExecutors.length > 0) {
+            console.log("The following %s executors need to be set: ", newExecutors.length);
+            console.log("Chain ID: %d", block.chainid);
+            console.log("");
+            for (uint256 i = 0; i < newExecutors.length; i++) {
+                console.log("Contract: %s", address(_lzEndpoint));
+                console.log("Method: setConfig");
+                console.log("Sets the executor for the OFT Adapter on the specified EID");
+                console.log("Destination Chain EID: %d", newExecutors[i].dstEid);
+                console.log("Executor Config: ");
+                console.log("maxMessageSize: %d", newExecutors[i].executorConfig.maxMessageSize);
+                console.log("executor: %s", newExecutors[i].executorConfig.executor);
                 console.log("");
-                for (uint256 i = 0; i < newExecutors.length; i++) {
-                    console.log("Contract: %s", address(lzEndpoint));
-                    console.log("Method: setConfig");
-                    console.log("Sets the executor for the OFT Adapter on the specified EID");
-                    console.log("Destination Chain EID: %d", newExecutors[i].dstEid);
-                    console.log("Executor Config: ");
-                    console.log("maxMessageSize: %d", newExecutors[i].executorConfig.maxMessageSize);
-                    console.log("executor: %s", newExecutors[i].executorConfig.executor);
-                    console.log("");
-                    console.log("Encoded Tx Data: ");
-                    console.logBytes(newExecutors[i].encodedExecutorTx);
-                    addToBatch(address(lzEndpoint), newExecutors[i].encodedExecutorTx);
-                    console.log("");
-                }
+                console.log("Encoded Tx Data: ");
+                console.logBytes(newExecutors[i].encodedExecutorTx);
+                addToBatch(address(_lzEndpoint), newExecutors[i].encodedExecutorTx);
+                console.log("");
             }
-
-            displayBatch();
+        } else {
+            console.log("No executor configuration needed.");
         }
     }
 
