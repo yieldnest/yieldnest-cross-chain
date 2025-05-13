@@ -126,6 +126,25 @@ You can format your Solidity code using:
 ```bash
 yarn format
 ```
+## Deployment & Configuration Workflow
+
+The deployment and configuration process is split into four main scripts, which should be run in the following order:
+
+1. **DeployOFT** (`1_DeployOFT.s.sol`):  
+   Deploys the Timelock, ERC20, and OFT Adapter contracts.  
+   - For L2, also sets up roles on the ERC20 contract.
+
+2. **ConfigureOFT** (`2_ConfigureOFT.s.sol`):  
+   Configures the deployed OFT Adapter with rate limits, peers, libraries, enforced options, DVNs, executors, and delegates.  
+   - Only the current owner of the OFT Adapter can run this script.
+
+3. **TransferOFTOwnership** (`3_TransferOFTOwnership.s.sol`):  
+   Transfers ownership of the OFT Adapter to the designated multisig or governance address.
+
+4. **VerifyOFT** (`4_VerifyOFT.s.sol`):  
+   Verifies that all contracts and configurations are correct.  
+   - If discrepancies are found, it will output the necessary transactions to bring the deployment into compliance.
+   - These transactions can be executed via multisig or manually as needed.
 
 ### Scripts
 
@@ -255,10 +274,28 @@ To add a new L2 chain to an existing deployment, follow these steps using Morph 
 
 By following these steps, you can successfully add Morph Testnet (or any other new L2 testnet chain) to your existing multi-chain testnet deployment.
 
-### Possible Multisig transactions
+### Batch Transactions for Multisig
+
+- When configuration changes are needed and the contract is owned by a multisig, the `VerifyOFT` script will output all required transactions in a batch.
+- These can be submitted to your multisig platform for execution.
 
 If adding a chain to an existing deployment, you will more than likely need to execute a multisig transaction to set the DVN and executor for the OFT Adapter on the existing l1 chain.  The Deploy script will automatically read the existing oft settings and output an encoded multisig batch transaction which will need to be executed on the L1 chain, *if ownership has been transferred to the multisig*.  the transactions will be output into the console and will need to be copied from there.
 
+#### Example Output
+
+```bash
+Please note that the following transactions must be broadcast manually.
+Safe Address: 0x...
+Chain ID: 17000
+OFT Adapter: 0x...
+The following rate limits need to be set:
+Contract: 0x...
+Method: setRateLimits
+Args:
+EID 30210: Limit 3000000000000000000000, Window 3600
+Encoded Tx Data:
+0x...
+```
 
 ### Transfer Ownership
 
@@ -279,6 +316,16 @@ For transferring contract ownership run:
 ```
 
 on all relevant chains.
+
+### Role Management
+
+- On L2, the deployer is initially granted the `DEFAULT_ADMIN_ROLE` and `MINTER_ROLE` on the ERC20 contract.
+- After deployment, the `MINTER_ROLE` is granted to the OFT Adapter, and the `DEFAULT_ADMIN_ROLE` is transferred to the designated `TOKEN_ADMIN`.
+- The deployer then renounces their admin role for security.
+- Ownership of the OFT Adapter is transferred to the `OFT_OWNER` (usually a multisig or governance contract).
+
+**Important:**  
+Always verify that the deployer has renounced admin roles and that ownership has been transferred to the correct addresses to avoid security risks.
 
 ### Gas Snapshots
 
