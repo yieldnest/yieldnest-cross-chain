@@ -53,7 +53,8 @@ async function verifyRolesAndOwnership(deployment, sourceNetwork) {
             'function EXECUTOR_ROLE() view returns (bytes32)',
             'function PROPOSER_ROLE() view returns (bytes32)',
             'function CANCELLER_ROLE() view returns (bytes32)',
-            'function DEFAULT_ADMIN_ROLE() view returns (bytes32)'
+            'function DEFAULT_ADMIN_ROLE() view returns (bytes32)',
+            'function getMinDelay() view returns (uint256)'
         ],
         provider
     );
@@ -87,6 +88,14 @@ async function verifyRolesAndOwnership(deployment, sourceNetwork) {
         }
         console.log(`✓ Multisig has role ${role}`);
     }
+
+    const minDelay = await timelock.getMinDelay();
+    // Verify that the timelock delay is set to 24 hours (86400 seconds)
+    const expectedDelay = 86400; // 24 hours in seconds
+    if (minDelay.toString() !== expectedDelay.toString()) {
+        throw new Error(`Timelock delay is not set to 24 hours. Current delay: ${minDelay} seconds, expected: ${expectedDelay} seconds`);
+    }
+    console.log(`✓ Timelock delay correctly set to 24 hours (${expectedDelay} seconds)`);
 
     // Check multisig owners
     const owners = await multisig.getOwners();
