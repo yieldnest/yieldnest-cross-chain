@@ -130,6 +130,21 @@ async function verifyRolesAndOwnership(deployment, sourceNetwork) {
             }
             console.log(`✓ ${proxyName} proxy admin storage slot correctly set to ${proxyAdminAddress}`);
         }
+
+
+        // Implementation slot constant as defined in ERC1967Upgrade
+        const IMPLEMENTATION_SLOT = '0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc';
+        
+        // Function to verify proxy implementation storage slot
+        async function verifyProxyImplementationStorageSlot(proxyAddress, expectedImplementationAddress, proxyName) {
+            const implementationFromStorage = await provider.getStorageAt(proxyAddress, IMPLEMENTATION_SLOT);
+            const implementationAddress = ethers.utils.getAddress('0x' + implementationFromStorage.slice(26));
+            
+            if (implementationAddress.toLowerCase() !== expectedImplementationAddress.toLowerCase()) {
+                throw new Error(`${proxyName} implementation storage slot mismatch. Expected: ${expectedImplementationAddress}, Found: ${implementationAddress}`);
+            }
+            console.log(`✓ ${proxyName} implementation storage slot correctly set to ${implementationAddress}`);
+        }
         
         // Check ERC20 proxy admin storage slot
         if (networkName !== getNetworkName(sourceNetwork[0])) {
@@ -146,6 +161,21 @@ async function verifyRolesAndOwnership(deployment, sourceNetwork) {
             deployment.oftAdapterProxyAdmin,
             'OFT adapter'
         );
+
+        // Check OFT adapter implementation storage slot
+        await verifyProxyImplementationStorageSlot(
+            deployment.oftAdapter,
+            deployment.oftAdapterImplementation,
+            'OFT adapter'
+        );
+        
+        // Check ERC20 implementation storage slot
+        await verifyProxyImplementationStorageSlot(
+            deployment.erc20Address,
+            deployment.erc20Implementation,
+            'ERC20'
+        );
+                
     }
 
     // Check proxy admin ownership
