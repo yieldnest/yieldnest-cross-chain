@@ -336,7 +336,7 @@ contract BaseScript is BaseData, CREATE3Script, Utils {
     }
 
     function _loadJson(string calldata _path) internal {
-        string memory filePath = string(abi.encodePacked(vm.projectRoot(), _path));
+        string memory filePath = string(abi.encodePacked(vm.projectRoot(), "/", _path));
         console.log("Loading input from %s", filePath);
         string memory json = vm.readFile(filePath);
 
