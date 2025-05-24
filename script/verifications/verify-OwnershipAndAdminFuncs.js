@@ -233,10 +233,12 @@ async function verifyRolesAndOwnership(deployment, sourceNetwork) {
     );
 
     const oftAdapterOwner = await oftAdapter.owner();
-    // if (oftAdapterOwner.toLowerCase() !== chainMultisigs[networkName].toLowerCase()) {
-    //     throw new Error(`OFT adapter not owned by Multisig. Owner: ${oftAdapterOwner}`);
-    // }
-    console.log('✓ OFT adapter owned by Multisig');
+    if (oftAdapterOwner.toLowerCase() !== chainMultisigs[networkName].toLowerCase()) {
+        throw new Error(`OFT adapter not owned by Multisig. Owner: ${oftAdapterOwner}`);
+    } else {
+        console.log('✓ OFT adapter owned by Multisig');
+    }
+
 
     console.log(`\n✓ All verifications passed for ${networkName}`);
 }
