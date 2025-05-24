@@ -38,7 +38,7 @@ const deployNo2Owners = [
     "0x92cfFf81BD9D3ca540d3ee7e7d26A67b47FdB7c8"
 ];
 
-async function verifyRolesAndOwnership(deployment, sourceNetwork) {
+async function verifyRolesAndOwnership(deployment, sourceNetwork, deployerAddress) {
     const chainId = deployment.chainId;
     const networkName = getNetworkName(chainId);
     
@@ -226,6 +226,15 @@ async function verifyRolesAndOwnership(deployment, sourceNetwork) {
         console.log('✓ ERC20 DEFAULT_ADMIN_ROLE owned by Multisig');
     }
 
+    // Check that deployer address does not have DEFAULT_ADMIN_ROLE on ERC20    
+    if (networkName !== getNetworkName(sourceNetwork[0])) {
+        const deployerHasAdminRole = await erc20.hasRole(DEFAULT_ADMIN_ROLE, deployerAddress);
+        if (deployerHasAdminRole) {
+            throw new Error(`Deployer address ${deployerAddress} still has DEFAULT_ADMIN_ROLE on ERC20 - this should be revoked`);
+        }
+        console.log('✓ Deployer address does not have DEFAULT_ADMIN_ROLE on ERC20');
+    }
+
     const oftAdapter = new ethers.Contract(
         deployment.oftAdapter,
         ['function owner() view returns (address)'],
@@ -275,11 +284,11 @@ async function main() {
 
     // Read and parse deployment file
     const deploymentJson = JSON.parse(fs.readFileSync(deploymentPath)).chains;
-
+    const deployerAddress = JSON.parse(fs.readFileSync(deploymentPath)).deployerAddress;
     // Verify each deployment
     for (const [chainId, deployment] of Object.entries(deploymentJson)) {
         console.log(`\nVerifying ${chainId}...`);
-        await verifyRolesAndOwnership(deployment, sourceNetwork);
+        await verifyRolesAndOwnership(deployment, sourceNetwork, deployerAddress);
     }
 
     console.log('\nAll verifications completed successfully');
