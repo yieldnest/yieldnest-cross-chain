@@ -12,7 +12,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 contract ConfigureOFT is BaseScript {
     function run(string calldata _jsonPath, string calldata _deploymentPath) public {
-        string memory _fullDeploymentPath = string(abi.encodePacked(vm.projectRoot(), _deploymentPath));
+        string memory _fullDeploymentPath = string(abi.encodePacked(vm.projectRoot(), "/", _deploymentPath));
         _loadInput(_jsonPath, _fullDeploymentPath);
 
         address deployer = msg.sender;

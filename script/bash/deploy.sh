@@ -26,7 +26,7 @@ function display_help() {
     echo "  -h, --help            Display this help and exit"
     echo "  -a, --account         Set the deployer account name"
     echo "  -s, --sender          Set the deployer address"
-    echo "  -b, --simulate-only   Simulate the deployment"
+    echo "  -S, --simulate-only   Simulate the deployment"
     echo "  -b, --broadcast       Deploy & verify contracts on etherscan"
 
     delimiter
@@ -174,7 +174,7 @@ while [[ $# -gt 0 ]]; do
         BROADCAST=true
         shift
         ;;
-    --simulate-only | -s)
+    --simulate-only | -S)
         SIMULATE_ONLY=true
         shift
         ;;
@@ -245,7 +245,7 @@ for L2_CHAIN_ID in $L2_CHAIN_IDS_ARRAY; do
     fi
     L2_ETHERSCAN_API_KEY=$(getEtherscanAPIKey $L2_CHAIN_ID)
     if [[ -z $L2_ETHERSCAN_API_KEY ]]; then
-        echo "No Etherscan API key found for $L2_CHAIN_ID"
+        echo "No Etherscan API key found for L2 $L2_CHAIN_ID"
         exit 1
     fi
     echo "Deploying L2 ERC20 and OFTAdapter for $L2_RPC ($L2_CHAIN_ID)"
