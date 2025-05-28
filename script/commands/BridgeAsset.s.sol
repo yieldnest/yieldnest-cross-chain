@@ -441,7 +441,7 @@ contract BridgeAssetYND is BaseData {
     using OptionsBuilder for bytes;
 
     // Amount to bridge
-    uint256 public constant BRIDGE_AMOUNT = 1 ether;
+    uint256 public constant BRIDGE_AMOUNT = 10 ether;
 
     function run() external {
         uint256 sourceChainId = block.chainid;
@@ -461,9 +461,10 @@ contract BridgeAssetYND is BaseData {
 
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
 
-        address sender = vm.addr(deployerPrivateKey);
+        //address sender = vm.addr(deployerPrivateKey);
+        address sender = address(0xAB42B764D08762424f7dDde02cb7fbB7D552F64e);
 
-        // Get the ynBNBx contract address
+        // Get the YND contract address
         address YND = abi.decode(
             vm.parseJson(json, string.concat(".chains.", vm.toString(sourceChainId), ".erc20Address")), (address)
         );
@@ -476,7 +477,7 @@ contract BridgeAssetYND is BaseData {
         console.log("Destination Chain ID: %s", destinationChainId);
         console.log("Destination EID: %s", destinationEid);
 
-        vm.startBroadcast(deployerPrivateKey);
+        //vm.startBroadcast(deployerPrivateKey);
 
         uint256 extraYND = BRIDGE_AMOUNT;
 
@@ -494,13 +495,27 @@ contract BridgeAssetYND is BaseData {
         // Get messaging fee
         MessagingFee memory fee = IOFT(oftAdapter).quoteSend(sendParam, false);
         console.log("Fee: %s", fee.nativeFee);
-        // Approve ynBNBx spending on OFT adapter
-        IERC20(YND).approve(oftAdapter, extraYND);
+        // Approve YND spending on OFT adapter
+        //IERC20(YND).approve(oftAdapter, extraYND);
 
-        // Bridge tokens
-        IOFT(oftAdapter).send{value: fee.nativeFee}(sendParam, fee, payable(refundAddress));
+        // Print out the encoded call
+        bytes memory bridgeCall = abi.encodeWithSelector(
+            IOFT.send.selector,
+            destinationEid,
+            addressToBytes32(sender),
+            extraYND,
+            extraYND / 2,
+            options,
+            "",
+            "",
+            fee.nativeFee,
+            fee.lzTokenFee,
+            refundAddress
+        );
+        console.log("OFT Adapter: %s", oftAdapter);
+        console.logBytes(bridgeCall);
 
-        vm.stopBroadcast();
+        //vm.stopBroadcast();
     }
 
     function addressToBytes32(address _addr) internal pure returns (bytes32) {
