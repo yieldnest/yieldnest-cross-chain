@@ -9,6 +9,8 @@ import {IOFT, OFTReceipt, SendParam} from "@layerzerolabs/oft-evm/contracts/inte
 import {BaseData} from "../BaseData.s.sol";
 import {IERC20Metadata as IERC20} from "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
+
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {console} from "forge-std/console.sol";
 
 /**
@@ -498,21 +500,16 @@ contract BridgeAssetYND is BaseData {
         // Approve YND spending on OFT adapter
         //IERC20(YND).approve(oftAdapter, extraYND);
 
+        // Print out the encoded approve call
+        bytes memory approveCall = abi.encodeWithSelector(ERC20.approve.selector, oftAdapter, extraYND);
+        console.log("YND Token: %s", YND);
+        console.log("Approve call:");
+        console.logBytes(approveCall);
+
         // Print out the encoded call
-        bytes memory bridgeCall = abi.encodeWithSelector(
-            IOFT.send.selector,
-            destinationEid,
-            addressToBytes32(sender),
-            extraYND,
-            extraYND / 2,
-            options,
-            "",
-            "",
-            fee.nativeFee,
-            fee.lzTokenFee,
-            refundAddress
-        );
+        bytes memory bridgeCall = abi.encodeWithSelector(IOFT.send.selector, sendParam, fee, refundAddress);
         console.log("OFT Adapter: %s", oftAdapter);
+        console.log("Send call:");
         console.logBytes(bridgeCall);
 
         //vm.stopBroadcast();
