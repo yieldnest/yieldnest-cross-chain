@@ -2,6 +2,32 @@
 
 This project contains the smart contracts and scripts for deploying cross-chain Yieldnest tokens using LayerZero technology. It leverages the Foundry development toolkit for testing, building, and deploying contracts, and uses Yarn to manage dependencies.
 
+## Contract Addresses (YND)
+
+The following are the deployed contract addresses for the Yieldnest Dollar (YND) token across supported networks.  
+For full deployment details, see [`deployments/YND-1-v0.0.1.json`](deployments/YND-1-v0.0.1.json).
+
+| Network    | Chain ID | YND Token Address                                  | Proxy Admin                                    | LayerZero Endpoint                             |
+|------------|----------|----------------------------------------------------|------------------------------------------------|------------------------------------------------|
+| Ethereum   | 1        | [0x7159cc276D7d17Ab4b3bEb19959E1F39368a45Ba](https://etherscan.io/address/0x7159cc276D7d17Ab4b3bEb19959E1F39368a45Ba) | 0xAcB583326C0018eb176c9229D2726B10C6EDbDDb     | 0x1a44076050125825900e736c501f859c50fE728c     |
+| Optimism   | 10       | [0xDB8E54f39aff243B25A41e4747957eD517aF0511](https://optimistic.etherscan.io/address/0xDB8E54f39aff243B25A41e4747957eD517aF0511) | 0xb04f44A6c4F6620C8c751988C422482067C81150     | 0x1a44076050125825900e736c501f859c50fE728c     |
+| Arbitrum   | 42161    | [0xDB8E54f39aff243B25A41e4747957eD517aF0511](https://arbiscan.io/address/0xDB8E54f39aff243B25A41e4747957eD517aF0511) | 0xb04f44A6c4F6620C8c751988C422482067C81150     | 0x1a44076050125825900e736c501f859c50fE728c     |
+| BNB Chain  | 56       | [0xDB8E54f39aff243B25A41e4747957eD517aF0511](https://bscscan.com/address/0xDB8E54f39aff243B25A41e4747957eD517aF0511) | 0xb04f44A6c4F6620C8c751988C422482067C81150     | 0x1a44076050125825900e736c501f859c50fE728c     |
+| Fraxtal    | 57073    | [0xDB8E54f39aff243B25A41e4747957eD517aF0511](https://fraxscan.com/address/0xDB8E54f39aff243B25A41e4747957eD517aF0511) | 0xb04f44A6c4F6620C8c751988C422482067C81150     | 0xca29f3A6f966Cb2fc0dE625F8f325c0C46dbE958     |
+| Mantle     | 5000     | —                                                  | —                                              | —                                              |
+| Scroll     | 534352   | —                                                  | —                                              | —                                              |
+| Taiko      | 167000   | —                                                  | —                                              | —                                              |
+| Base       | 8453     | [0xDB8E54f39aff243B25A41e4747957eD517aF0511](https://basescan.org/address/0xDB8E54f39aff243B25A41e4747957eD517aF0511) | 0xb04f44A6c4F6620C8c751988C422482067C81150     | 0x1a44076050125825900e736c501f859c50fE728c     |
+| Blast      | 81457    | —                                                  | —                                              | —                                              |
+| Bera       | 80094    | [0xDB8E54f39aff243B25A41e4747957eD517aF0511](https://beratrail.io/address/0xDB8E54f39aff243B25A41e4747957eD517aF0511) | 0xb04f44A6c4F6620C8c751988C422482067C81150     | 0x6F475642a6e85809B1c36Fa62763669b1b48DD5B     |
+
+**Note:**  
+- For full proxy, implementation, and admin details, see the [deployment JSON](deployments/YND-1-v0.0.1.json).
+
+**Deployer Address:**  
+`0x4C51Ce7B2546e18449fbE16738A8D55bc195a4dd`
+
+
 ## Contract Addresses (ynETHx)
 
 ### Mainnet Addresses
