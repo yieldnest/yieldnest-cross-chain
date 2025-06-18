@@ -1,0 +1,19 @@
+{
+  "erc20Name": "YieldNest",
+  "erc20Symbol": "YND",
+  "erc20Decimals": 18,
+  "l1ChainId": 1,
+  "l2ChainIds": [
+    80094,
+    8453,
+    10,
+    42161,
+    56,
+    57073
+  ],
+  "l1ERC20Address": "0x7159cc276D7d17Ab4b3bEb19959E1F39368a45Ba",
+  "rateLimitConfig": {
+    "limit": "100000000000000000000000000",
+    "window": "3600"
+  }
+}

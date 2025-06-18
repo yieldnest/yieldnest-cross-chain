@@ -38,7 +38,7 @@ const deployNo2Owners = [
     "0x92cfFf81BD9D3ca540d3ee7e7d26A67b47FdB7c8"
 ];
 
-async function verifyRolesAndOwnership(deployment, sourceNetwork) {
+async function verifyRolesAndOwnership(deployment, sourceNetwork, deployerAddress) {
     const chainId = deployment.chainId;
     const networkName = getNetworkName(chainId);
     
@@ -53,7 +53,8 @@ async function verifyRolesAndOwnership(deployment, sourceNetwork) {
             'function EXECUTOR_ROLE() view returns (bytes32)',
             'function PROPOSER_ROLE() view returns (bytes32)',
             'function CANCELLER_ROLE() view returns (bytes32)',
-            'function DEFAULT_ADMIN_ROLE() view returns (bytes32)'
+            'function DEFAULT_ADMIN_ROLE() view returns (bytes32)',
+            'function getMinDelay() view returns (uint256)'
         ],
         provider
     );
@@ -88,6 +89,14 @@ async function verifyRolesAndOwnership(deployment, sourceNetwork) {
         console.log(`✓ Multisig has role ${role}`);
     }
 
+    const minDelay = await timelock.getMinDelay();
+    // Verify that the timelock delay is set to 24 hours (86400 seconds)
+    const expectedDelay = 86400; // 24 hours in seconds
+    if (minDelay.toString() !== expectedDelay.toString()) {
+        throw new Error(`Timelock delay is not set to 24 hours. Current delay: ${minDelay} seconds, expected: ${expectedDelay} seconds`);
+    }
+    console.log(`✓ Timelock delay correctly set to 24 hours (${expectedDelay} seconds)`);
+
     // Check multisig owners
     const owners = await multisig.getOwners();
     const expectedOwners = networkName === 'bera' || networkName === 'mainnet' || networkName === 'hemi' || networkName === 'ink' ? deployNo2Owners : deployNo1Owners;
@@ -103,6 +112,70 @@ async function verifyRolesAndOwnership(deployment, sourceNetwork) {
             throw new Error(`Missing owner ${owner} on ${networkName} multisig`);
         }
         console.log(`✓ Found owner ${owner}`);
+    }
+    {
+        // Verify proxy admin is correctly set in storage
+        console.log('\nVerifying proxy admin storage slots...');
+        
+        // Admin slot constant as defined in TransparentUpgradeableProxy
+        const ADMIN_SLOT = '0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103';
+        
+        // Function to verify proxy admin storage slot
+        async function verifyProxyAdminStorageSlot(proxyAddress, expectedAdminAddress, proxyName) {
+            const proxyAdminFromStorage = await provider.getStorageAt(proxyAddress, ADMIN_SLOT);
+            const proxyAdminAddress = ethers.utils.getAddress('0x' + proxyAdminFromStorage.slice(26));
+            
+            if (proxyAdminAddress.toLowerCase() !== expectedAdminAddress.toLowerCase()) {
+                throw new Error(`${proxyName} proxy admin storage slot mismatch. Expected: ${expectedAdminAddress}, Found: ${proxyAdminAddress}`);
+            }
+            console.log(`✓ ${proxyName} proxy admin storage slot correctly set to ${proxyAdminAddress}`);
+        }
+
+
+        // Implementation slot constant as defined in ERC1967Upgrade
+        const IMPLEMENTATION_SLOT = '0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc';
+        
+        // Function to verify proxy implementation storage slot
+        async function verifyProxyImplementationStorageSlot(proxyAddress, expectedImplementationAddress, proxyName) {
+            const implementationFromStorage = await provider.getStorageAt(proxyAddress, IMPLEMENTATION_SLOT);
+            const implementationAddress = ethers.utils.getAddress('0x' + implementationFromStorage.slice(26));
+            
+            if (implementationAddress.toLowerCase() !== expectedImplementationAddress.toLowerCase()) {
+                throw new Error(`${proxyName} implementation storage slot mismatch. Expected: ${expectedImplementationAddress}, Found: ${implementationAddress}`);
+            }
+            console.log(`✓ ${proxyName} implementation storage slot correctly set to ${implementationAddress}`);
+        }
+        
+        // Check ERC20 proxy admin storage slot
+        if (networkName !== getNetworkName(sourceNetwork[0])) {
+            await verifyProxyAdminStorageSlot(
+                deployment.erc20Address,
+                deployment.erc20ProxyAdmin,
+                'ERC20'
+            );
+        }
+        
+        // Check OFT adapter proxy admin storage slot
+        await verifyProxyAdminStorageSlot(
+            deployment.oftAdapter,
+            deployment.oftAdapterProxyAdmin,
+            'OFT adapter'
+        );
+
+        // Check OFT adapter implementation storage slot
+        await verifyProxyImplementationStorageSlot(
+            deployment.oftAdapter,
+            deployment.oftAdapterImplementation,
+            'OFT adapter'
+        );
+        
+        // Check ERC20 implementation storage slot
+        await verifyProxyImplementationStorageSlot(
+            deployment.erc20Address,
+            deployment.erc20Implementation,
+            'ERC20'
+        );
+                
     }
 
     // Check proxy admin ownership
@@ -153,6 +226,15 @@ async function verifyRolesAndOwnership(deployment, sourceNetwork) {
         console.log('✓ ERC20 DEFAULT_ADMIN_ROLE owned by Multisig');
     }
 
+    // Check that deployer address does not have DEFAULT_ADMIN_ROLE on ERC20    
+    if (networkName !== getNetworkName(sourceNetwork[0])) {
+        const deployerHasAdminRole = await erc20.hasRole(DEFAULT_ADMIN_ROLE, deployerAddress);
+        if (deployerHasAdminRole) {
+            throw new Error(`Deployer address ${deployerAddress} still has DEFAULT_ADMIN_ROLE on ERC20 - this should be revoked`);
+        }
+        console.log('✓ Deployer address does not have DEFAULT_ADMIN_ROLE on ERC20');
+    }
+
     const oftAdapter = new ethers.Contract(
         deployment.oftAdapter,
         ['function owner() view returns (address)'],
@@ -162,8 +244,10 @@ async function verifyRolesAndOwnership(deployment, sourceNetwork) {
     const oftAdapterOwner = await oftAdapter.owner();
     if (oftAdapterOwner.toLowerCase() !== chainMultisigs[networkName].toLowerCase()) {
         throw new Error(`OFT adapter not owned by Multisig. Owner: ${oftAdapterOwner}`);
+    } else {
+        console.log('✓ OFT adapter owned by Multisig');
     }
-    console.log('✓ OFT adapter owned by Multisig');
+
 
     console.log(`\n✓ All verifications passed for ${networkName}`);
 }
@@ -200,11 +284,11 @@ async function main() {
 
     // Read and parse deployment file
     const deploymentJson = JSON.parse(fs.readFileSync(deploymentPath)).chains;
-
+    const deployerAddress = JSON.parse(fs.readFileSync(deploymentPath)).deployerAddress;
     // Verify each deployment
     for (const [chainId, deployment] of Object.entries(deploymentJson)) {
         console.log(`\nVerifying ${chainId}...`);
-        await verifyRolesAndOwnership(deployment, sourceNetwork);
+        await verifyRolesAndOwnership(deployment, sourceNetwork, deployerAddress);
     }
 
     console.log('\nAll verifications completed successfully');

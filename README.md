@@ -2,12 +2,40 @@
 
 This project contains the smart contracts and scripts for deploying cross-chain Yieldnest tokens using LayerZero technology. It leverages the Foundry development toolkit for testing, building, and deploying contracts, and uses Yarn to manage dependencies.
 
+## Contract Addresses (YND)
+
+The following are the deployed contract addresses for the Yieldnest Dollar (YND) token across supported networks.  
+For full deployment details, see [`deployments/YND-1-v0.0.1.json`](deployments/YND-1-v0.0.1.json).
+
+| Network    | Chain ID | YND Token Address                                  | Proxy Admin                                    | LayerZero Endpoint                             |
+|------------|----------|----------------------------------------------------|------------------------------------------------|------------------------------------------------|
+| Ethereum   | 1        | [0x7159cc276D7d17Ab4b3bEb19959E1F39368a45Ba](https://etherscan.io/address/0x7159cc276D7d17Ab4b3bEb19959E1F39368a45Ba) | 0xAcB583326C0018eb176c9229D2726B10C6EDbDDb     | 0x1a44076050125825900e736c501f859c50fE728c     |
+| Optimism   | 10       | [0xDB8E54f39aff243B25A41e4747957eD517aF0511](https://optimistic.etherscan.io/address/0xDB8E54f39aff243B25A41e4747957eD517aF0511) | 0xb04f44A6c4F6620C8c751988C422482067C81150     | 0x1a44076050125825900e736c501f859c50fE728c     |
+| Arbitrum   | 42161    | [0xDB8E54f39aff243B25A41e4747957eD517aF0511](https://arbiscan.io/address/0xDB8E54f39aff243B25A41e4747957eD517aF0511) | 0xb04f44A6c4F6620C8c751988C422482067C81150     | 0x1a44076050125825900e736c501f859c50fE728c     |
+| BNB Chain  | 56       | [0xDB8E54f39aff243B25A41e4747957eD517aF0511](https://bscscan.com/address/0xDB8E54f39aff243B25A41e4747957eD517aF0511) | 0xb04f44A6c4F6620C8c751988C422482067C81150     | 0x1a44076050125825900e736c501f859c50fE728c     |
+| Fraxtal    | 57073    | [0xDB8E54f39aff243B25A41e4747957eD517aF0511](https://fraxscan.com/address/0xDB8E54f39aff243B25A41e4747957eD517aF0511) | 0xb04f44A6c4F6620C8c751988C422482067C81150     | 0xca29f3A6f966Cb2fc0dE625F8f325c0C46dbE958     |
+| Mantle     | 5000     | —                                                  | —                                              | —                                              |
+| Scroll     | 534352   | —                                                  | —                                              | —                                              |
+| Taiko      | 167000   | —                                                  | —                                              | —                                              |
+| Base       | 8453     | [0xDB8E54f39aff243B25A41e4747957eD517aF0511](https://basescan.org/address/0xDB8E54f39aff243B25A41e4747957eD517aF0511) | 0xb04f44A6c4F6620C8c751988C422482067C81150     | 0x1a44076050125825900e736c501f859c50fE728c     |
+| Blast      | 81457    | —                                                  | —                                              | —                                              |
+| Bera       | 80094    | [0xDB8E54f39aff243B25A41e4747957eD517aF0511](https://beratrail.io/address/0xDB8E54f39aff243B25A41e4747957eD517aF0511) | 0xb04f44A6c4F6620C8c751988C422482067C81150     | 0x6F475642a6e85809B1c36Fa62763669b1b48DD5B     |
+
+**Note:**  
+- For full proxy, implementation, and admin details, see the [deployment JSON](deployments/YND-1-v0.0.1.json).
+
+**Deployer Address:**  
+`0x4C51Ce7B2546e18449fbE16738A8D55bc195a4dd`
+
+
 ## Contract Addresses (ynETHx)
 
 ### Mainnet Addresses
+
 - Ethereum: [0x657d9ABA1DBb59e53f9F3eCAA878447dCfC96dCb](https://etherscan.io/address/0x657d9ABA1DBb59e53f9F3eCAA878447dCfC96dCb)
 
 ### Layer 2 & Sidechain Addresses
+
 - Arbitrum: [0xE231DB5F348d709239Ef1741EA30961B3B635a61](https://arbitrum.blockscout.com/address/0xE231DB5F348d709239Ef1741EA30961B3B635a61)
 - Optimism: [0xE231DB5F348d709239Ef1741EA30961B3B635a61](https://optimistic.etherscan.io/address/0xE231DB5F348d709239Ef1741EA30961B3B635a61)
 - Base: [0xE231DB5F348d709239Ef1741EA30961B3B635a61](https://basescan.org/address/0xE231DB5F348d709239Ef1741EA30961B3B635a61)
@@ -19,21 +47,20 @@ This project contains the smart contracts and scripts for deploying cross-chain 
 - Bera: [0xE231DB5F348d709239Ef1741EA30961B3B635a61](https://beratrail.io/address/0xE231DB5F348d709239Ef1741EA30961B3B635a61)
 - BNB Chain: [0xE231DB5F348d709239Ef1741EA30961B3B635a61](https://bscscan.com/address/0xE231DB5F348d709239Ef1741EA30961B3B635a61)
 
-
-
 ## Contract Addresses (ynBTCk)
 
 ### Mainnet Addresses
+
 - BNB Chain: [0x78839cE14a8213779128Ee4da6D75E1326606A56](https://bscscan.com/address/0x78839cE14a8213779128Ee4da6D75E1326606A56)
 
 ### Layer 2 & Sidechain Addresses
+
 - Ethereum: [0x68589adc7687A23Ff2B06fb032b997f09B44Ed5d](https://etherscan.io/address/0x68589adc7687A23Ff2B06fb032b997f09B44Ed5d)
 - Arbitrum: [0x68589adc7687A23Ff2B06fb032b997f09B44Ed5d](https://arbiscan.io/address/0x68589adc7687A23Ff2B06fb032b997f09B44Ed5d)
 - Optimism: [0x68589adc7687A23Ff2B06fb032b997f09B44Ed5d](https://optimistic.etherscan.io/address/0x68589adc7687A23Ff2B06fb032b997f09B44Ed5d)
 - Base: [0x68589adc7687A23Ff2B06fb032b997f09B44Ed5d](https://basescan.org/address/0x68589adc7687A23Ff2B06fb032b997f09B44Ed5d)
 - Taiko: [0x68589adc7687A23Ff2B06fb032b997f09B44Ed5d](https://taikoscan.io/address/0x68589adc7687A23Ff2B06fb032b997f09B44Ed5d)
 - Hemi: [0x68589adc7687A23Ff2B06fb032b997f09B44Ed5d](https://explorer.hemi.xyz/address/0x68589adc7687A23Ff2B06fb032b997f09B44Ed5d)
-
 
 ## Project Overview
 
@@ -46,6 +73,7 @@ This repository includes:
 ### Key Contracts and Scripts
 
 - **Main Contracts**:
+
   - `L2YnERC20Upgradeable.sol`: Layer 2 upgradeable ERC20 token contract.
   - `ImmutableMultiChainDeployer.sol`: Handles multi-chain deployment of contracts.
   - `L1YnOFTAdapterUpgradeable.sol`: Adapter for Layer 1 OFT (Omnichain Fungible Token).
@@ -124,6 +152,25 @@ You can format your Solidity code using:
 ```bash
 yarn format
 ```
+## Deployment & Configuration Workflow
+
+The deployment and configuration process is split into four main scripts, which should be run in the following order:
+
+1. **DeployOFT** (`1_DeployOFT.s.sol`):  
+   Deploys the Timelock, ERC20, and OFT Adapter contracts.  
+   - For L2, also sets up roles on the ERC20 contract.
+
+2. **ConfigureOFT** (`2_ConfigureOFT.s.sol`):  
+   Configures the deployed OFT Adapter with rate limits, peers, libraries, enforced options, DVNs, executors, and delegates.  
+   - Only the current owner of the OFT Adapter can run this script.
+
+3. **TransferOFTOwnership** (`3_TransferOFTOwnership.s.sol`):  
+   Transfers ownership of the OFT Adapter to the designated multisig or governance address.
+
+4. **VerifyOFT** (`4_VerifyOFT.s.sol`):  
+   Verifies that all contracts and configurations are correct.  
+   - If discrepancies are found, it will output the necessary transactions to bring the deployment into compliance.
+   - These transactions can be executed via multisig or manually as needed.
 
 ### Scripts
 
@@ -132,13 +179,17 @@ For most users, it is recommended to use the `yarn deploy` command (outlined in 
 However, if you need to run a script manually (e.g., `DeployL1OFTAdapter`), you can use the following command pattern:
 
 ```bash
-forge script script/DeployL1OFTAdapter.s.sol:DeployL1OFTAdapter \
-  --rpc-url ${rpc} --sig "run(string calldata)" ${path} \
-  --account ${deployerAccountName} --sender ${deployer} \
-  --broadcast --etherscan-api-key ${api} --verify
+forge script DeployOFT --rpc-url ${rpc} \
+--sig "run(string calldata)" ${path} \
+--account ${deployerAccountName} --sender ${deployer} \
+--broadcast --etherscan-api-key ${api} --verify
 ```
 
-Replace `DeployL1OFTAdapter` with the relevant contract name for other scripts if needed. But again, for ease and accuracy, the `yarn deploy` command is recommended.
+Replace `DeployOFT` with the relevant contract name for other scripts if needed. But again, for ease and accuracy, the `yarn deploy` command is recommended.
+
+All scripts must be run for every L1 and L2 chain you're deploying to if you wish to deploy manually. The Bash script will handle this automatically.
+
+When contracts are deployed often ownership of the contracts will not be transferred in order to assure correct OFT settings without having to do transactions through governance. See the Transfer Ownership section below for details.
 
 ### Deployment
 
@@ -154,17 +205,15 @@ You can find template JSON files for reference in the `script/inputs/` directory
 
 ```json
 {
-  "erc20Name": "ynETH",
-  "erc20Symbol": "ynETH",
+  "erc20Name": "ynETH MAX",
+  "erc20Symbol": "ynETHx",
+  "erc20Decimals": 18,
   "l1ChainId": 1,
-  "l2ChainIds": [
-    10,
-    8453
-  ],
-  "l1ERC20Address": "0x09db87A538BD693E9d08544577d5cCfAA6373A48",
+  "l2ChainIds": [5000, 81457],
+  "l1ERC20Address": "0x657d9ABA1DBb59e53f9F3eCAA878447dCfC96dCb",
   "rateLimitConfig": {
-    "limit": "100000000000000000000",
-    "window": "86400"
+    "limit": "3000000000000000000000",
+    "window": "3600"
   }
 }
 ```
@@ -173,9 +222,14 @@ This script will deploy all the necessary contracts across the chains specified 
 
 ### Adding a New L2 Chain
 
-To add a new L2 chain to an existing deployment, follow these steps using Morph Testnet as an example:
+This repo is uses Layer Zero V2 so please use all applicable V2 libraries when adding addresses.
+All Layer zero deployed endpoints, message libraries, and executors for supported chains can be found in the layer zero [docs](https://docs.layerzero.network/v2/deployments/deployed-contracts)
+DVNs can be found [here](https://docs.layerzero.network/v2/deployments/dvn-addresses)
+
+To add a new L2 chain to an existing deployment, follow these steps using Morph Testnet (which is not supported by layer zero) as an example:
 
 1. Update the `BaseData.s.sol` file:
+
    - Add the new testnet chain's ID to the `ChainIds` struct:
      ```solidity
      struct ChainIds {
@@ -196,35 +250,41 @@ To add a new L2 chain to an existing deployment, follow these steps using Morph 
          OFT_OWNER: TEMP_GNOSIS_SAFE,
          TOKEN_ADMIN: TEMP_GNOSIS_SAFE,
          PROXY_ADMIN: TEMP_PROXY_CONTROLLER,
-         LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c,
+         LZ_ENDPOINT: 0x6F475642a6e85809B1c36Fa62763669b1b48DD5B,
+         LZ_SEND_LIB: 0xC39161c743D0307EB9BCc9FEF03eeb9Dc4802de7,
+         LZ_RECEIVE_LIB: 0xe1844c5D63a9543023008D332Bd3d2e6f1FE1043,
+         LZ_DVN: 0xf10ea2c0d43bc4973cfbcc94ebafc39d1d4af118,
+         NETHERMIND_DVN: 0xdf30c9f6a70ce65a152c5bd09826525d7e97ba49,
+         LZ_EXECUTOR: 0xcCE466a522984415bC91338c232d98869193D46e,
          LZ_EID: 30210 // LayerZero Endpoint ID for Morph Testnet
      });
      ```
 
 2. Update the deployment input JSON file for testnets (e.g., `script/inputs/holesky-ynETH.json`):
+
    - Add the new testnet chain ID to the `l2ChainIds` array:
      ```json
      {
-       "l2ChainIds": [
-         2522,
-         2810
-       ],
+       "l2ChainIds": [2522, 2810]
        // ... other existing configuration
      }
      ```
 
 3. Add the new testnet chain's RPC URL to the `.env` file:
+
    ```
    MORPH_TESTNET_RPC_URL=https://rpc-testnet.morphl2.io
    ```
 
 4. Update the `foundry.toml` file to include the new testnet RPC endpoint:
+
    ```toml
    [rpc_endpoints]
    morph_testnet = "${MORPH_TESTNET_RPC_URL}"
    ```
 
 5. Run the deployment script for the testnet environment:
+
    ```bash
    yarn deploy script/inputs/holesky-ynETH.json
    ```
@@ -232,12 +292,66 @@ To add a new L2 chain to an existing deployment, follow these steps using Morph 
    This will deploy the necessary contracts on the new Morph Testnet chain and update the existing contracts on other testnet chains to recognize the new L2 testnet.
 
 6. After deployment, verify that the new testnet chain has been properly added:
+
    - Check that the L2YnOFTAdapter on Morph Testnet has the correct peers set for all other testnet chains.
    - Verify that all other L2YnOFTAdapters and the L1YnOFTAdapter on testnets have been updated to include Morph Testnet as a peer.
 
 7. Update any front-end applications or scripts to include support for the new Morph Testnet chain, such as adding it to the list of supported testnet networks and including its contract addresses.
 
 By following these steps, you can successfully add Morph Testnet (or any other new L2 testnet chain) to your existing multi-chain testnet deployment.
+
+### Batch Transactions for Multisig
+
+- When configuration changes are needed and the contract is owned by a multisig, the `VerifyOFT` script will output all required transactions in a batch.
+- These can be submitted to your multisig platform for execution.
+
+If adding a chain to an existing deployment, you will more than likely need to execute a multisig transaction to set the DVN and executor for the OFT Adapter on the existing l1 chain.  The Deploy script will automatically read the existing oft settings and output an encoded multisig batch transaction which will need to be executed on the L1 chain, *if ownership has been transferred to the multisig*.  the transactions will be output into the console and will need to be copied from there.
+
+#### Example Output
+
+```bash
+Please note that the following transactions must be broadcast manually.
+Safe Address: 0x...
+Chain ID: 17000
+OFT Adapter: 0x...
+The following rate limits need to be set:
+Contract: 0x...
+Method: setRateLimits
+Args:
+EID 30210: Limit 3000000000000000000000, Window 3600
+Encoded Tx Data:
+0x...
+```
+
+### Transfer Ownership
+
+Running the TransferOFTOwnership script will transfer ownership of the oft from the deployer address to the OFT_OWNER address in BaseData.s.sol
+
+```
+        __chainIdToData[__chainIds.mainnet] = Data({
+            OFT_OWNER: 0xfcad670592a3b24869C0b51a6c6FDED4F95D6975, // <=== This variable for that chain
+        })
+```
+
+For transferring contract ownership run:
+
+```bash
+// forge script TransferOFTOwnership --rpc-url ${rpc} \
+// --sig "run(string calldata,string calldata)" ${input_path} ${deployment_path} \
+// --account ${deployerAccountName} --sender ${deployer} --broadcast
+```
+
+on all relevant chains.
+
+### Role Management
+
+- On L2, the deployer is initially granted the `DEFAULT_ADMIN_ROLE` and `MINTER_ROLE` on the ERC20 contract.
+- After deployment, the `MINTER_ROLE` is granted to the OFT Adapter, and the `DEFAULT_ADMIN_ROLE` is transferred to the designated `TOKEN_ADMIN`.
+- The deployer then renounces their admin role for security.
+- Ownership of the OFT Adapter is transferred to the `OFT_OWNER` (usually a multisig or governance contract).
+
+**Important:**  
+Always verify that the deployer has renounced admin roles and that ownership has been transferred to the correct addresses to avoid security risks.
 
 ### Gas Snapshots
 
