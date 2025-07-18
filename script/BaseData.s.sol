@@ -283,9 +283,9 @@ contract BaseData is Script {
         });
 
         __chainIdToData[__chainIds.nibiru] = Data({
-            OFT_OWNER: address(0), // TODO: add owner
-            TOKEN_ADMIN: address(0), // TODO: add admin
-            PROXY_ADMIN: address(0), // TODO: add admin
+            OFT_OWNER: 0xed69aDF2802D610B39701C5E99b82085af424e7D,
+            TOKEN_ADMIN: 0xed69aDF2802D610B39701C5E99b82085af424e7D,
+            PROXY_ADMIN: 0xed69aDF2802D610B39701C5E99b82085af424e7D,
             LZ_ENDPOINT: 0x2a5E79DEE6E3544588BB3b675B1Cc3354Df2AEFD,
             LZ_SEND_LIB: 0xd1FA2df582C6C986Ec573e1a3B0218049CF1E5c7,
             LZ_RECEIVE_LIB: 0xeB8b16D080B0FcB0C6A89544f4Dd31e595382E8B,
