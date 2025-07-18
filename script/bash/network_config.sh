@@ -68,6 +68,9 @@ function getRPC() {
     57073)
         echo "ink"
         ;;
+    6900)
+        echo "nibiru"
+        ;;
     *)
         echo ""
         ;;

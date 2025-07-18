@@ -18,7 +18,8 @@ const chainIdToNetwork = {
     80094: "bera",
     56: "binance",
     43111: "hemi",
-    57073: "ink"
+    57073: "ink",
+    6900: "nibiru"
 };
 
 function getNetworkName(chainId) {
