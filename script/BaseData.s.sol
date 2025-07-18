@@ -35,6 +35,7 @@ contract BaseData is Script {
         uint256 binance;
         uint256 hemi;
         uint256 ink;
+        uint256 nibiru;
         // testnets
         uint256 holesky;
         uint256 sepolia;
@@ -73,6 +74,7 @@ contract BaseData is Script {
         binance: 56,
         hemi: 43111,
         ink: 57073,
+        nibiru: 6900,
         // testnets
         holesky: 17000,
         sepolia: 11155111,
@@ -278,6 +280,19 @@ contract BaseData is Script {
             NETHERMIND_DVN: 0xDd7B5E1dB4AaFd5C8EC3b764eFB8ed265Aa5445B,
             LZ_EXECUTOR: 0xFEbCF17b11376C724AB5a5229803C6e838b6eAe5,
             LZ_EID: 30339
+        });
+
+        __chainIdToData[__chainIds.nibiru] = Data({
+            OFT_OWNER: address(0), // TODO: add owner
+            TOKEN_ADMIN: address(0), // TODO: add admin
+            PROXY_ADMIN: address(0), // TODO: add admin
+            LZ_ENDPOINT: 0x2a5E79DEE6E3544588BB3b675B1Cc3354Df2AEFD,
+            LZ_SEND_LIB: 0xd1FA2df582C6C986Ec573e1a3B0218049CF1E5c7,
+            LZ_RECEIVE_LIB: 0xeB8b16D080B0FcB0C6A89544f4Dd31e595382E8B,
+            LZ_DVN: 0x5727E81A40015961145330D91cC27b5E189fF3e1,
+            NETHERMIND_DVN: 0xDd7B5E1dB4AaFd5C8EC3b764eFB8ed265Aa5445B,
+            LZ_EXECUTOR: 0x6A02D83e8d433304bba74EF1c427913958187142,
+            LZ_EID: 30369
         });
 
         // testnets
