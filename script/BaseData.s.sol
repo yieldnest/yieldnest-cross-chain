@@ -391,6 +391,7 @@ contract BaseData is Script {
         supportedChainIds.push(__chainIds.binance);
         supportedChainIds.push(__chainIds.hemi);
         supportedChainIds.push(__chainIds.ink);
+        supportedChainIds.push(__chainIds.nibiru);
 
         fillSupportedTestnetChainIds();
         // testnets
@@ -426,6 +427,7 @@ contract BaseData is Script {
         chainRecords[__chainIds.binance] = ChainRecord({chainId: __chainIds.binance, name: "Binance"});
         chainRecords[__chainIds.hemi] = ChainRecord({chainId: __chainIds.hemi, name: "Hemi"});
         chainRecords[__chainIds.ink] = ChainRecord({chainId: __chainIds.ink, name: "Ink"});
+        chainRecords[__chainIds.nibiru] = ChainRecord({chainId: __chainIds.nibiru, name: "Nibiru"});
 
         // Testnets
         chainRecords[__chainIds.holesky] = ChainRecord({chainId: __chainIds.holesky, name: "Holesky"});

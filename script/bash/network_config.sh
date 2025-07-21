@@ -147,6 +147,9 @@ function getEtherscanAPIKey() {
     57073)
         echo "$INK_API_KEY"
         ;;
+    6900)
+        echo "$NIBIRUSCAN_API_KEY"
+        ;;
     *)
         echo ""
         ;;
