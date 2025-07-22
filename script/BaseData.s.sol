@@ -33,6 +33,7 @@ contract BaseData is Script {
         uint256 linea;
         uint256 bera;
         uint256 binance;
+        uint256 sonic;
         uint256 hemi;
         uint256 ink;
         // testnets
@@ -71,6 +72,7 @@ contract BaseData is Script {
         linea: 59144,
         bera: 80094,
         binance: 56,
+        sonic: 146,
         hemi: 43111,
         ink: 57073,
         // testnets
@@ -255,6 +257,20 @@ contract BaseData is Script {
             LZ_EXECUTOR: 0x3ebD570ed38B1b3b4BC886999fcF507e9D584859,
             LZ_EID: 30102
         });
+
+        __chainIdToData[__chainIds.sonic] = Data({
+            OFT_OWNER: 0x721688652DEa9Cabec70BD99411EAEAB9485d436,
+            TOKEN_ADMIN: 0x721688652DEa9Cabec70BD99411EAEAB9485d436,
+            PROXY_ADMIN: 0x721688652DEa9Cabec70BD99411EAEAB9485d436,
+            LZ_ENDPOINT: 0x6F475642a6e85809B1c36Fa62763669b1b48DD5B,
+            LZ_SEND_LIB: 0xC39161c743D0307EB9BCc9FEF03eeb9Dc4802de7,
+            LZ_RECEIVE_LIB: 0xe1844c5D63a9543023008D332Bd3d2e6f1FE1043,
+            LZ_DVN: 0x282b3386571f7f794450d5789911a9804FA346b4,
+            NETHERMIND_DVN: 0x05AaEfDf9dB6E0f7d27FA3b6EE099EDB33dA029E,
+            LZ_EXECUTOR: 0x4208D6E27538189bB48E603D6123A94b8Abe0A0b,
+            LZ_EID: 30332
+        });
+
         __chainIdToData[__chainIds.hemi] = Data({
             OFT_OWNER: 0x54d4F70a7a8f4E5209F8B21cC4e88440B9192160,
             TOKEN_ADMIN: 0x54d4F70a7a8f4E5209F8B21cC4e88440B9192160,
@@ -374,6 +390,7 @@ contract BaseData is Script {
         supportedChainIds.push(__chainIds.linea);
         supportedChainIds.push(__chainIds.bera);
         supportedChainIds.push(__chainIds.binance);
+        supportedChainIds.push(__chainIds.sonic);
         supportedChainIds.push(__chainIds.hemi);
         supportedChainIds.push(__chainIds.ink);
 
@@ -409,6 +426,7 @@ contract BaseData is Script {
         chainRecords[__chainIds.linea] = ChainRecord({chainId: __chainIds.linea, name: "Linea"});
         chainRecords[__chainIds.bera] = ChainRecord({chainId: __chainIds.bera, name: "Bera"});
         chainRecords[__chainIds.binance] = ChainRecord({chainId: __chainIds.binance, name: "Binance"});
+        chainRecords[__chainIds.sonic] = ChainRecord({chainId: __chainIds.sonic, name: "Sonic"});
         chainRecords[__chainIds.hemi] = ChainRecord({chainId: __chainIds.hemi, name: "Hemi"});
         chainRecords[__chainIds.ink] = ChainRecord({chainId: __chainIds.ink, name: "Ink"});
 
