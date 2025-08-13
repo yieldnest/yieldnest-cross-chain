@@ -56,6 +56,9 @@ function getRPC() {
     56)
         echo "binance"
         ;;
+    146)
+        echo "sonic"
+        ;;
     97)
         echo "bsc_testnet"
         ;;
@@ -134,6 +137,9 @@ function getEtherscanAPIKey() {
         ;;
     97)
         echo "$BSCSCAN_API_KEY"
+        ;;
+    146)
+        echo "$SONIC_API_KEY"
         ;;
     743111)
         echo "$HEMI_API_KEY"
