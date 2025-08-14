@@ -13,7 +13,7 @@ import {L2YnOFTAdapterUpgradeable} from "@/L2YnOFTAdapterUpgradeable.sol";
 //      It should be inherited by the script that deploys the contracts, it shouldn't be used directly or as a
 // library.
 abstract contract CREATE3Script {
-    ICREATE3Factory public constant CREATE3_FACTORY = ICREATE3Factory(0x3Ab34A5758F42080A536865aD3a7D35E92861418);
+    ICREATE3Factory private constant CREATE3_FACTORY = ICREATE3Factory(0x3Ab34A5758F42080A536865aD3a7D35E92861418);
 
     function getCreate3Factory() public view returns (ICREATE3Factory) {
         if (block.chainid == 6900) {
