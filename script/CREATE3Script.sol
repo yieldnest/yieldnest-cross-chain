@@ -15,6 +15,19 @@ import {L2YnOFTAdapterUpgradeable} from "@/L2YnOFTAdapterUpgradeable.sol";
 abstract contract CREATE3Script {
     ICREATE3Factory public constant CREATE3_FACTORY = ICREATE3Factory(0x3Ab34A5758F42080A536865aD3a7D35E92861418);
 
+    function getCreate3Factory() public view returns (ICREATE3Factory) {
+        if (block.chainid == 6900) {
+            // Exception for Nibiru
+            return ICREATE3Factory(0x9fB182200b19A8b9c67D0f152DECEE74a179a57a);
+        }
+        // Add more chainid overrides here as needed, e.g.:
+        // else if (block.chainid == <CHAIN_ID>) {
+        //     return ICREATE3Factory(<ADDRESS>);
+        // }
+        // Default
+        return CREATE3_FACTORY;
+    }
+
     function deployProxy(
         bytes32 _salt,
         address _implementation,
@@ -27,7 +40,7 @@ abstract contract CREATE3Script {
         bytes memory _constructorParams = abi.encode(_implementation, _initialOwner, _initializeArgs);
         bytes memory _contractCode =
             abi.encodePacked(type(TransparentUpgradeableProxy).creationCode, _constructorParams);
-        proxy = CREATE3_FACTORY.deploy(_salt, _contractCode);
+        proxy = getCreate3Factory().deploy(_salt, _contractCode);
     }
 
     function deployL1YnOFTAdapter(
