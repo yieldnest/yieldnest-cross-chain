@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BSD 3-Clause License
 pragma solidity ^0.8.24;
 
-import {ICREATE3Factory} from "@create3-factory/ICREATE3Factory.sol";
+import {ICREATE3Factory} from "./interfaces/ICreate3Factory.sol";
 import {TransparentUpgradeableProxy} from
     "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
