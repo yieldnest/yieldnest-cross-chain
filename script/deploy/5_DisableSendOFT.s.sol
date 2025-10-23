@@ -91,9 +91,9 @@ contract DisableSendOFT is BaseScript, BatchScript {
                 // verify send library
                 if (
                     lzEndpoint.getSendLibrary(currentDeployment.oftAdapter, eid)
-                        != getData(block.chainid).LZ_SEND_LIB
+                        != getData(block.chainid).LZ_BLOCK_SEND_LIB && chainId != block.chainid
                 ) {
-                    newSendLibs.push(SendLibConfig(eid, getData(block.chainid).LZ_SEND_LIB));
+                    newSendLibs.push(SendLibConfig(eid, getData(block.chainid).LZ_BLOCK_SEND_LIB));
                 }
             }
         }
