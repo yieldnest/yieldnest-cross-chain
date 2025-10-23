@@ -92,6 +92,7 @@ contract DisableSendOFT is BaseScript, BatchScript {
                 if (
                     lzEndpoint.getSendLibrary(currentDeployment.oftAdapter, eid)
                         != getData(block.chainid).LZ_BLOCK_SEND_LIB && chainId != block.chainid
+                        && chainId != baseInput.l1ChainId
                 ) {
                     newSendLibs.push(SendLibConfig(eid, getData(block.chainid).LZ_BLOCK_SEND_LIB));
                 }
@@ -111,11 +112,20 @@ contract DisableSendOFT is BaseScript, BatchScript {
                 console.log("Method: setSendLibrary");
                 console.log("Sets the send library for the OFT Adapter on the specified EID");
                 console.log("Args: ");
+                uint256 chainIdForEid = getChainIdFromEID(newSendLibs[i].eid);
                 console.log(
-                    "OFTAdapter address: %s; EID: %d; Send Library Address: %s",
-                    currentDeployment.oftAdapter,
-                    newSendLibs[i].eid,
-                    newSendLibs[i].lib
+                    string(
+                        abi.encodePacked(
+                            "OFTAdapter address: ",
+                            vm.toString(currentDeployment.oftAdapter),
+                            "; EID: ",
+                            vm.toString(newSendLibs[i].eid),
+                            "; ChainID: ",
+                            vm.toString(chainIdForEid),
+                            "; Send Library Address: ",
+                            vm.toString(newSendLibs[i].lib)
+                        )
+                    )
                 );
                 console.log("");
                 bytes memory data = abi.encodeWithSelector(

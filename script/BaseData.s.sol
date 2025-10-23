@@ -396,6 +396,8 @@ contract BaseData is Script {
 
         fillChainRecords();
         fillSupportedChainIds();
+
+        fillLzEidToChainId();
     }
 
     function fillSupportedChainIds() internal {
@@ -465,10 +467,15 @@ contract BaseData is Script {
             ChainRecord({chainId: __chainIds.binanceTestnet, name: "Binance Testnet"});
     }
 
-    function fillLzEidToChainId() private {
+    function fillLzEidToChainId() public {
         // Fill mapping from LayerZero EID to chain ID for all supported chains
         for (uint256 i = 0; i < supportedChainIds.length; i++) {
             uint256 chainId = supportedChainIds[i];
+
+            if (__chainIdToData[chainId].OFT_OWNER == address(0)) {
+                // skip if there is no owner here; it's not to be used.
+                continue;
+            }
             uint32 eid = getData(chainId).LZ_EID;
             zlEIDToChainId[eid] = chainId;
         }
@@ -481,7 +488,7 @@ contract BaseData is Script {
 
     function getChainIdFromEID(uint32 eid) internal view returns (uint256) {
         uint256 chainId = zlEIDToChainId[eid];
-        require(chainId != 0, "BaseData: unsupported EID");
+        require(chainId != 0, string.concat("BaseData: unsupported EID: ", vm.toString(eid)));
         return chainId;
     }
 
@@ -489,7 +496,10 @@ contract BaseData is Script {
         require(isSupportedChainId(chainId), "BaseData: unsupported chainId");
 
         _data = __chainIdToData[chainId];
-        require(_data.OFT_OWNER != address(0), "BaseData: OFT OWNER not set");
+        require(
+            _data.OFT_OWNER != address(0),
+            string.concat("BaseData: OFT OWNER not set for chainId: ", vm.toString(chainId))
+        );
         require(_data.TOKEN_ADMIN != address(0), "BaseData: TOKEN ADMIN not set");
         require(_data.PROXY_ADMIN != address(0), "BaseData: PROXY ADMIN not set");
         require(_data.LZ_ENDPOINT != address(0), "BaseData: LZ ENDPOINT not set");
