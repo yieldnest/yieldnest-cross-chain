@@ -116,7 +116,9 @@ contract DisableSendOFT is BaseScript, BatchScript {
                 console.log(
                     string(
                         abi.encodePacked(
-                            "OFTAdapter address: ",
+                            "Endpoint: ",
+                            vm.toString(address(_lzEndpoint)),
+                            "; OFTAdapter address: ",
                             vm.toString(currentDeployment.oftAdapter),
                             "; EID: ",
                             vm.toString(newSendLibs[i].eid),
