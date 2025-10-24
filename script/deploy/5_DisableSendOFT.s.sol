@@ -130,19 +130,34 @@ contract DisableSendOFT is BaseScript, BatchScript {
                     )
                 );
                 console.log("");
-                bytes memory data = abi.encodeWithSelector(
-                    IMessageLibManager.setSendLibrary.selector,
-                    currentDeployment.oftAdapter,
-                    newSendLibs[i].eid,
-                    newSendLibs[i].lib
-                );
-                console.log("Encoded Tx Data: ");
-                console.logBytes(data);
 
-                if (Ownable(currentDeployment.oftAdapter).owner() != getData(block.chainid).OFT_OWNER) {
-                    _addToBatch_disableSendOFT(address(_lzEndpoint), 0, data);
+                if (currentDeployment.chainId == 6900) {
+                    console.log("For chain nibiru we set peer to 0");
+                    bytes memory data =
+                        abi.encodeWithSelector(IOAppCore.setPeer.selector, newSendLibs[i].eid, address(0));
+                    console.log("Encoded Tx Data: ");
+                    console.logBytes(data);
+
+                    if (Ownable(currentDeployment.oftAdapter).owner() != getData(block.chainid).OFT_OWNER) {
+                        _addToBatch_disableSendOFT(address(currentDeployment.oftAdapter), 0, data);
+                    } else {
+                        addToBatch(address(currentDeployment.oftAdapter), 0, data);
+                    }
                 } else {
-                    addToBatch(address(_lzEndpoint), 0, data);
+                    bytes memory data = abi.encodeWithSelector(
+                        IMessageLibManager.setSendLibrary.selector,
+                        currentDeployment.oftAdapter,
+                        newSendLibs[i].eid,
+                        newSendLibs[i].lib
+                    );
+                    console.log("Encoded Tx Data: ");
+                    console.logBytes(data);
+
+                    if (Ownable(currentDeployment.oftAdapter).owner() != getData(block.chainid).OFT_OWNER) {
+                        _addToBatch_disableSendOFT(address(_lzEndpoint), 0, data);
+                    } else {
+                        addToBatch(address(_lzEndpoint), 0, data);
+                    }
                 }
                 console.log("");
             }
