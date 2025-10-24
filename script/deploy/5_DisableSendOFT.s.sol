@@ -66,6 +66,8 @@ contract DisableSendOFT is BaseScript, BatchScript {
         string memory _fullDeploymentPath = string(abi.encodePacked(vm.projectRoot(), _deploymentPath));
         _loadInput(_jsonPath, _fullDeploymentPath);
 
+        console.log("OFT_OWNER: %s", getData(block.chainid).OFT_OWNER);
+
         // ensure erc20 and oft adapter are deployed
         if (!isContract(currentDeployment.erc20Address)) {
             revert(string.concat("ERC20 not deployed for ", vm.toString(block.chainid)));
@@ -108,7 +110,7 @@ contract DisableSendOFT is BaseScript, BatchScript {
             console.log("");
             for (uint256 i = 0; i < newSendLibs.length; i++) {
                 console.log("");
-                console.log("Contract: %s", address(_lzEndpoint));
+                console.log("Contract: %s (index: %s)", address(_lzEndpoint), i);
                 console.log("Method: setSendLibrary");
                 console.log("Sets the send library for the OFT Adapter on the specified EID");
                 console.log("Args: ");
