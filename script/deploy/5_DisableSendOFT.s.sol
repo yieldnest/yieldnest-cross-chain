@@ -139,11 +139,28 @@ contract DisableSendOFT is BaseScript, BatchScript {
                 console.log("Encoded Tx Data: ");
                 console.logBytes(data);
 
-                addToBatch(address(_lzEndpoint), data);
+                if (Ownable(currentDeployment.oftAdapter).owner() != getData(block.chainid).OFT_OWNER) {
+                    _addToBatch_disableSendOFT(currentDeployment.oftAdapter, 0, data);
+                } else {
+                    addToBatch(currentDeployment.oftAdapter, 0, data);
+                }
                 console.log("");
             }
         } else {
             console.log("No send library configuration needed.");
         }
+    }
+
+    function _addToBatch_disableSendOFT(
+        address to_,
+        uint256 value_,
+        bytes memory data_
+    )
+        public
+        isBatch(msg.sender)
+        returns (bytes memory)
+    {
+        console.log("msg.sender", msg.sender);
+        return addToBatch(to_, value_, data_);
     }
 }
