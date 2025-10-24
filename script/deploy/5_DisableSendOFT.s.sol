@@ -88,7 +88,7 @@ contract DisableSendOFT is BaseScript, BatchScript {
             uint32 eid = getEID(chainId);
 
             {
-                // verify send library
+                // disable send to all but the L1
                 if (
                     lzEndpoint.getSendLibrary(currentDeployment.oftAdapter, eid)
                         != getData(block.chainid).LZ_BLOCK_SEND_LIB && chainId != block.chainid
