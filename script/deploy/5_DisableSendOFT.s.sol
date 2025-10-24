@@ -140,9 +140,9 @@ contract DisableSendOFT is BaseScript, BatchScript {
                 console.logBytes(data);
 
                 if (Ownable(currentDeployment.oftAdapter).owner() != getData(block.chainid).OFT_OWNER) {
-                    _addToBatch_disableSendOFT(currentDeployment.oftAdapter, 0, data);
+                    _addToBatch_disableSendOFT(address(_lzEndpoint), 0, data);
                 } else {
-                    addToBatch(currentDeployment.oftAdapter, 0, data);
+                    addToBatch(address(_lzEndpoint), 0, data);
                 }
                 console.log("");
             }
