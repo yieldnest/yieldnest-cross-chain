@@ -500,6 +500,11 @@ contract BaseData is Script {
         supportedChainIds.push(__chainIds.hemi);
         supportedChainIds.push(__chainIds.ink);
         supportedChainIds.push(__chainIds.nibiru);
+        supportedChainIds.push(__chainIds.xLayer);
+        supportedChainIds.push(__chainIds.plasma);
+        supportedChainIds.push(__chainIds.plume);
+        supportedChainIds.push(__chainIds.avax);
+        supportedChainIds.push(__chainIds.polygon);
 
         fillSupportedTestnetChainIds();
         // testnets
@@ -536,6 +541,11 @@ contract BaseData is Script {
         chainRecords[__chainIds.hemi] = ChainRecord({chainId: __chainIds.hemi, name: "Hemi"});
         chainRecords[__chainIds.ink] = ChainRecord({chainId: __chainIds.ink, name: "Ink"});
         chainRecords[__chainIds.nibiru] = ChainRecord({chainId: __chainIds.nibiru, name: "Nibiru"});
+        chainRecords[__chainIds.xLayer] = ChainRecord({chainId: __chainIds.xLayer, name: "XLayer"});
+        chainRecords[__chainIds.plasma] = ChainRecord({chainId: __chainIds.plasma, name: "Plasma"});
+        chainRecords[__chainIds.plume] = ChainRecord({chainId: __chainIds.plume, name: "Plume"});
+        chainRecords[__chainIds.avax] = ChainRecord({chainId: __chainIds.avax, name: "Avax"});
+        chainRecords[__chainIds.polygon] = ChainRecord({chainId: __chainIds.polygon, name: "Polygon"});
 
         // Testnets
         chainRecords[__chainIds.holesky] = ChainRecord({chainId: __chainIds.holesky, name: "Holesky"});
