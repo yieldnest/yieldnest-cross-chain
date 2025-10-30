@@ -46,6 +46,10 @@ For full deployment details, see [`deployments/YND-1-v0.0.1.json`](deployments/Y
 - Blast: [0xE231DB5F348d709239Ef1741EA30961B3B635a61](https://blastscan.io/address/0xE231DB5F348d709239Ef1741EA30961B3B635a61)
 - Bera: [0xE231DB5F348d709239Ef1741EA30961B3B635a61](https://beratrail.io/address/0xE231DB5F348d709239Ef1741EA30961B3B635a61)
 - BNB Chain: [0xE231DB5F348d709239Ef1741EA30961B3B635a61](https://bscscan.com/address/0xE231DB5F348d709239Ef1741EA30961B3B635a61)
+- Hemi: [0x0ce01De4e7C4Dc6531f251ee6A64A4D449bc1576](https://explorer.hemi.xyz/address/0x0ce01De4e7C4Dc6531f251ee6A64A4D449bc1576)
+- Ink: [0x0ce01De4e7C4Dc6531f251ee6A64A4D449bc1576](https://explorer.inkonchain.com/address/0x0ce01De4e7C4Dc6531f251ee6A64A4D449bc1576)
+- Nibiru: [0x1d1715ecE22A6Ab6349196e7054E61de3Ac2Ea3D](https://nibiscan.io/address/0x1d1715ecE22A6Ab6349196e7054E61de3Ac2Ea3D)
+
 
 ## Contract Addresses (ynBTCk)
 
