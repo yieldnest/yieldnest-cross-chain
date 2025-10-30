@@ -19,7 +19,12 @@ const chainIdToNetwork = {
     56: "binance",
     43111: "hemi",
     57073: "ink",
-    6900: "nibiru"
+    6900: "nibiru",
+    196: "xLayer",
+    9745: "plasma",
+    98866: "plume",
+    43114: "avax",
+    137: "polygon"
 };
 
 function getNetworkName(chainId) {
