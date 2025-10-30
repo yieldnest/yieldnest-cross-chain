@@ -25,7 +25,8 @@ const chainIdToNetwork = {
     98866: "plume",
     43114: "avax",
     137: "polygon",
-    50: "xdc"
+    50: "xdc",
+    747474: "katana"
 };
 
 function getNetworkName(chainId) {

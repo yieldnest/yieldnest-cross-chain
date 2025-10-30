@@ -90,6 +90,9 @@ function getRPC() {
     50)
         echo "xdc"
         ;;
+    747474)
+        echo "katana"
+        ;;
     *)
         echo ""
         ;;
@@ -186,6 +189,9 @@ function getEtherscanAPIKey() {
         ;;
     50)
         echo "$XDSCAN_API_KEY"
+        ;;
+    747474)
+        echo "$KATANASCAN_API_KEY"
         ;;
     *)
         echo ""

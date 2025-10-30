@@ -43,6 +43,7 @@ contract BaseData is Script {
         uint256 avax;
         uint256 polygon;
         uint256 xdc;
+        uint256 katana;
         // testnets
         uint256 holesky;
         uint256 sepolia;
@@ -88,6 +89,7 @@ contract BaseData is Script {
         avax: 43114,
         polygon: 137,
         xdc: 50,
+        katana: 747474,
         // testnets
         holesky: 17000,
         sepolia: 11155111,
@@ -411,6 +413,20 @@ contract BaseData is Script {
             LZ_EID: 30365
         });
 
+        __chainIdToData[__chainIds.katana] = Data({
+            OFT_OWNER: address(0),
+            TOKEN_ADMIN: address(0),
+            PROXY_ADMIN: address(0),
+            LZ_ENDPOINT: 0x6F475642a6e85809B1c36Fa62763669b1b48DD5B,
+            LZ_SEND_LIB: 0xC39161c743D0307EB9BCc9FEF03eeb9Dc4802de7,
+            LZ_RECEIVE_LIB: 0xe1844c5D63a9543023008D332Bd3d2e6f1FE1043,
+            LZ_BLOCK_SEND_LIB: 0xC1cE56B2099cA68720592583C7984CAb4B6d7E7a,
+            LZ_DVN: 0x282b3386571f7f794450d5789911a9804FA346b4,
+            NETHERMIND_DVN: 0xaCDe1f22EEAb249d3ca6Ba8805C8fEe9f52a16e7,
+            LZ_EXECUTOR: 0x4208D6E27538189bB48E603D6123A94b8Abe0A0b,
+            LZ_EID: 30375
+        });
+
         // testnets
         __chainIdToData[__chainIds.holesky] = Data({
             OFT_OWNER: 0x72fdBD51085bDa5eEEd3b55D1a46E2e92f0837a5,
@@ -522,6 +538,7 @@ contract BaseData is Script {
         supportedChainIds.push(__chainIds.avax);
         supportedChainIds.push(__chainIds.polygon);
         supportedChainIds.push(__chainIds.xdc);
+        supportedChainIds.push(__chainIds.katana);
 
         fillSupportedTestnetChainIds();
         // testnets
@@ -563,6 +580,8 @@ contract BaseData is Script {
         chainRecords[__chainIds.plume] = ChainRecord({chainId: __chainIds.plume, name: "Plume"});
         chainRecords[__chainIds.avax] = ChainRecord({chainId: __chainIds.avax, name: "Avax"});
         chainRecords[__chainIds.polygon] = ChainRecord({chainId: __chainIds.polygon, name: "Polygon"});
+        chainRecords[__chainIds.xdc] = ChainRecord({chainId: __chainIds.xdc, name: "XDC"});
+        chainRecords[__chainIds.katana] = ChainRecord({chainId: __chainIds.katana, name: "Katana"});
 
         // Testnets
         chainRecords[__chainIds.holesky] = ChainRecord({chainId: __chainIds.holesky, name: "Holesky"});
@@ -574,7 +593,6 @@ contract BaseData is Script {
         chainRecords[__chainIds.hemiTestnet] = ChainRecord({chainId: __chainIds.hemiTestnet, name: "Hemi Testnet"});
         chainRecords[__chainIds.binanceTestnet] =
             ChainRecord({chainId: __chainIds.binanceTestnet, name: "Binance Testnet"});
-        chainRecords[__chainIds.xdc] = ChainRecord({chainId: __chainIds.xdc, name: "XDC"});
     }
 
     function fillLzEidToChainId() public {
