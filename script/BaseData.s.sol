@@ -42,6 +42,7 @@ contract BaseData is Script {
         uint256 plume;
         uint256 avax;
         uint256 polygon;
+        uint256 xdc;
         // testnets
         uint256 holesky;
         uint256 sepolia;
@@ -86,6 +87,7 @@ contract BaseData is Script {
         plume: 98866,
         avax: 43114,
         polygon: 137,
+        xdc: 50,
         // testnets
         holesky: 17000,
         sepolia: 11155111,
@@ -395,6 +397,20 @@ contract BaseData is Script {
             LZ_EID: 30109
         });
 
+        __chainIdToData[__chainIds.xdc] = Data({
+            OFT_OWNER: address(0),
+            TOKEN_ADMIN: address(0),
+            PROXY_ADMIN: address(0),
+            LZ_ENDPOINT: 0xcb566e3B6934Fa77258d68ea18E931fa75e1aaAa,
+            LZ_SEND_LIB: 0xe1844c5D63a9543023008D332Bd3d2e6f1FE1043,
+            LZ_RECEIVE_LIB: 0x2367325334447C5E1E0f1b3a6fB947b262F58312,
+            LZ_BLOCK_SEND_LIB: 0x26463a4aF811c256f669524Ec2dC1ba7e7a83C37,
+            LZ_DVN: 0x6788f52439ACA6BFF597d3eeC2DC9a44B8FEE842,
+            NETHERMIND_DVN: 0x1294E3347ec64Fd63e1d0594Dc1294247cd237C7,
+            LZ_EXECUTOR: 0xa20DB4Ffe74A31D17fc24BD32a7DD7555441058e,
+            LZ_EID: 30365
+        });
+
         // testnets
         __chainIdToData[__chainIds.holesky] = Data({
             OFT_OWNER: 0x72fdBD51085bDa5eEEd3b55D1a46E2e92f0837a5,
@@ -505,6 +521,7 @@ contract BaseData is Script {
         supportedChainIds.push(__chainIds.plume);
         supportedChainIds.push(__chainIds.avax);
         supportedChainIds.push(__chainIds.polygon);
+        supportedChainIds.push(__chainIds.xdc);
 
         fillSupportedTestnetChainIds();
         // testnets
@@ -557,6 +574,7 @@ contract BaseData is Script {
         chainRecords[__chainIds.hemiTestnet] = ChainRecord({chainId: __chainIds.hemiTestnet, name: "Hemi Testnet"});
         chainRecords[__chainIds.binanceTestnet] =
             ChainRecord({chainId: __chainIds.binanceTestnet, name: "Binance Testnet"});
+        chainRecords[__chainIds.xdc] = ChainRecord({chainId: __chainIds.xdc, name: "XDC"});
     }
 
     function fillLzEidToChainId() public {

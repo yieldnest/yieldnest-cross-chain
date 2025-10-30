@@ -87,6 +87,9 @@ function getRPC() {
     137)
         echo "polygon"
         ;;
+    50)
+        echo "xdc"
+        ;;
     *)
         echo ""
         ;;
@@ -180,6 +183,9 @@ function getEtherscanAPIKey() {
         ;;
     137)
         echo "$POLYGONSCAN_API_KEY"
+        ;;
+    50)
+        echo "$XDSCAN_API_KEY"
         ;;
     *)
         echo ""
