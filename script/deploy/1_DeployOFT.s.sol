@@ -18,6 +18,8 @@ contract DeployOFT is BaseScript {
     function run(string calldata _jsonPath) public {
         _loadInput(_jsonPath);
 
+        console.log("Using CREATE3_FACTORY at: %s", address(getCreate3Factory()));
+
         address deployer = msg.sender;
 
         if (!isContract(currentDeployment.oftAdapterTimelock)) {
@@ -36,10 +38,10 @@ contract DeployOFT is BaseScript {
             bytes memory contractCode = abi.encodePacked(type(TimelockController).creationCode, constructorParams);
 
             bytes32 timelockSalt = createTimelockSalt();
-            address predictedTimelock = CREATE3_FACTORY.getDeployed(deployer, timelockSalt);
+            address predictedTimelock = getCreate3Factory().getDeployed(deployer, timelockSalt);
 
             vm.startBroadcast();
-            currentDeployment.oftAdapterTimelock = CREATE3_FACTORY.deploy(timelockSalt, contractCode);
+            currentDeployment.oftAdapterTimelock = getCreate3Factory().deploy(timelockSalt, contractCode);
             vm.stopBroadcast();
             console.log("Timelock deployed at: ", currentDeployment.oftAdapterTimelock);
             require(predictedTimelock == currentDeployment.oftAdapterTimelock, "Timelock Prediction mismatch");
@@ -55,7 +57,7 @@ contract DeployOFT is BaseScript {
             if (!isContract(currentDeployment.erc20Address)) {
                 console.log("Deploying L2ERC20");
                 bytes32 proxySalt = createERC20ProxySalt();
-                address predictedERC20 = CREATE3_FACTORY.getDeployed(deployer, proxySalt);
+                address predictedERC20 = getCreate3Factory().getDeployed(deployer, proxySalt);
 
                 vm.startBroadcast();
                 currentDeployment.erc20Address = deployL2YnERC20(
@@ -85,7 +87,7 @@ contract DeployOFT is BaseScript {
 
             bytes32 proxySalt = createOFTAdapterProxySalt();
 
-            address predictedOFTAdapter = CREATE3_FACTORY.getDeployed(deployer, proxySalt);
+            address predictedOFTAdapter = getCreate3Factory().getDeployed(deployer, proxySalt);
             vm.startBroadcast();
             if (currentDeployment.isL1) {
                 currentDeployment.oftAdapter = deployL1YnOFTAdapter(

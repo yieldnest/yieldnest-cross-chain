@@ -172,6 +172,10 @@ abstract contract BatchScript is Script {
             // ink
             SAFE_API_BASE_URL = "";
             SAFE_MULTISEND_ADDRESS = 0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761;
+        } else if (chainId == 6900) {
+            // base testnet
+            SAFE_API_BASE_URL = "";
+            SAFE_MULTISEND_ADDRESS = 0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761;
         } else if (chainId == 743111) {
             // hemi sepolia
             SAFE_API_BASE_URL = "";
