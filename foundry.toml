@@ -54,6 +54,7 @@ bera = "${BERA_RPC_URL}"
 binance = "${BSC_RPC_URL}"
 hemi = "${HEMI_RPC_URL}"
 ink = "${INK_RPC_URL}"
+nibiru = "${NIBIRU_RPC_URL}"
 holesky = "${HOLESKY_RPC_URL}"
 sepolia = "${SEPOLIA_RPC_URL}"
 fraxtal_testnet = "${FRAX_TESTNET_RPC_URL}"
@@ -79,3 +80,4 @@ blast = { key = "${BLASTSCAN_API_KEY}", url = "https://api.blastscan.io/api/" }
 linea = { key = "${LINEASCAN_API_KEY}", url = "https://api.lineascan.build/api/" }
 bera = { key = "${BERASCAN_API_KEY}", url = "https://api.berascan.com/api/" }
 binance = { key = "${BSCSCAN_API_KEY}", url = "https://api.bscscan.com/api/" }
+nibiru = { key = "${NIBIRU_API_KEY}", url = "https://api.nibiscan.io/api/" }
