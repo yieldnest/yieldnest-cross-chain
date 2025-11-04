@@ -328,10 +328,9 @@ contract BaseData is Script {
         });
 
         __chainIdToData[__chainIds.xLayer] = Data({
-            // TODO: create msig
-            OFT_OWNER: address(0),
-            TOKEN_ADMIN: address(0),
-            PROXY_ADMIN: address(0),
+            OFT_OWNER: 0x5848af047b56F7FCc9DFEAC2F535d4800069E9E1,
+            TOKEN_ADMIN: 0x5848af047b56F7FCc9DFEAC2F535d4800069E9E1,
+            PROXY_ADMIN: 0x5848af047b56F7FCc9DFEAC2F535d4800069E9E1,
             LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c,
             LZ_SEND_LIB: 0xe1844c5D63a9543023008D332Bd3d2e6f1FE1043,
             LZ_RECEIVE_LIB: 0x2367325334447C5E1E0f1b3a6fB947b262F58312,
@@ -343,10 +342,9 @@ contract BaseData is Script {
         });
 
         __chainIdToData[__chainIds.plasma] = Data({
-            // TODO: create msig
-            OFT_OWNER: address(0),
-            TOKEN_ADMIN: address(0),
-            PROXY_ADMIN: address(0),
+            OFT_OWNER: 0x10ed81577c75A916BE953F072a18CCd7F33a1bFD,
+            TOKEN_ADMIN: 0x10ed81577c75A916BE953F072a18CCd7F33a1bFD,
+            PROXY_ADMIN: 0x10ed81577c75A916BE953F072a18CCd7F33a1bFD,
             LZ_ENDPOINT: 0x6F475642a6e85809B1c36Fa62763669b1b48DD5B,
             LZ_SEND_LIB: 0xC39161c743D0307EB9BCc9FEF03eeb9Dc4802de7,
             LZ_RECEIVE_LIB: 0xe1844c5D63a9543023008D332Bd3d2e6f1FE1043,
@@ -358,9 +356,9 @@ contract BaseData is Script {
         });
 
         __chainIdToData[__chainIds.plume] = Data({
-            OFT_OWNER: address(0),
-            TOKEN_ADMIN: address(0),
-            PROXY_ADMIN: address(0),
+            OFT_OWNER: 0x481aEa2a7B140587907A6a47E69C2D56e28F42c9,
+            TOKEN_ADMIN: 0x481aEa2a7B140587907A6a47E69C2D56e28F42c9,
+            PROXY_ADMIN: 0x481aEa2a7B140587907A6a47E69C2D56e28F42c9,
             LZ_ENDPOINT: 0xC1b15d3B262bEeC0e3565C11C9e0F6134BdaCB36,
             LZ_SEND_LIB: 0xFe7C30860D01e28371D40434806F4A8fcDD3A098,
             LZ_RECEIVE_LIB: 0x5B19bd330A84c049b62D5B0FC2bA120217a18C1C,
@@ -372,9 +370,9 @@ contract BaseData is Script {
         });
 
         __chainIdToData[__chainIds.avax] = Data({
-            OFT_OWNER: address(0),
-            TOKEN_ADMIN: address(0),
-            PROXY_ADMIN: address(0),
+            OFT_OWNER: 0x67894Cb1C01B8c94F080Df88Dd7F8FB1cc078F7E,
+            TOKEN_ADMIN: 0x67894Cb1C01B8c94F080Df88Dd7F8FB1cc078F7E,
+            PROXY_ADMIN: 0x67894Cb1C01B8c94F080Df88Dd7F8FB1cc078F7E,
             LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c,
             LZ_SEND_LIB: 0x197D1333DEA5Fe0D6600E9b396c7f1B1cFCc558a,
             LZ_RECEIVE_LIB: 0xbf3521d309642FA9B1c91A08609505BA09752c61,
@@ -386,9 +384,9 @@ contract BaseData is Script {
         });
 
         __chainIdToData[__chainIds.polygon] = Data({
-            OFT_OWNER: address(0),
-            TOKEN_ADMIN: address(0),
-            PROXY_ADMIN: address(0),
+            OFT_OWNER: 0xF5b820491A3bfb3F6fAE01421Bd3A6B7Cae483c1,
+            TOKEN_ADMIN: 0xF5b820491A3bfb3F6fAE01421Bd3A6B7Cae483c1,
+            PROXY_ADMIN: 0xF5b820491A3bfb3F6fAE01421Bd3A6B7Cae483c1,
             LZ_ENDPOINT: 0x1a44076050125825900e736c501f859c50fE728c,
             LZ_SEND_LIB: 0x6c26c61a97006888ea9E4FA36584c7df57Cd9dA3,
             LZ_RECEIVE_LIB: 0x1322871e4ab09Bc7f5717189434f97bBD9546e95,
