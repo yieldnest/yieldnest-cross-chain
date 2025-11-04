@@ -200,7 +200,7 @@ abstract contract BatchScript is Script {
             // xdc
             SAFE_API_BASE_URL = "";
             // TODO: this may not be correct
-            SAFE_MULTISEND_ADDRESS = 0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761;
+            SAFE_MULTISEND_ADDRESS = 0x0B1795ccA8E4eC4df02346a082df54D437F8D9aF;
         } else if (chainId == 747474) {
             // katana
             SAFE_API_BASE_URL = "";
