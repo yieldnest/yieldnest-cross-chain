@@ -87,4 +87,3 @@ blast = { key = "${BLASTSCAN_API_KEY}", url = "https://api.blastscan.io/api/" }
 linea = { key = "${LINEASCAN_API_KEY}", url = "https://api.lineascan.build/api/" }
 bera = { key = "${BERASCAN_API_KEY}", url = "https://api.berascan.com/api/" }
 binance = { key = "${BSCSCAN_API_KEY}", url = "https://api.bscscan.com/api/" }
-nibiru = { key = "${NIBIRU_API_KEY}", url = "https://api.nibiscan.io/api/" }
