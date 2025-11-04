@@ -37,7 +37,7 @@ contract BaseData is Script {
         uint256 hemi;
         uint256 ink;
         uint256 nibiru;
-        uint256 xLayer;
+        uint256 xlayer;
         uint256 plasma;
         uint256 plume;
         uint256 avax;
@@ -83,7 +83,7 @@ contract BaseData is Script {
         hemi: 43111,
         ink: 57073,
         nibiru: 6900,
-        xLayer: 196,
+        xlayer: 196,
         plasma: 9745,
         plume: 98866,
         avax: 43114,
@@ -327,7 +327,7 @@ contract BaseData is Script {
             LZ_EID: 30369
         });
 
-        __chainIdToData[__chainIds.xLayer] = Data({
+        __chainIdToData[__chainIds.xlayer] = Data({
             OFT_OWNER: 0x5848af047b56F7FCc9DFEAC2F535d4800069E9E1,
             TOKEN_ADMIN: 0x5848af047b56F7FCc9DFEAC2F535d4800069E9E1,
             PROXY_ADMIN: 0x5848af047b56F7FCc9DFEAC2F535d4800069E9E1,
@@ -530,7 +530,7 @@ contract BaseData is Script {
         supportedChainIds.push(__chainIds.hemi);
         supportedChainIds.push(__chainIds.ink);
         supportedChainIds.push(__chainIds.nibiru);
-        supportedChainIds.push(__chainIds.xLayer);
+        supportedChainIds.push(__chainIds.xlayer);
         supportedChainIds.push(__chainIds.plasma);
         supportedChainIds.push(__chainIds.plume);
         supportedChainIds.push(__chainIds.avax);
@@ -573,7 +573,7 @@ contract BaseData is Script {
         chainRecords[__chainIds.hemi] = ChainRecord({chainId: __chainIds.hemi, name: "Hemi"});
         chainRecords[__chainIds.ink] = ChainRecord({chainId: __chainIds.ink, name: "Ink"});
         chainRecords[__chainIds.nibiru] = ChainRecord({chainId: __chainIds.nibiru, name: "Nibiru"});
-        chainRecords[__chainIds.xLayer] = ChainRecord({chainId: __chainIds.xLayer, name: "XLayer"});
+        chainRecords[__chainIds.xlayer] = ChainRecord({chainId: __chainIds.xlayer, name: "XLayer"});
         chainRecords[__chainIds.plasma] = ChainRecord({chainId: __chainIds.plasma, name: "Plasma"});
         chainRecords[__chainIds.plume] = ChainRecord({chainId: __chainIds.plume, name: "Plume"});
         chainRecords[__chainIds.avax] = ChainRecord({chainId: __chainIds.avax, name: "Avax"});
