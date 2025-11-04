@@ -401,6 +401,21 @@ Example command for Plume chain:
 forge script script/sample/DeploySample.s.sol  --rpc-url https://rpc.plume.org   --sender 0x4C51Ce7B2546e18449fbE16738A8D55bc195a4dd --account yieldnest-0x4C51Ce7B2546e18449fbE16738A8D55bc195a4dd --broadcast --verify --verifier blockscout --verifier-url  https://explorer.plume.org/api
 ```
 
+
+### Etherscan
+
+```
+forge script script/sample/DeploySample.s.sol  --rpc-url https://eth-mainnet.g.alchemy.com/v2/MY_KEY --sender 0x67a114e733b52CAC50A168F02b5626f500801C62 --account yieldnest-0x67a114e733b52CAC50A168F02b5626f500801C62 --broadcast --verify
+```
+
+### Etherscan-like with Routescan API
+
+Example below for snowtrace:
+
+```
+forge script script/sample/DeploySample.s.sol  --rpc-url https://avax-mainnet.g.alchemy.com/v2/MY_KEY --sender 0x67a114e733b52CAC50A168F02b5626f500801C62 --account yieldnest-0x67a114e733b52CAC50A168F02b5626f500801C62 --broadcast --verify --etherscan-api-key 4DH2W5X77WV75GF6K9UEPXQ4TFUJMZT512 --verifier-url 'https://api.routescan.io/v2/network/mainnet/evm/43114/etherscan'
+```
+
 ## Linting
 
 This project uses `husky` for Git hooks and `forge fmt` for Solidity file formatting. Pre-commit hooks are set up using `lint-staged` to automatically format `.sol` files on commit.
