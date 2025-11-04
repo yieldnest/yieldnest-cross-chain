@@ -90,6 +90,14 @@ function broadcast() {
         forge script "$1" "${defaultArgs[@]}" --verifier blockscout --verifier-url "https://explorer.hemi.xyz/api" --chain 43111
     elif [[ $3 == "ink" ]]; then
         forge script "$1" "${defaultArgs[@]}" --verifier blockscout --verifier-url "https://explorer.inkonchain.com/api" --chain 57073
+    elif [[ $3 == "plume" ]]; then
+        forge script "$1" "${defaultArgs[@]}" --verifier blockscout --verifier-url "https://explorer.plume.org/api" --chain 98866
+    elif [[ $3 == "avax" ]]; then
+         forge script "$1" "${defaultArgs[@]}" --etherscan-api-key "$4" --verifier-url 'https://api.routescan.io/v2/network/mainnet/evm/43114/etherscan'--chain 43114
+    # For these networks, throw explicit errors for now
+    elif [[ $3 == "nibiru" || $3 == "xLayer" || $3 == "plasma" ]]; then
+        echo "Error: Broadcasting not supported for network '$3' yet."
+        exit 1
     else
         forge script "$1" "${defaultArgs[@]}" --etherscan-api-key "$4"
     fi
