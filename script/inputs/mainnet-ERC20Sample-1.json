@@ -11,7 +11,7 @@
       43114,
       137 
     ],
-    "l1ERC20Address": "0x0000000000000000000000000000000000000000",
+    "l1ERC20Address": "0x044C3627FC6FFd6f2C7b9e7e75eab63AB45AEcc6",
     "rateLimitConfig": {
       "limit": "50000000000000000000000000",
       "window": "3600"
