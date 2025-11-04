@@ -410,7 +410,15 @@ forge script script/sample/DeploySample.s.sol  --rpc-url https://eth-mainnet.g.a
 
 ### Etherscan-like with Routescan API
 
-Example below for snowtrace:
+Example below for snowtrace. If the scan site has a section such as this:
+
+
+
+`SITE_URL/documentation/api/etherscan-like/accounts`
+
+Example: https://snowtrace.io/documentation/api/etherscan-like/accounts
+
+One can perform the following deploy and verification:
 
 ```
 forge script script/sample/DeploySample.s.sol  --rpc-url https://avax-mainnet.g.alchemy.com/v2/MY_KEY --sender 0x67a114e733b52CAC50A168F02b5626f500801C62 --account yieldnest-0x67a114e733b52CAC50A168F02b5626f500801C62 --broadcast --verify --etherscan-api-key 4DH2W5X77WV75GF6K9UEPXQ4TFUJMZT512 --verifier-url 'https://api.routescan.io/v2/network/mainnet/evm/43114/etherscan'
