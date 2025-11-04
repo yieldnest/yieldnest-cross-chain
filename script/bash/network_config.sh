@@ -176,7 +176,7 @@ function getEtherscanAPIKey() {
         echo "$XLAYERSCAN_API_KEY"
         ;;
     9745)
-        echo "$PLASMACAN_API_KEY"
+        echo "$PLASMASCAN_API_KEY"
         ;;
     98866)
         echo "$PLUMESCAN_API_KEY"
@@ -188,7 +188,7 @@ function getEtherscanAPIKey() {
         echo "$POLYGONSCAN_API_KEY"
         ;;
     50)
-        echo "$XDSCAN_API_KEY"
+        echo "$XDCSCAN_API_KEY"
         ;;
     747474)
         echo "$KATANASCAN_API_KEY"
