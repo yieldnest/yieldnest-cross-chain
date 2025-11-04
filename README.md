@@ -387,6 +387,20 @@ forge snapshot
 - `package.json`: Yarn configuration file for managing dependencies.
 - `remappings.txt`: Foundry remappings for import resolution.
 
+
+## Contract verification
+
+### Blockscout 
+
+Follow the instructions here to run a script that is able to verify on blockscout explorer sites. https://docs.blockscout.com/devs/verification/foundry-verification
+
+
+Example command for Plume chain:
+
+```
+forge script script/sample/DeploySample.s.sol  --rpc-url https://rpc.plume.org   --sender 0x4C51Ce7B2546e18449fbE16738A8D55bc195a4dd --account yieldnest-0x4C51Ce7B2546e18449fbE16738A8D55bc195a4dd --broadcast --verify --verifier blockscout --verifier-url  https://explorer.plume.org/api
+```
+
 ## Linting
 
 This project uses `husky` for Git hooks and `forge fmt` for Solidity file formatting. Pre-commit hooks are set up using `lint-staged` to automatically format `.sol` files on commit.
@@ -400,3 +414,5 @@ For more information on Foundry and how to use it, please refer to the [Foundry 
 ## License
 
 This project is licensed under the MIT License.
+
+
