@@ -78,7 +78,7 @@ function simulate() {
 function broadcast() {
     defaultArgs=("--sig" "$2" "--rpc-url" "$3" "--account" "$DEPLOYER_ACCOUNT_NAME" "--sender" "$DEPLOYER_ADDRESS" "--broadcast" "--verify" "--slow" "--password" "$PASSWORD")
     
-    if [[ $3 == "arbitrum" || $3 == "scroll" ]]; then
+    if [[ $3 == "scroll" ]]; then
         forge script "$1" "${defaultArgs[@]}" --verifier blockscout --verifier-url "https://$3.blockscout.com/api/"
     elif [[ $3 == "bera" ]]; then
         forge script "$1" "${defaultArgs[@]}" --verifier custom --verifier-url "https://api.routescan.io/v2/network/mainnet/evm/80094/etherscan/api"
