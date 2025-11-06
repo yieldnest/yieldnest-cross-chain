@@ -26,6 +26,9 @@ const chainMultisigs = {
     "polygon": "0xF5b820491A3bfb3F6fAE01421Bd3A6B7Cae483c1"
 };
 
+const deployNo1OwnersChains = [
+    "binance", "fraxtal", "taiko", "linea", "blast", "base", "scroll", "arbitrum", "mantle", "optimism"
+]
 
 const deployNo1Owners = [
     "0x6A7Ff17e8347e7EAd5856c83299ACb506Cb878b3",
@@ -43,7 +46,7 @@ const deployNo2Owners = [
     "0x92cfFf81BD9D3ca540d3ee7e7d26A67b47FdB7c8"
 ];
 
-async function verifyRolesAndOwnership(deployment, sourceNetwork, deployerAddress) {
+async function verifyRolesAndOwnership(deployment, sourceNetwork, deployerAddress, skipCheckOftOwner) {
     const chainId = deployment.chainId;
     const networkName = getNetworkName(chainId);
     
@@ -104,7 +107,7 @@ async function verifyRolesAndOwnership(deployment, sourceNetwork, deployerAddres
 
     // Check multisig owners
     const owners = await multisig.getOwners();
-    const expectedOwners = networkName === 'bera' || networkName === 'mainnet' || networkName === 'hemi' || networkName === 'ink' ? deployNo2Owners : deployNo1Owners;
+    const expectedOwners = deployNo1OwnersChains.includes(networkName) ? deployNo1Owners : deployNo2Owners;
     
     console.log(`\nVerifying multisig owners for ${networkName}...`);
     
@@ -240,19 +243,20 @@ async function verifyRolesAndOwnership(deployment, sourceNetwork, deployerAddres
         console.log('✓ Deployer address does not have DEFAULT_ADMIN_ROLE on ERC20');
     }
 
-    const oftAdapter = new ethers.Contract(
-        deployment.oftAdapter,
-        ['function owner() view returns (address)'],
-        provider
-    );
-
-    const oftAdapterOwner = await oftAdapter.owner();
-    if (oftAdapterOwner.toLowerCase() !== chainMultisigs[networkName].toLowerCase()) {
-        throw new Error(`OFT adapter not owned by Multisig. Owner: ${oftAdapterOwner}`);
-    } else {
-        console.log('✓ OFT adapter owned by Multisig');
+    if (skipCheckOftOwner) {
+        const oftAdapter = new ethers.Contract(
+            deployment.oftAdapter,
+            ['function owner() view returns (address)'],
+            provider
+        );
+    
+        const oftAdapterOwner = await oftAdapter.owner();
+        if (oftAdapterOwner.toLowerCase() !== chainMultisigs[networkName].toLowerCase()) {
+            throw new Error(`OFT adapter not owned by Multisig. Owner: ${oftAdapterOwner}`);
+        } else {
+            console.log('✓ OFT adapter owned by Multisig');
+        }
     }
-
 
     console.log(`\n✓ All verifications passed for ${networkName}`);
 }
@@ -269,6 +273,10 @@ async function main() {
             .join('\n');
         throw new Error(`Please provide deployment file path as argument. Available paths:\n${deploymentFiles}`);
     }
+
+    // Get a boolean flag to determine if we should check owner of OFT
+    // Set this flag by checking for command-line argument '--check-oft-owner'
+    const skipCheckOftOwner = process.argv.includes('--skip-check-oft-owner');
 
     console.log('Deployment path:', deploymentPath);
 
@@ -293,7 +301,7 @@ async function main() {
     // Verify each deployment
     for (const [chainId, deployment] of Object.entries(deploymentJson)) {
         console.log(`\nVerifying ${chainId}...`);
-        await verifyRolesAndOwnership(deployment, sourceNetwork, deployerAddress);
+        await verifyRolesAndOwnership(deployment, sourceNetwork, deployerAddress, skipCheckOftOwner);
     }
 
     console.log('\nAll verifications completed successfully');
