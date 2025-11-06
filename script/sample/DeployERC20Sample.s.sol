@@ -10,7 +10,7 @@ import {ERC20Sample} from "src/sample/ERC20Sample.sol";
 contract DeployERC20Sample is Script {
     function run() public {
         vm.startBroadcast();
-        ERC20Sample sampleContract = new ERC20Sample("ERC20Sample 1", "ERC20Sample-1");
+        ERC20Sample sampleContract = new ERC20Sample("ERC20Sample 2", "ERC20Sample-2");
         console.log("SampleContract deployed at:", address(sampleContract));
         vm.stopBroadcast();
     }

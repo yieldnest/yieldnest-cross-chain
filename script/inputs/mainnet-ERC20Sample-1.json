@@ -1,6 +1,6 @@
 {
-    "erc20Name": "ERC20Sample 1",
-    "erc20Symbol": "ERC20Sample-1",
+    "erc20Name": "ERC20Sample 2",
+    "erc20Symbol": "ERC20Sample-2",
     "erc20Decimals": 18,
     "l1ChainId": 1,
     "l2ChainIds": [
@@ -11,7 +11,7 @@
       43114,
       137 
     ],
-    "l1ERC20Address": "0x044C3627FC6FFd6f2C7b9e7e75eab63AB45AEcc6",
+    "l1ERC20Address": "0x62eA138Ffd4df4fA7B836Ff6e8e69C1B89559aeA",
     "rateLimitConfig": {
       "limit": "50000000000000000000000000",
       "window": "3600"
