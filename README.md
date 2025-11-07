@@ -28,6 +28,21 @@ For full deployment details, see [`deployments/YND-1-v0.0.1.json`](deployments/Y
 `0x4C51Ce7B2546e18449fbE16738A8D55bc195a4dd`
 
 
+## Contract Addresses (ynRWAx)
+
+### Mainnet Addresses
+
+- Ethereum: [0x01Ba69727E2860b37bc1a2bd56999c1aFb4C15D8](https://etherscan.io/address/0x01Ba69727E2860b37bc1a2bd56999c1aFb4C15D8)
+
+### Layer 2 & Sidechain Addresses
+
+- Polygon: [0x185716BEB4ccBFa547B00eAd24Ac6705BD47b8f0](https://polygonscan.com/address/0x185716BEB4ccBFa547B00eAd24Ac6705BD47b8f0)
+- Arbitrum: [0x185716BEB4ccBFa547B00eAd24Ac6705BD47b8f0](https://arbiscan.io/address/0x185716BEB4ccBFa547B00eAd24Ac6705BD47b8f0)
+- Avalanche: [0x185716BEB4ccBFa547B00eAd24Ac6705BD47b8f0](https://snowtrace.io/address/0x185716BEB4ccBFa547B00eAd24Ac6705BD47b8f0)
+- BNB Chain: [0x185716BEB4ccBFa547B00eAd24Ac6705BD47b8f0](https://bscscan.com/address/0x185716BEB4ccBFa547B00eAd24Ac6705BD47b8f0)
+- Base: [0x185716BEB4ccBFa547B00eAd24Ac6705BD47b8f0](https://basescan.org/address/0x185716BEB4ccBFa547B00eAd24Ac6705BD47b8f0)
+
+
 ## Contract Addresses (ynETHx)
 
 ### Mainnet Addresses
