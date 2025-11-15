@@ -71,6 +71,28 @@ function getRPC() {
     6900)
         echo "nibiru"
         ;;
+
+    196)
+        echo "xLayer"
+        ;;
+    9745)
+        echo "plasma"
+        ;;
+    98866)
+        echo "plume"
+        ;;
+    43114)
+        echo "avax"
+        ;;
+    137)
+        echo "polygon"
+        ;;
+    50)
+        echo "xdc"
+        ;;
+    747474)
+        echo "katana"
+        ;;
     *)
         echo ""
         ;;
@@ -149,6 +171,27 @@ function getEtherscanAPIKey() {
         ;;
     6900)
         echo "$NIBIRUSCAN_API_KEY"
+        ;;
+    196)
+        echo "$XLAYERSCAN_API_KEY"
+        ;;
+    9745)
+        echo "$PLASMASCAN_API_KEY"
+        ;;
+    98866)
+        echo "$PLUMESCAN_API_KEY"
+        ;;
+    43114)
+        echo "$AVAXSCAN_API_KEY"
+        ;;
+    137)
+        echo "$POLYGONSCAN_API_KEY"
+        ;;
+    50)
+        echo "$XDCSCAN_API_KEY"
+        ;;
+    747474)
+        echo "$KATANASCAN_API_KEY"
         ;;
     *)
         echo ""
