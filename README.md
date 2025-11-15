@@ -28,6 +28,21 @@ For full deployment details, see [`deployments/YND-1-v0.0.1.json`](deployments/Y
 `0x4C51Ce7B2546e18449fbE16738A8D55bc195a4dd`
 
 
+## Contract Addresses (ynRWAx)
+
+### Mainnet Addresses
+
+- Ethereum: [0x01Ba69727E2860b37bc1a2bd56999c1aFb4C15D8](https://etherscan.io/address/0x01Ba69727E2860b37bc1a2bd56999c1aFb4C15D8)
+
+### Layer 2 & Sidechain Addresses
+
+- Polygon: [0x185716BEB4ccBFa547B00eAd24Ac6705BD47b8f0](https://polygonscan.com/address/0x185716BEB4ccBFa547B00eAd24Ac6705BD47b8f0)
+- Arbitrum: [0x185716BEB4ccBFa547B00eAd24Ac6705BD47b8f0](https://arbiscan.io/address/0x185716BEB4ccBFa547B00eAd24Ac6705BD47b8f0)
+- Avalanche: [0x185716BEB4ccBFa547B00eAd24Ac6705BD47b8f0](https://snowtrace.io/address/0x185716BEB4ccBFa547B00eAd24Ac6705BD47b8f0)
+- BNB Chain: [0x185716BEB4ccBFa547B00eAd24Ac6705BD47b8f0](https://bscscan.com/address/0x185716BEB4ccBFa547B00eAd24Ac6705BD47b8f0)
+- Base: [0x185716BEB4ccBFa547B00eAd24Ac6705BD47b8f0](https://basescan.org/address/0x185716BEB4ccBFa547B00eAd24Ac6705BD47b8f0)
+
+
 ## Contract Addresses (ynETHx)
 
 ### Mainnet Addresses
@@ -387,6 +402,43 @@ forge snapshot
 - `package.json`: Yarn configuration file for managing dependencies.
 - `remappings.txt`: Foundry remappings for import resolution.
 
+
+## Contract verification
+
+### Blockscout 
+
+Follow the instructions here to run a script that is able to verify on blockscout explorer sites. https://docs.blockscout.com/devs/verification/foundry-verification
+
+
+Example command for Plume chain:
+
+```
+forge script script/sample/DeploySample.s.sol  --rpc-url https://rpc.plume.org   --sender 0x4C51Ce7B2546e18449fbE16738A8D55bc195a4dd --account yieldnest-0x4C51Ce7B2546e18449fbE16738A8D55bc195a4dd --broadcast --verify --verifier blockscout --verifier-url  https://explorer.plume.org/api
+```
+
+
+### Etherscan
+
+```
+forge script script/sample/DeploySample.s.sol  --rpc-url https://eth-mainnet.g.alchemy.com/v2/MY_KEY --sender 0x67a114e733b52CAC50A168F02b5626f500801C62 --account yieldnest-0x67a114e733b52CAC50A168F02b5626f500801C62 --broadcast --verify
+```
+
+### Etherscan-like with Routescan API
+
+Example below for snowtrace. If the scan site has a section such as this:
+
+
+
+`SITE_URL/documentation/api/etherscan-like/accounts`
+
+Example: https://snowtrace.io/documentation/api/etherscan-like/accounts
+
+One can perform the following deploy and verification:
+
+```
+forge script script/sample/DeploySample.s.sol  --rpc-url https://avax-mainnet.g.alchemy.com/v2/MY_KEY --sender 0x67a114e733b52CAC50A168F02b5626f500801C62 --account yieldnest-0x67a114e733b52CAC50A168F02b5626f500801C62 --broadcast --verify --etherscan-api-key 4DH2W5X77WV75GF6K9UEPXQ4TFUJMZT512 --verifier-url 'https://api.routescan.io/v2/network/mainnet/evm/43114/etherscan'
+```
+
 ## Linting
 
 This project uses `husky` for Git hooks and `forge fmt` for Solidity file formatting. Pre-commit hooks are set up using `lint-staged` to automatically format `.sol` files on commit.
@@ -400,3 +452,5 @@ For more information on Foundry and how to use it, please refer to the [Foundry 
 ## License
 
 This project is licensed under the MIT License.
+
+

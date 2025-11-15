@@ -78,18 +78,24 @@ function simulate() {
 function broadcast() {
     defaultArgs=("--sig" "$2" "--rpc-url" "$3" "--account" "$DEPLOYER_ACCOUNT_NAME" "--sender" "$DEPLOYER_ADDRESS" "--broadcast" "--verify" "--slow" "--password" "$PASSWORD")
     
-    if [[ $3 == "arbitrum" || $3 == "scroll" ]]; then
+    if [[ $3 == "scroll" ]]; then
         forge script "$1" "${defaultArgs[@]}" --verifier blockscout --verifier-url "https://$3.blockscout.com/api/"
     elif [[ $3 == "bera" ]]; then
         forge script "$1" "${defaultArgs[@]}" --verifier custom --verifier-url "https://api.routescan.io/v2/network/mainnet/evm/80094/etherscan/api"
     elif [[ $3 == "morph_testnet" ]]; then
         forge script "$1" "${defaultArgs[@]}" --verifier blockscout --with-gas-price 0.03gwei --priority-gas-price 0.03gwei --verifier-url "https://explorer-api-holesky.morphl2.io/api?" --chain 2810
-    elif [[ $3 == "binance" ]]; then
-        forge script "$1" "${defaultArgs[@]}" --verifier etherscan --verifier-url "https://api.bscscan.com/api" --verifier-api-key "$BSCSCAN_API_KEY" --chain 56
     elif [[ $3 == "hemi" ]]; then
         forge script "$1" "${defaultArgs[@]}" --verifier blockscout --verifier-url "https://explorer.hemi.xyz/api" --chain 43111
     elif [[ $3 == "ink" ]]; then
         forge script "$1" "${defaultArgs[@]}" --verifier blockscout --verifier-url "https://explorer.inkonchain.com/api" --chain 57073
+    elif [[ $3 == "plume" ]]; then
+        forge script "$1" "${defaultArgs[@]}" --verifier blockscout --verifier-url "https://explorer.plume.org/api" --chain 98866
+    elif [[ $3 == "avax" ]]; then
+         forge script "$1" "${defaultArgs[@]}" --etherscan-api-key "$4" --verifier-url 'https://api.routescan.io/v2/network/mainnet/evm/43114/etherscan'--chain 43114
+    # For these networks, throw explicit errors for now
+    elif [[ $3 == "nibiru" || $3 == "xLayer" || $3 == "plasma" ]]; then
+        echo "Error: Broadcasting not supported for network '$3' yet."
+        exit 1
     else
         forge script "$1" "${defaultArgs[@]}" --etherscan-api-key "$4"
     fi
