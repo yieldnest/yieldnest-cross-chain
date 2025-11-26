@@ -398,9 +398,9 @@ contract BaseData is Script {
         });
 
         __chainIdToData[__chainIds.xdc] = Data({
-            OFT_OWNER: address(0),
-            TOKEN_ADMIN: address(0),
-            PROXY_ADMIN: address(0),
+            OFT_OWNER: 0x24D2486F5b2C2c225B6be8B4f72D46349cBf4458,
+            TOKEN_ADMIN: 0x24D2486F5b2C2c225B6be8B4f72D46349cBf4458,
+            PROXY_ADMIN: 0x24D2486F5b2C2c225B6be8B4f72D46349cBf4458,
             LZ_ENDPOINT: 0xcb566e3B6934Fa77258d68ea18E931fa75e1aaAa,
             LZ_SEND_LIB: 0xe1844c5D63a9543023008D332Bd3d2e6f1FE1043,
             LZ_RECEIVE_LIB: 0x2367325334447C5E1E0f1b3a6fB947b262F58312,
