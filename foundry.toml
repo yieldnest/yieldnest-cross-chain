@@ -11,7 +11,7 @@ fs_permissions = [
 optimizer = true
 optimizer-runs = 200
 evm_version = "cancun"
-solc_version = "0.8.24"
+solc_version = "0.8.23"
 prompt_timeout = 120
 
 [profile.fork]

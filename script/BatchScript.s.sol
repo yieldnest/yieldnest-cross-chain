@@ -1,6 +1,6 @@
 /* solhint-disable no-console, max-line-length, gas-custom-errors, quotes, avoid-low-level-calls */
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.23;
 
 // 💬 ABOUT
 // Gnosis Safe transaction batching script

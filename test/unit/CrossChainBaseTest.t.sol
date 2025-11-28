@@ -1,6 +1,6 @@
 /* solhint-disable max-states-count */
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.23;
 
 import {L1YnOFTAdapterUpgradeable} from "@/L1YnOFTAdapterUpgradeable.sol";
 import {L2YnERC20Upgradeable} from "@/L2YnERC20Upgradeable.sol";

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD 3-Clause License
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.23;
 
 import {ERC1967Utils} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Utils.sol";
 import {Vm} from "lib/forge-std/src/Vm.sol";

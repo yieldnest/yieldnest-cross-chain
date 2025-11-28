@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.23;
 
 /// @title IMintableBurnableERC20
 /// @notice This interface defines the standard functions for minting and burning an ERC20 token.

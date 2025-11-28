@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.23;
 
 import {IMintableBurnableERC20} from "@/interfaces/IMintableBurnableERC20.sol";
 

@@ -1,6 +1,6 @@
 /* solhint-disable check-send-result, multiple-sends, not-rely-on-time */
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.23;
 
 import {OptionsBuilder} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/libs/OptionsBuilder.sol";
 import {TransparentUpgradeableProxy} from

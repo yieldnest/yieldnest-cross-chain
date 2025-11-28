@@ -1,6 +1,6 @@
 /* solhint-disable gas-custom-errors */
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.23;
 
 import {BaseData} from "../BaseData.s.sol";
 import {IERC20} from "@openzeppelin/contracts/interfaces/IERC20.sol";

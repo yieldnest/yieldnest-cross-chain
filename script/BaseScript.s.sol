@@ -1,6 +1,6 @@
 /* solhint-disable gas-custom-errors */
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.23;
 
 import {BaseData} from "./BaseData.s.sol";
 import {CREATE3Script} from "./CREATE3Script.sol";

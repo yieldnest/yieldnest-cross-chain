@@ -1,6 +1,6 @@
 /* solhint-disable check-send-result */
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.23;
 
 import {CrossChainBaseTest} from "./CrossChainBaseTest.t.sol";
 

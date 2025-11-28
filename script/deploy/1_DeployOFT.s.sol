@@ -1,6 +1,6 @@
 /* solhint-disable no-console, gas-custom-errors */
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.23;
 
 import {BaseScript} from "script/BaseScript.s.sol";
 
