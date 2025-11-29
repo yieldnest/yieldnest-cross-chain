@@ -23,7 +23,7 @@ abstract contract CREATE3Script {
 
         if (block.chainid == 50) {
             // Exception for XDC Network
-            return ICREATE3Factory(0xb26DDdE390eB058c2c65426a5F4d16C662AEeef6);
+            return ICREATE3Factory(0xB275D55E0632d1015dD1947e0ed5E9F23a1170b7);
         }
 
         // Add more chainid overrides here as needed, e.g.:
