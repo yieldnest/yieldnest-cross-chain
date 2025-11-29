@@ -20,6 +20,12 @@ abstract contract CREATE3Script {
             // Exception for Nibiru
             return ICREATE3Factory(0x9fB182200b19A8b9c67D0f152DECEE74a179a57a);
         }
+
+        if (block.chainid == 50) {
+            // Exception for XDC Network
+            return ICREATE3Factory(0xb26DDdE390eB058c2c65426a5F4d16C662AEeef6);
+        }
+
         // Add more chainid overrides here as needed, e.g.:
         // else if (block.chainid == <CHAIN_ID>) {
         //     return ICREATE3Factory(<ADDRESS>);
