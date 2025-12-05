@@ -23,7 +23,8 @@ const chainMultisigs = {
     "xlayer": "0x5848af047b56F7FCc9DFEAC2F535d4800069E9E1",
     "plume": "0x481aEa2a7B140587907A6a47E69C2D56e28F42c9",
     "avax": "0x67894Cb1C01B8c94F080Df88Dd7F8FB1cc078F7E",
-    "polygon": "0xF5b820491A3bfb3F6fAE01421Bd3A6B7Cae483c1"
+    "polygon": "0xF5b820491A3bfb3F6fAE01421Bd3A6B7Cae483c1",
+    "xdc": "0x24D2486F5b2C2c225B6be8B4f72D46349cBf4458"
 };
 
 const deployNo1OwnersChains = [
