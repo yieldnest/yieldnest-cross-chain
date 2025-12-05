@@ -42,7 +42,7 @@ For full deployment details, see [`deployments/YND-1-v0.0.1.json`](deployments/Y
 - BNB Chain: [0x185716BEB4ccBFa547B00eAd24Ac6705BD47b8f0](https://bscscan.com/address/0x185716BEB4ccBFa547B00eAd24Ac6705BD47b8f0)
 - Base: [0x185716BEB4ccBFa547B00eAd24Ac6705BD47b8f0](https://basescan.org/address/0x185716BEB4ccBFa547B00eAd24Ac6705BD47b8f0)
 - XDC: [0x7054f74d6cB418e987b73c9f3c23e5cEc18217b2](https://xdcscan.com/address/0x7054f74d6cB418e987b73c9f3c23e5cEc18217b2)
-
+- Plume: [0x185716BEB4ccBFa547B00eAd24Ac6705BD47b8f0](https://explorer.plume.org/address/0x185716BEB4ccBFa547B00eAd24Ac6705BD47b8f0)
 
 
 ## Contract Addresses (ynETHx)
